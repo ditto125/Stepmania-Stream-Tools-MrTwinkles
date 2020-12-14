@@ -2,7 +2,12 @@
 
 include ('config.php');
 
-if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
+if (php_sapi_name() == "cli") {
+    // In cli-mode
+} else {
+	// Not in cli-mode
+	if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
+}
 
 $banners_copied = 0;
 $notFoundBanners = 0;
