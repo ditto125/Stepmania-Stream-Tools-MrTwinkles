@@ -5,3 +5,8 @@ The scraper parses all the high score entries from your StepMania profile folder
 # How to use this
 
 Run the "scrape_stats.php" from the cli. In this folder is a powershell script, which triggers this script everytime any Stats.xml file is updated (usually at the song evaluation screen).
+
+
+# Banner uploading
+
+Run the upload_banners.php in the CLI to upload pack banners. This script finds the first image file in each pack folder, formats the name to match the name of the pack, and uploads it to the server.

@@ -1,0 +1,62 @@
+!request
+${urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&song=${queryescape ${1:}}}
+
+!cancel
+${urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&cancel=${queryescape ${1|1}}}
+
+!requestid
+${urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&songid=${queryescape ${1:}}}
+
+!skip
+${urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&skip=${queryescape ${1|1}}}
+
+!complete
+${urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&complete=${queryescape ${1|1}}}
+
+!random
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=random&num=${queryescape ${1|1}}}
+
+!portal
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=portal&num=${queryescape ${1|1}}}
+
+!top
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=top&num=${queryescape ${1|1}}}
+
+!randomben
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=Ben+Speirs&num=${queryescape ${1|1}}}
+
+!randomddr
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=Dance+Dance+Revolution%7CDancing+Stage&num=${queryescape ${1|1}}}
+
+!banuser
+${urlfetch https://[URL]/requestor.php?security_key=[KEY]&broadcaster=${channel}&game=${game}&banuser=${queryescape ${1:}}}
+
+!whitelist
+${urlfetch https://[URL]/requestor.php?security_key=[KEY]&broadcaster=${channel}&game=${game}&whitelist=${queryescape ${1:}}}
+
+!bansong
+${urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&game=${game}&bansong=${queryescape ${1:}}}
+ 
+!bansongid
+${urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&game=${game}&bansongid=${queryescape ${1:}}}
+
+!gitgud
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=gitgud&num=${queryescape ${1|1}}}
+
+!songlist
+​The songlist for requesting songs can be found here: https://[URL]/songlist.php
+
+!randomroll
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=roll&num=3}
+
+!theusual
+${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=theusual&num=${queryescape ${1|1}}}
+
+!requesttoggle
+${urlfetch https://[URL]/broadcaster.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&requesttoggle=${queryescape ${1:|0}}}
+
+!stepstype
+${urlfetch https://[URL]/broadcaster.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&stepstype=${queryescape ${1}}}
+
+!meter
+${urlfetch https://[URL]/broadcaster.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&meter=${queryescape ${1}}}

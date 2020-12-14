@@ -13,7 +13,7 @@ function add_user($userid, $user){
 	global $conn;
 	
 	$user = strtolower($user);
-	$sql = "INSERT INTO sm_requestors (twitchid, name, dateadded) VALUES (\"$userid\", \"$user\", NOW())";
+	$sql = "INSERT INTO sm_requestors (twitchid, name, dateadded) VALUES ('$userid', '$user', NOW())";
 	$retval = mysqli_query( $conn, $sql );
 	$the_id = mysqli_insert_id($conn);
 
@@ -29,9 +29,9 @@ function check_user($userid, $user){
 
     //case where the bot cannot supply the twitchid, use the name
     if($userid > 0 || !empty($userid)){
-        $sql0 = "SELECT * FROM sm_requestors WHERE twitchid = \"$userid\"";
+        $sql0 = "SELECT * FROM sm_requestors WHERE twitchid = '$userid'";
     }else{
-        $sql0 = "SELECT * FROM sm_requestors WHERE name = \"$user\"";
+        $sql0 = "SELECT * FROM sm_requestors WHERE name = '$user'";
     }
     $retval0 = mysqli_query( $conn, $sql0 );
     $numrows = mysqli_num_rows($retval0);
@@ -74,21 +74,23 @@ function check_length(){
 }
 
 function check_cooldown($user){
+    global $cooldownMultiplier;
+    global $maxRequests;
 
-    //check total length of requests, if over 10, stop
+    //check total length of requests, if over maxRequests, stop
     $length = check_length();
 
-    if($length > 10){
+    if($length > $maxRequests){
         die("Too many songs on the request list! Try again in a few minutes.");
     }
-    $interval = 0.75 * $length;
+    $interval = $cooldownMultiplier * $length;
 
-    //scale cooldown as a function of the number of requests. 45 seconds per open request.	
+    //scale cooldown as a function of the number of requests. X minutes per open request.	
     global $conn;
-    $sql0 = "SELECT * FROM sm_requests WHERE state <> \"canceled\" AND requestor = \"$user\" AND request_time > DATE_SUB(NOW(), INTERVAL {$interval} MINUTE)";
+    $sql0 = "SELECT * FROM sm_requests WHERE state <> 'canceled' AND requestor = '$user' AND request_time > DATE_SUB(NOW(), INTERVAL {$interval} MINUTE)";
     $retval0 = mysqli_query( $conn, $sql0 );
     $numrows = mysqli_num_rows($retval0);
-    if($numrows != 0){
+    if($numrows > 0){
         die("Slow down there, part'ner! Try again in ".ceil($interval)." minutes.");
     }
 }
@@ -104,4 +106,241 @@ function recently_played($song_id){
 	return $recently_played;
 }
 
+function get_broadcaster_limits($broadcaster){
+    global $conn;
+    $broadcaserLimits = array();
+    $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster = '$broadcaster'";
+    $retval0 = mysqli_query( $conn, $sql0 );
+
+    if(mysqli_num_rows($retval0) == 1){
+        $broadcaserLimits = mysqli_fetch_assoc($retval0);
+    }
+    return $broadcaserLimits;
+}
+
+function check_request_toggle($broadcaster){
+    global $conn;
+    $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster LIKE '$broadcaster'";
+    $retval0 = mysqli_query( $conn, $sql0 );
+    $numrows = mysqli_num_rows($retval0);
+
+    if($numrows == 1){
+        $row0 = mysqli_fetch_assoc($retval0);
+        $request_toggle = $row0["request_toggle"];
+        $message = $row0["message"];
+        if($request_toggle == "OFF"){
+            die("Requests are disabled. ".$message);
+        }
+    }
+}
+
+function check_stepstype($broadcaster,$song_id){
+    global $conn;
+
+    $response = TRUE;
+    $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster LIKE '$broadcaster'";
+    $retval0 = mysqli_query( $conn, $sql0 );
+    $numrows = mysqli_num_rows($retval0);
+
+    if($numrows == 1){
+        $row0 = mysqli_fetch_assoc($retval0);
+        $stepstype = $row0["stepstype"];
+        if(!empty($stepstype)){
+            $sql = "SELECT * FROM sm_notedata WHERE song_id = '$song_id' AND stepstype LIKE '$stepstype'";
+            $retval = mysqli_query( $conn, $sql);
+            if(mysqli_num_rows($retval) == 0){
+                $response = FALSE;
+            }
+        }
+    }
+    return $response;
+}
+
+function check_meter($broadcaster,$song_id){
+    global $conn;
+
+    $response = TRUE;
+    $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster LIKE '$broadcaster'";
+    $retval0 = mysqli_query( $conn, $sql0 );
+    $numrows = mysqli_num_rows($retval0);
+
+    if($numrows == 1){
+        $row0 = mysqli_fetch_assoc($retval0);
+        $meter_max = $row0["meter_max"];
+        if(!empty($meter_max)){
+            $sql = "SELECT * FROM sm_notedata WHERE song_id = '$song_id' AND stepstype LIKE 'dance%' AND meter <= '$meter_max'";
+            $retval = mysqli_query( $conn, $sql);
+            if(mysqli_num_rows($retval) == 0){
+                $response = FALSE;
+            }
+        }
+    }
+    return $response;
+}
+
+function check_notedata($broadcaster,$song_id,$stepstype,$difficulty,$user){
+    global $conn;
+    $response = TRUE;
+
+    if(!empty($stepstype) && $stepstype != '%' && empty($difficulty)){
+        $difficulty = '%';
+    }elseif(empty($stepstype) && !empty($difficulty)){
+        die("$user didn't specify a stepstype!");
+    }
+
+    $sql = "SELECT * FROM sm_notedata WHERE song_id = '$song_id' AND stepstype LIKE '$stepstype' AND difficulty LIKE '$difficulty'";
+    $retval = mysqli_query( $conn, $sql);
+    if(mysqli_num_rows($retval) == 0){
+        $response = FALSE;
+    }
+    return $response;
+}
+
+function parseCommandArgs($argsStr,$user,$broadcaster){
+    global $conn;
+
+    $result = array('song'=>'','stepstype'=>'','difficulty'=>'');
+    $args = explode("#",$argsStr,3);
+    $args = array_map("trim",$args);
+    $result['song'] = $args[0];
+    if(count($args) == 2 && strlen($args[1]) == 3){
+        switch (strtoupper($args[1])){
+            case "BSP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Easy";
+            break;
+            case "DSP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Medium";
+            break;
+            case "MSP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Medium";
+            break;
+            case "SSP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Medium";
+            break;
+            case "ESP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Expert";
+            break;
+            case "HSP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Hard";
+            break;
+            case "CSP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Challenge";
+            break;
+            case "XSP":
+                $result['stepstype'] = "dance-single";
+                $result['difficulty'] = "Edit";
+            break;
+            case "BDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Easy";
+            break;
+            case "DDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Medium";
+            break;
+            case "MDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Medium";
+            break;
+            case "SDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Medium";
+            break;
+            case "EDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Expert";
+            break;
+            case "HDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Hard";
+            break;
+            case "CDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Challenge";
+            break;
+            case "XDP":
+                $result['stepstype'] = "dance-double";
+                $result['difficulty'] = "Edit";
+            break;
+            default:
+                die("$user gave an invalid 3-letter stepstype/difficulty.");
+        }  
+    }elseif(count($args) > 1){
+        $args = array_splice($args,1);
+        foreach ($args as $arg){
+            switch (strtolower($arg)){
+                case "single":
+                    $result['stepstype'] = "dance-single";
+                break;
+                case "singles":
+                    $result['stepstype'] = "dance-single";
+                break;
+                case "double":
+                    $result['stepstype'] = "dance-double";
+                break;
+                case "doubles":
+                    $result['stepstype'] = "dance-double";
+                break;
+                case "beginner":
+                    $result['difficulty'] = "Beginner";
+                break;
+                case "easy":
+                    $result['difficulty'] = "Easy";
+                break;
+                case "light":
+                    $result['difficulty'] = "Easy";
+                break;
+                case "medium":
+                    $result['difficulty'] = "Medium";
+                break;
+                case "standard":
+                    $result['difficulty'] = "Medium";
+                break;
+                case "hard":
+                    $result['difficulty'] = "Hard";
+                break;
+                case "heavy":
+                    $result['difficulty'] = "Hard";
+                break;
+                case "expert":
+                    $result['difficulty'] = "Hard";
+                break;
+                case "challenge":
+                    $result['difficulty'] = "Challenge";
+                break;
+                case "oni":
+                    $result['difficulty'] = "Challenge";
+                break;
+                case "edit":
+                    $result['difficulty'] = "Edit";
+                break;
+                default:
+                    die("$user gave invalid stepstype or difficulty.");
+            }
+        }
+    }
+    //if stepstype is empty, check if sm_broadcast has one set globally
+    if(empty($result['stepstype'])){
+        $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster = '$broadcaster'";
+        $retval0 = mysqli_query( $conn, $sql0 );
+        if(mysqli_num_rows($retval0) == 1){
+            $row0 = mysqli_fetch_assoc($retval0);
+            $result['stepstype'] = $row0["stepstype"];
+        }elseif(!empty($result['difficulty'])){
+            //no stepstype in sm_broadcaster and only difficulty specified
+            die("$user didn't specify a stepstype!");
+        }
+    }
+    
+    return $result;
+}
+
+mysqli_close($conn);
 ?>

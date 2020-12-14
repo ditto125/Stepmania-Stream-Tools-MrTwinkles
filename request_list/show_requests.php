@@ -2,18 +2,18 @@
 
 require ("config.php");
 
-if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key){
-        die("Fuck off");
+if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
+    die("Fuck off");
 }
 
-   $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
-   if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn = mysqli_connect(dbhost, dbuser, dbpass, db);
+if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
    
 function format_pack($pack){
 	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
 	$pack = str_ireplace("Dancing Stage","DS",$pack);
 	$pack = str_ireplace("In The Groove","ITG",$pack);
-	$pack = str_ireplace("Ben Speirs'","BS'",$pack);
+	$pack = str_ireplace("Ben Speirs","BS",$pack);
 	$pack = str_ireplace("JBEAN Exclusives","JBEAN...",$pack);
 	$pack = preg_replace("/(\(.*\).\(.*\))$/","",$pack,1);
 	if(strlen($pack) > 25)
@@ -180,7 +180,7 @@ $(function() {refresh_data();});
 	if (!$pack_img){
 		$pack_img = "images/packs/unknown.png";
 	}else{
-		$pack_img = $pack_img[0];
+		$pack_img = "images/packs/".urlencode(basename($pack_img[0]));
 	}
 	
 echo "<div class=\"songrow\" id=\"request_".$request_id."\">			
@@ -198,5 +198,5 @@ echo "
 </div>
 </html>";
 
-
+mysqli_close($conn);
 ?>

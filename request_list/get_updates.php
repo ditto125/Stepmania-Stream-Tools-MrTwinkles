@@ -2,10 +2,9 @@
 
 require("config.php");
 
-if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key){
-        die("Fuck off");
+if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
+    die("Fuck off");
 }
-
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 
@@ -13,7 +12,7 @@ function format_pack($pack){
 	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
 	$pack = str_ireplace("Dancing Stage","DS",$pack);
 	$pack = str_ireplace("In The Groove","ITG",$pack);
-	$pack = str_ireplace("Ben Speirs'","BS'",$pack);
+	$pack = str_ireplace("Ben Speirs","BS",$pack);
 	$pack = str_ireplace("JBEAN Exclusives","JBEAN...",$pack);
 	$pack = preg_replace("/(\(.*\).\(.*\))$/","",$pack,1);
 	if(strlen($pack) > 25)
@@ -73,7 +72,7 @@ function get_requests_since($id,$broadcaster){
 					if (!$pack_img){
 						$request["img"] = "images/packs/unknown.png";
 					}else{
-						$request["img"] = $pack_img[0];
+						$request["img"] = "images/packs/".urlencode(basename($pack_img[0]));
 					}
 				}
 
@@ -141,5 +140,7 @@ $output["skips"] = $skips;
 $output = json_encode($output);
 
 echo "$output";
+
+mysqli_close($conn);
 
 ?>

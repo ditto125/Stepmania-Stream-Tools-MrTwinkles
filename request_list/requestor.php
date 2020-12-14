@@ -2,9 +2,9 @@
 
 include("config.php");
 
-if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key){
-    die("Fuck off");
-}
+if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
+        die("Fuck off");
+    }
 
 if(!isset($_GET["banuser"]) && !isset($_GET["whitelist"])){
 	die();
@@ -95,4 +95,5 @@ if(isset($_GET["whitelist"])){
     toggle_whitelist(clean_user($_GET["whitelist"]));
 }
 
+mysqli_close($conn);
 ?>

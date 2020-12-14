@@ -2,7 +2,7 @@
 
 include("config.php");
 
-if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key){
+if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");
 }
 
@@ -107,12 +107,14 @@ if (mysqli_num_rows($retval) > 0) {
 	$i=1;
     while($row = mysqli_fetch_assoc($retval)) {
         if($i>4){die();}
-	echo "[ ".$row["id"]. " > " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
+	echo " [ ".$row["id"]. " > " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
 	$i++;
     }
 }
 
 die();
 }
+
+mysqli_close();
 
 ?>

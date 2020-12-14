@@ -1,6 +1,17 @@
+<?php
+//get subdomain
+$subdomain = $_SERVER['SERVER_NAME'];
+$subdomain = substr($subdomain,0,strpos($subdomain,'.'));
+if( substr(strrev($subdomain),0,1)=="s"){
+	$subdomain = ucfirst($subdomain.'\'');
+}else{
+	$subdomain = ucfirst($subdomain.'\'s');
+}
+?>
+
 <html>
 <head>
- <title>SM5 Songlist</title>
+ <title><?php echo $subdomain; ?> Songlist</title>
 <link rel="stylesheet" 
 	href="w3.css">
 <link rel="stylesheet" 
@@ -11,6 +22,7 @@
 <meta name="robots" content="noindex,nofollow">	  
 <style>
 	body {
+		/*background-image: url("images/background.jpg");*/
 		background-color:#303030;
 	}
 </style>
@@ -26,12 +38,21 @@ $(document).ready(function(){
   });
 });
 </script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-R45DT9VTL6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-R45DT9VTL6');
+</script>
 </head>
 
 <body>
 <div class="w3-container w3-theme-dark">
 
-<center><h1><a href="songlist.php"><img src="images/ddr_arrow.png" align="float:left" width="35px" style="margin:5px"></a><strong>SM5 Songlist</strong></h1>
+<center><h1><a href="songlist.php"><img src="images/ddr_arrow.png" align="float:left" width="35px" style="margin:5px"></a><strong><?php echo $subdomain; ?> Songlist</strong></h1>
 </center>
 
 <?php
@@ -656,6 +677,7 @@ foreach($songs as $song){
 
 }
 echo "</tbody></table>";
+mysqli_close($conn);
 ?>
 
 <div class="w3-left">
@@ -680,6 +702,7 @@ echo "</tbody></table>";
 
 <div class="w3-padding-small w3-container w3-theme w3-center">
 StepMania song scraping code used to populate this table <strike>stolen</strike> borrowed from <a href="https://github.com/DaveLinger/Stepmania-Stream-Tools" target="_blank">Dave Linger</a> aka <a href="https://twitch.tv/ddrdave" target="_blank">(ddrDave)</a>.
+Hosting provided by <a href="https://smrequests.com" target="_blank">SMrequests.</a>
 </div>
 
 </html>
