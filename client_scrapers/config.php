@@ -15,7 +15,7 @@ $songsDir = "D:/StepMania 5.1/Songs";
 $packsIgnore = array("~WIP");
 
 //Target url for POSTING updates to the server and uploading banner images to the server.
-$target_url = "https://subdomain.smrequests.com";
+$target_url = "https://[URL]";
 
 //Security key. Set this to anything. All incoming requests (like from moobot) will have to include this key or they'll be discarded.
 //This way people can't hit your endpoints directly without permission. This MUST match the security key on the server-side.
