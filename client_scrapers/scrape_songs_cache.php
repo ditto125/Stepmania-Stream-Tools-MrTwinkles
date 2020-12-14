@@ -21,6 +21,7 @@ if (php_sapi_name() == "cli") {
 } else {
 	// Not in cli-mode
 	if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
+	$security_key = $GET['security_key'];
 }
 
 include ('config.php');
@@ -206,7 +207,7 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); //must specify cacert.pem location in php.ini
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	$result = curl_exec ($ch);

@@ -5,7 +5,7 @@ include ('config.php');
 $fileSizeMax = 5242880; //5MB
 	
 // recieve upload of banner images via POST, FILES
-if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
+if(!isset($_POST["security_key"]) || $_POST["security_key"] != $security_key || empty($_POST["security_key"])){
     die("Fuck off");
 }
 

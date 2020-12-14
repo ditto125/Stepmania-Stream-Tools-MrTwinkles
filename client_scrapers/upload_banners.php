@@ -1,17 +1,19 @@
 <?php
 
-include ('config.php');
-
 if (php_sapi_name() == "cli") {
     // In cli-mode
 } else {
 	// Not in cli-mode
 	if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
+	$security_key = $GET['security_key'];
 }
+
+include ('config.php');
 
 $banners_copied = 0;
 $notFoundBanners = 0;
 $cPacks = 0;
+$fileSizeMax = 5242880; //5MB
 
 function additionalSongsFolders($directory){
 	$prefFile = $directory."/Preferences.ini";
@@ -52,7 +54,7 @@ function curl_upload($file,$pack_name){
 	//curl_setopt($ch, CURLOPT_VERBOSE, 1);
 	curl_setopt($ch, CURLOPT_URL,$target_url."/banners.php");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); //must specify cacert.pem location in php.ini
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
 	curl_setopt($ch, CURLOPT_SAFE_UPLOAD, true);
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_POST,1); 
@@ -91,7 +93,12 @@ foreach ($pack_dir as $path){
 	
 	if (isset($img_path) && !empty($img_path)){
 		//use the first result as the pack banner and add to array
-		$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
+		//check for filesize
+		if (filesize($img_path[0]) > $fileSizeMax){
+			echo $pack_name."'s image file is too large!\n";
+		}else{
+			$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
+		}
 	}else{
 		echo "No banner image for ".$pack_name."\n";
 		$notFoundBanners++;

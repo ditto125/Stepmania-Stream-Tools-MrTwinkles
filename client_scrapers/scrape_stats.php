@@ -14,10 +14,54 @@
 //Config
 
 if (php_sapi_name() == "cli") {
-    // In cli-mode
+	// In cli-mode
+	//process command arguments as profile IDs and run mode
+	$profileIDs = array();
+	$autoRun = TRUE;
+	$frequency = 5;
+	$fileTime = "";
+
+	if ($argc > 1){
+		$argv = array_splice($argv,1);
+		foreach ($argv as $arg){
+			if (is_numeric($arg) && strlen($arg) == 8){
+				$profileIDs[] = $arg;
+			}elseif ($arg == "-auto"){
+				$autoRun = FALSE;
+			}
+		}
+		if (empty($profileIDs)){die("Please specify at least 1 profile ID! Usage: scrape_stats.php [-auto] 00000000");}
+	}else{
+		die("No arguments! Usage: scrape_stats.php [-auto] 00000000");
+	}
+
 } else {
 	// Not in cli-mode
 	if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
+	$security_key = $GET['security_key'];
+
+	//check for profile IDS
+	if (!isset($_GET['id']) || empty($_GET['id'])){die("Please specify at least 1 profile ID! Usage: &id=00000000+00000001");}
+	//check if no arguments are specified
+	if (!isset($_GET['auto']) && !isset($_GET['id'])){die("No arguments! Usage: scrape_stats.php?id=00000000[+00000001]&[auto]");}
+
+	//process command arguments as profile IDs and run mode
+	$profileIDs = array();
+	$autoRun = TRUE;
+	$frequency = 5;
+	$fileTime = '';
+
+	//get auto mode
+	if (isset($_GET['auto'])){$autoRun = FALSE;}
+	//get profile IDs
+	if (isset($_GET['id'])){
+		$getIds = explode("+",isset($_GET['id']));
+		foreach ($getIds as $getId){
+			if (is_numeric($getId) && strlen($getId) == 8){
+				$profileIDs[] = $getId;
+			}
+		}
+	}
 }
 
 include ('config.php');
@@ -134,7 +178,7 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); //must specify cacert.pem location in php.ini
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
@@ -144,26 +188,6 @@ function curlPost($postSource, $array){
 	curl_close ($ch);
 	echo $result; //echo from the server-side script
 	unset($ch,$result,$post,$jsonArray);
-}
-
-//process command arguments as profile IDs and run mode
-$profileIDs = array();
-$autoRun = TRUE;
-$frequency = 5;
-$fileTime = '';
-
-if ($argc > 1){
-	$argv = array_splice($argv,1);
-	foreach ($argv as $arg){
-		if (is_numeric($arg) && strlen($arg) == 8){
-			$profileIDs[] = $arg;
-		}elseif ($arg == "-auto"){
-			$autoRun = FALSE;
-		}
-	}
-	if (empty($profileIDs)){die("Please specify at least 1 profile ID! Usage: scrape_stats.php [-auto] 00000000");}
-}else{
-	die("No arguments! Usage: scrape_stats.php [-auto] 00000000");
 }
 
 $file_arr = find_statsxml ($profileDir,$profileIDs);

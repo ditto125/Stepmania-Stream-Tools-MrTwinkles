@@ -98,7 +98,7 @@ function lookupSongID ($song_dir){
 		$song_pack = splitSongDir($song_dir)['pack'];
 		$songInfo = array('id' => $song_id, 'title' => $song_title, 'pack' => $song_pack);
 		//notify user that an ID was not found in the sm_songs db
-		echo "No song ID found for {$song_title} in {$song_pack}. Moving on...\n";
+		//echo "No song ID found for {$song_title} in {$song_pack}. Moving on...\n";
 	}
 	return $songInfo;
 }
@@ -194,6 +194,7 @@ function scrapeSong($songCache_array){
 
 		$pack = substr($song_dir, 0, strripos($song_dir, "/"));
 		$pack = substr($pack, strripos($pack, "/")+1);
+		$pack = addslashes($pack);
 		
 	//
 	
@@ -319,6 +320,7 @@ function scrapeSong($songCache_array){
 	if( isset($metadata['#CREDIT']) && !empty($metadata['#CREDIT'])){
 		//song has a credit
 		$song_credit = $metadata['#CREDIT'];
+		$song_credit = addslashes($song_credit);
 	}else{
 		$song_credit = "";
 	}
