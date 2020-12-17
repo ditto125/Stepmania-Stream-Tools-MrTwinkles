@@ -109,7 +109,8 @@ if($_GET["random"] == "random"){
 		JOIN sm_scores ON sm_scores.song_id=sm_songs.id 
 		WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned<>1 AND installed=1 AND  sm_songsplayed.numplayed>1 AND percentdp>0 
 		GROUP BY sm_songs.id 
-		ORDER BY RAND()";
+		ORDER BY RAND()
+		LIMIT 100";
         $retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
@@ -131,7 +132,7 @@ die();
 //standard portal request, any installed/unbanned songs can be selected
 if($_GET["random"] == "portal"){
 
-        $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned<>1 ORDER BY RAND()";
+        $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned<>1 ORDER BY RAND() LIMIT 100";
         $retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
@@ -230,7 +231,7 @@ if($_GET["random"] == "djfipu"){
 		$random = htmlspecialchars($random);
 		//$random = clean($random);
 		
-        $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned<>1 AND (artist IN('e-rotic','erotic','crispy','aqua','missing heart') OR title IN('exotic ethnic','Dadadadadadadadadada','Bi') OR title LIKE '%euro%' OR subtitle LIKE '%euro%') ORDER BY RAND() LIMIT {$num}";
+        $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned<>1 AND (artist IN('e-rotic','erotic','crispy','aqua','missing heart') OR title IN('exotic ethnic','Dadadadadadadadadada','Bi') OR title LIKE '%euro%' OR subtitle LIKE '%euro%') ORDER BY RAND() LIMIT 100";
 		$retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
@@ -258,7 +259,8 @@ if($_GET["random"] == "roll"){
 		JOIN sm_scores ON sm_scores.song_id=sm_songs.id 
 		WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned<>1 AND installed=1 AND  sm_songsplayed.numplayed>1 AND percentdp>0 
 		GROUP BY sm_songs.id 
-		ORDER BY RAND()";
+		ORDER BY RAND()
+		LIMIT 100";
         $retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
@@ -319,7 +321,8 @@ if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 		JOIN sm_notedata ON sm_notedata.song_id = sm_songs.id 
 		WHERE installed=1 AND banned<>1 AND (pack REGEXP '{$random}' OR sm_songs.credit REGEXP '{$random}' OR sm_notedata.credit REGEXP '{$random}') 
 		GROUP BY sm_songs.id 
-		ORDER BY RAND()";
+		ORDER BY RAND()
+		LIMIT 100";
 		$retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
