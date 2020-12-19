@@ -108,7 +108,7 @@ if(isset($_GET["cancel"])){
 	if (!empty($_GET["cancel"]) && is_numeric($_GET["cancel"]) && $_GET["cancel"] > 0){
 		$num = $_GET["cancel"] - 1;
 	}elseif(empty($_GET["cancel"])){
-		$num = 1;
+		$num = 0;
 	}else{
 		die("Good one, ".$user. ", but only positive integers are allowed!");
 	}
@@ -143,7 +143,7 @@ if(isset($_GET["skip"])){
 	if (!empty($_GET["skip"]) && is_numeric($_GET["skip"]) && $_GET["skip"] > 0){
 		$num = $_GET["skip"] - 1;
 	}elseif(empty($_GET["skip"])){
-		$num = 1;
+		$num = 0;
 	}else{
 		die("Good one, ".$user. ", but only positive integers are allowed!");
 	}
@@ -171,7 +171,7 @@ if(isset($_GET["complete"])){
 	if (!empty($_GET["complete"]) && is_numeric($_GET["complete"]) && $_GET["complete"] > 0){
 		$num = $_GET["complete"] - 1;
 	}elseif(empty($_GET["complete"])){
-		$num = 1;
+		$num = 0;
 	}else{
 		die("Good one, ".$user. ", but only positive integers are allowed!");
 	}
