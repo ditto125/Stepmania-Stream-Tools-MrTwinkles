@@ -231,6 +231,23 @@ CREATE TABLE `sm_songs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `sm_songsplayed`
+--
+
+CREATE TABLE `sm_songsplayed` (
+  `id` int(11) NOT NULL,
+  `song_id` int(11) DEFAULT NULL,
+  `song_dir` text DEFAULT NULL,
+  `request_id` int(11) DEFAULT NULL,
+  `stepstype` text DEFAULT NULL,
+  `difficulty` text DEFAULT NULL,
+  `username` varchar(50) DEFAULT NULL,
+  `numplayed` int(11) DEFAULT NULL,
+  `lastplayed` datetime DEFAULT NULL,
+  `datetime` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
 -- Indexes for dumped tables
 --
 
@@ -273,6 +290,13 @@ ALTER TABLE `sm_songs`
   ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
+-- Indexes for table `sm_songsplayed`
+--
+ALTER TABLE `sm_songsplayed`
+  ADD PRIMARY KEY (`id`);
+
+--
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -311,6 +335,13 @@ ALTER TABLE `sm_scores`
 --
 ALTER TABLE `sm_songs`
   MODIFY `id` mediumint(9) NOT NULL AUTO_INCREMENT;
+COMMIT;
+
+--
+-- AUTO_INCREMENT for table `sm_songsplayed`
+--
+ALTER TABLE `sm_songsplayed`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
