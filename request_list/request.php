@@ -219,8 +219,12 @@ die();
 if(isset($_GET["song"])){
 	$commandArgs = parseCommandArgs($_GET["song"],$user,$broadcaster);
 	$song = $commandArgs["song"];
-	$song = clean($song);
 
+	//easter egg requests
+	$song = is_emote_request($song);
+	//process/clean song
+	$song = clean($song);
+	
 	//Determine if there's a song with this exact title. If someone requested "Tsugaru", this would match "TSUGARU" but would not match "TSUGARU (Apple Mix)"
         $sql = "SELECT * FROM sm_songs WHERE (IF(strippedsubtitle is NULL OR strippedsubtitle='',strippedtitle,CONCAT(strippedtitle,'-',strippedsubtitle))=\"$song\" OR strippedtitle=\"$song\") AND installed = 1 ORDER BY title ASC, pack ASC";
         $retval = mysqli_query( $conn, $sql );

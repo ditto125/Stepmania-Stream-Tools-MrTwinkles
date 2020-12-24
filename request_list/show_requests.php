@@ -11,8 +11,11 @@ if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
    
 function format_pack($pack){
 	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
+	$pack = str_ireplace("DanceDanceRevolution","DDR",$pack);
 	$pack = str_ireplace("Dancing Stage","DS",$pack);
+	$pack = str_ireplace("DancingStage","DS",$pack);
 	$pack = str_ireplace("In The Groove","ITG",$pack);
+	$pack = str_ireplace("InTheGroove","ITG",$pack);
 	$pack = str_ireplace("Ben Speirs","BS",$pack);
 	$pack = str_ireplace("JBEAN Exclusives","JBEAN...",$pack);
 	$pack = preg_replace("/(\(.*\).\(.*\))$/","",$pack,1);

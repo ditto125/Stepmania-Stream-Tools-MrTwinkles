@@ -100,6 +100,9 @@ if(!empty($broadcasterLimits) && is_array($broadcasterLimits)){
 //	if(empty($meter)){$meter = '99999999999';}
 }
 
+//get scoring type
+global $scoreType;
+
 //standard random request from songs that have at least been played once
 if($_GET["random"] == "random"){
 
@@ -187,10 +190,10 @@ die();
 //random worst 25 scored top 100 songs
 if($_GET["random"] == "gitgud"){
 
-        $sql = "SELECT id,title,subtitle,artist,pack,percentdp,stepstype 
+        $sql = "SELECT id,title,subtitle,artist,pack,percentdp,score,stepstype 
 				FROM sm_songs 
 				JOIN 
-				(SELECT song_id,MAX(percentdp) AS percentdp,stepstype 
+				(SELECT song_id,MAX(percentdp) AS percentdp,score,stepstype 
 					FROM sm_scores 
 					WHERE EXISTS 
 						(SELECT song_id,SUM(numplayed) AS numplayed   
@@ -213,7 +216,18 @@ if($_GET["random"] == "gitgud"){
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $row['stepstype']);
-					echo ("$user dares you to beat ".number_format($row['percentdp']*100,2)."% at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+					switch ($scoreType){
+						case "ddr":
+							$displayScore = number_format($row['score'],0,".",",");
+							break;
+						case "itg":
+							$displayScore = number_format($row['percentdp']*100,2);
+							$displayScore = $displayScore."%";
+							break;
+						default:
+							$displayScore = number_format($row['percentdp']*100,2);
+					}
+					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
 				}
 			}
