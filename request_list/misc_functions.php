@@ -106,6 +106,21 @@ function recently_played($song_id){
 	return $recently_played;
 }
 
+function is_emote_request($song){
+    $emoteArray = array (
+        "mrtwin1HaHaHa"     =>  "The Smiler",
+        "danizoOHNO"        =>  "Watch Me",
+        "beniplKitty"       =>  "Kitty From Hell",
+        "djfipuMyDog"       =>  "Dadadadadadadadadada"
+    );
+
+    if(array_key_exists($song,$emoteArray)){
+        $song = $emoteArray[$song];
+    }
+
+    return $song;
+}
+
 function get_broadcaster_limits($broadcaster){
     global $conn;
     $broadcaserLimits = array();

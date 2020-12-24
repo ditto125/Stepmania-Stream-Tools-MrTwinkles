@@ -66,4 +66,9 @@ $cooldownMultiplier = 0.4;
 //This number should be 10 or less.
 $maxRequests = 10;
 
+//Scoring type. This is the scoring type that will be visible for score-based random commands.
+//This does not change how any scores are determined, only which score type is displayed.
+//Values can be "itg" or "ddr". ITG scores are in percentage and DDR scores are a number out of 1M.
+$scoreType = "itg";
+
 ?>

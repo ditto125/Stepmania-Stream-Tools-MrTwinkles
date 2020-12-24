@@ -82,6 +82,11 @@ function fixEncoding($line){
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
 		//echo "Text: ".$line."\n";
 	}
+	//afer conversion we check AGAIN to confirm the new line is encoded as UTF-8
+	if(mb_detect_encoding($line) != 'UTF-8'){
+		//string still has invalid characters, give up and remove them completely
+		$line = mb_convert_encoding($line,'UTF-8','UTF-8');
+	}
 	return $line;
 }
 

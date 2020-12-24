@@ -29,7 +29,7 @@ include ('config.php');
 // Code
 
 function fixEncoding($line){
-	//detect and convert ascii directory string to UTF-8 (Thanks, StepMania!)
+	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
 	if($encoding != 'UTF-8'){
 		//echo "Invalid UTF-8 detected ($encoding). Converting...\n";
@@ -41,6 +41,11 @@ function fixEncoding($line){
 		//echo "Invalid UTF-8 detected ($encoding) (fallback). Converting...\n";
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
 		//echo "Text: ".$line."\n";
+	}
+	//afer conversion we check AGAIN to confirm the new line is encoded as UTF-8
+	if(mb_detect_encoding($line) != 'UTF-8'){
+		//string still has invalid characters, give up and remove them completely
+		$line = mb_convert_encoding($line,'UTF-8','UTF-8');
 	}
 	return $line;
 }
@@ -199,6 +204,7 @@ function curlPost($postSource, $array){
 	$post = json_encode($jsonArray);
 	if(json_last_error_msg() != "No error"){
 		//there was an error with the json string, die
+		//print_r($array);
 		die(json_last_error_msg());
 	}
 	//this curl method only works with PHP 5.5+
@@ -235,7 +241,6 @@ $chunk = 500;
 //prepare sm_songs database for scraping and check if this is a first-run
 echo "Preparing database for song scraping...\n";
 $firstRun = curlPost("songsStart",array(0));
-//print_r($initial_array);
 
 //loop through cache files, process to json strings, and post to the webserver for further processing
 $totalFiles = count($files);
@@ -279,7 +284,7 @@ echo "Finishing up...\n";
 curlPost("songsEnd",array($i));
 
 //display time
-echo ("\nTotal time: ". round(microtime(true) - $microStart,3) . " secs.\n");
+echo ("\nTotal time: ". round((microtime(true) - $microStart)/60,1) . " mins.\n");
 
 //
 

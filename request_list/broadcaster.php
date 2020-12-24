@@ -142,7 +142,7 @@ function change_meter($broadcaster,$meter){
                 $response = "Removing difficulty meter limit.";
                 $sql = "UPDATE sm_broadcaster SET meter_max=\"\" WHERE id=\"$id\" LIMIT 1";
                 $retval = mysqli_query( $conn, $sql );
-            }else{
+            }elseif(is_numeric($meter)){
                 $response = "Changing max difficulty meter to $meter";
                 $sql = "UPDATE sm_broadcaster SET meter_max=\"$meter\" WHERE id=\"$id\" LIMIT 1";
                 $retval = mysqli_query( $conn, $sql );
@@ -168,9 +168,9 @@ if(isset($_GET["stepstype"])){
 
 if(isset($_GET["meter"])){
     $meter = trim(mysqli_real_escape_string($conn,$_GET["meter"]));
-    if(!is_numeric($meter) || $meter > getMeterRange()['max']){
-        die("Invalid meter given.");
-    }
+    //if($meter < getMeterRange()['min'] || $meter > getMeterRange()['max']){
+    //    die("Invalid meter given.");
+    //}
     change_meter($_GET["broadcaster"],$meter);
 }
 
