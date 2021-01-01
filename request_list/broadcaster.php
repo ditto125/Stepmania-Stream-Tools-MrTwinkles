@@ -61,7 +61,7 @@ function toggle_requests($broadcaster,$message){
                 }
             }else{
                 $value = "ON";
-                $response = "Requests are enabled.";
+                $response = "Requests are enabled. Go nuts!";
                 $message = "";
             }
 
@@ -154,8 +154,8 @@ function change_meter($broadcaster,$meter){
 }
 
 if(isset($_GET["requesttoggle"])){
-    if(strlen($_GET["requesttoggle"]) >= 40){
-        die("Custom message must be 40 characters or less.");
+    if(strlen($_GET["requesttoggle"]) >= 80){
+        die("Custom message must be 80 characters or less.");
     }
     $message = trim(mysqli_real_escape_string($conn, $_GET["requesttoggle"]));
 	toggle_requests(strtolower($_GET["broadcaster"]),$message);

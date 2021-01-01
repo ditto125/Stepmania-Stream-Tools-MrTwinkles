@@ -95,7 +95,7 @@ foreach ($pack_dir as $path){
 		//use the first result as the pack banner and add to array
 		//check for filesize
 		if (filesize($img_path[0]) > $fileSizeMax){
-			echo $pack_name."'s image file is too large!\n";
+			echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!\n";
 		}else{
 			$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
 		}
