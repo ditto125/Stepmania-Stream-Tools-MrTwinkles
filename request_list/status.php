@@ -121,21 +121,26 @@ function scrapeSongStart(){
 function scrapeSongEnd($cFiles){
 	global $conn;
 	// After scraping all songs, update the existing and new songs as "installed"
-		$sql_getstats = "SELECT id,installed,scraper FROM sm_songs WHERE installed=1 AND scraper=2";
-		$newSongs = mysqli_num_rows(mysqli_query($conn,$sql_getstats));
+		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=2";
+		$retval = mysqli_query($conn,$sql_getstats);
+		$newSongs = mysqli_fetch_row($retval)[0];
 
-		$sql_getstats = "SELECT id,installed,scraper FROM sm_songs WHERE installed=1 AND scraper=3";
-		$updatedSongs = mysqli_num_rows(mysqli_query($conn,$sql_getstats));
+		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=3";
+		$retval = mysqli_query($conn,$sql_getstats);
+		$updatedSongs = mysqli_fetch_row($retval)[0];
 
-		$sql_getstats = "SELECT id,installed,scraper FROM sm_songs WHERE installed=1 AND scraper=1";
-		$totalSongs = mysqli_num_rows(mysqli_query($conn,$sql_getstats));
+		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=1";
+		$retval = mysqli_query($conn,$sql_getstats);
+		$totalSongs = mysqli_fetch_row($retval)[0];
 		$totalSongs = $totalSongs + $updatedSongs + $newSongs;
 
-		$sql_getstats = "SELECT id,installed,scraper FROM sm_songs WHERE installed=1 AND scraper=0";
-		$addNotInstalledSongs = mysqli_num_rows(mysqli_query($conn,$sql_getstats));
+		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=0";
+		$retval = mysqli_query($conn,$sql_getstats);
+		$addNotInstalledSongs = mysqli_fetch_row($retval)[0];
 
-		$sql_getstats = "SELECT id,installed,scraper FROM sm_songs WHERE installed=0 AND scraper=0";
-		$notInstalledSongs = mysqli_num_rows(mysqli_query($conn,$sql_getstats));
+		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=0 AND scraper=0";
+		$retval = mysqli_query($conn,$sql_getstats);
+		$notInstalledSongs = mysqli_fetch_row($retval)[0];
 
 	//mark songs not found during scraping as "not installed"
 		$sql_getstats = "UPDATE sm_songs SET installed=0 WHERE scraper=0";
@@ -156,7 +161,6 @@ function scrapeSongEnd($cFiles){
 function scrapeSong($songCache_array){
 	//This function processes the song cache arrays and inserts/updates song records into the sm_songs table
 	global $conn;
-	global $packsIgnore;
 	
 	$metadata = array();
 	$notedata_array = array();
@@ -340,8 +344,8 @@ function scrapeSong($songCache_array){
 		
 		if(mysqli_num_rows($retval) == 0){
 		//This song doesn't yet exist in the db, let's add it!
-			$installed = "1";
-			$scraper = "2";
+			$installed = 1;
+			$scraper = 2;
 			echo "Adding to DB: ".stripslashes($title)." from ".stripslashes($pack)." \n";
 
 		$sql_songs_query = "INSERT INTO sm_songs (title, subtitle, artist, pack, strippedtitle, strippedsubtitle, strippedartist, song_dir, credit, display_bpm, music_length, bga, installed, added, checksum, scraper) VALUES (\"$title\", \"$subtitle\", \"$artist\", \"$pack\", \"$strippedtitle\", \"$strippedsubtitle\", \"$strippedartist\", \"$song_dir/\", \"$song_credit\", {$display_bpm}, {$music_length}, {$bga}, {$installed}, NOW(), \"$file_hash\", {$scraper})";
@@ -372,8 +376,8 @@ function scrapeSong($songCache_array){
 				if( $file_hash != $stored_hash){
 				// md5s do not match, assume there were updates to this song
 					//echo "File Hash: ".$file_hash." != Stored Hash: ".$stored_hash."\n";
-					$installed = "1";
-					$scraper = "3";
+					$installed = 1;
+					$scraper = 3;
 					$sql_songs_query = "UPDATE sm_songs SET 
 					title=\"$title\", subtitle=\"$subtitle\", artist=\"$artist\", pack=\"$pack\", strippedtitle=\"$strippedtitle\", strippedsubtitle=\"$strippedsubtitle\", strippedartist=\"$strippedartist\", credit=\"$song_credit\", display_bpm={$display_bpm}, music_length={$music_length}, bga={$bga}, installed={$installed}, checksum=\"$file_hash\", scraper={$scraper}   
 					WHERE id={$song_id}";
@@ -404,8 +408,8 @@ function scrapeSong($songCache_array){
 				}else{
 						
 					//we will mark the existing record as "installed"
-					$installed = "1";
-					$scraper = "1";
+					$installed = 1;
+					$scraper = 1;
 					$sql_songs_query = "UPDATE sm_songs SET installed={$installed}, scraper={$scraper} WHERE id={$song_id}";
 						if (!mysqli_query($conn, $sql_songs_query)) {
 							echo "Error: " . $sql_songs_query . "\n" . mysqli_error($conn) . "\n";
@@ -418,9 +422,6 @@ function addLastPlayedtoDB ($lastplayed_array){
 	//This function inserts or updates song records in the sm_songsplayed table 
 	global $conn;
 	$lastplayedIDUpdated = array();
-
-	//$sqlLastDate = "SELECT MAX(lastplayed) AS lastplayed FROM sm_songsplayed";
-	//$dbLastDate = mysqli_fetch_assoc(mysqli_query($conn, $sqlLastDate)['lastplayed']);
 
 	foreach ($lastplayed_array as $lastplayed){
 		//loop through the array and parse the lastplayed information
@@ -442,7 +443,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 				//first let's also grab the song_id just in case the entry here is 0
 				$row = mysqli_fetch_assoc($retval);
 				$song_id = $row['song_id'];
-				if($row['song_id'] === 0){
+				if($row['song_id'] == 0){
 					$songInfo = lookupSongID($row['song_dir']);
 					$song_id = $songInfo['id'];
 				}
@@ -463,6 +464,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 			}
 			//save row ids of updated/inserted records for marking requests later
 			$lastplayedIDUpdated[] = $id;
+			echo $lastplayed['LastPlayed'].": ".$songInfo['title']." from ".$songInfo['pack'];
 		}else{
 			//echo "record already exists. No need to update/insert.";
 		}
@@ -473,10 +475,9 @@ function addLastPlayedtoDB ($lastplayed_array){
 function markRequest ($idArray){
 	//This function updates the sm_requests table if requests were completed
 	global $conn;
-	//$ids = implode(",",$idArray);
 	
 	foreach ($idArray as $id){
-		//send songID to sm_requests to mark request as completed
+		//send ID to sm_requests to mark request as completed
 		//first, we check if there is a new fully timestamped update
 		$sql3 = "UPDATE sm_requests
 		JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
@@ -559,7 +560,7 @@ function addHighScoretoDB ($highscore_array){
 			//Let's update the song ID, just in case it was added before a song cache scrape
 			$row = mysqli_fetch_assoc($retval);
 			$song_id = $row['song_id'];
-			if($row['song_id'] === 0){
+			if($row['song_id'] == 0){
 				$songInfo = lookupSongID($row['song_dir']);
 				$song_id = $songInfo['id'];
 			}

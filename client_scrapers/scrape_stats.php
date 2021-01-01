@@ -90,6 +90,28 @@ function fixEncoding($line){
 	return $line;
 }
 
+function parseXmlErrors($errors,$xml_file){
+	unset($xml);
+
+	foreach ($errors as $error){
+		if ($error->code == 9){
+			//error code: 9 is "Invalid UTF-8 encoding detected"
+			echo "Oh look! StepMania left us invalid UTF-8 characters in an XML file.".PHP_EOL;
+			//get line number of the invalid character(s)
+			$lineNo = $error->line - 1;
+			//open file, fix encoding, and write new file
+			$xml = file($xml_file);
+			echo "Line ".$lineNo.": [".$xml[$lineNo]."] Fixing...".PHP_EOL;
+			$xml[$lineNo] = fixEncoding($xml[$lineNo]);
+			//write back changes to the file
+			file_put_contents($xml_file,implode("",$xml));
+		}elseif($error->code != 9){
+			//error code is not "9"
+			print_r($errors);
+		}
+	}
+}
+
 function find_statsxml($directory,$profileIDs){
 	//look for any Stats.xml files in the profile directory
 	$file_arr = array();
@@ -115,9 +137,25 @@ function statsXMLtoArray ($xml_file){
 	$statsLastPlayed = array();
 	$statsHighScores = array();
 	$stats_arr = array();
+	unset ($xml,$errors);
+	$xml = FALSE;
+	$i = 0;
 	
 	//open xml file
-	$xml = simplexml_load_file(mb_convert_encoding($xml_file,'UTF-8','UTF-8'));
+	while ((!$xml) && ($i < 3)){
+		libxml_clear_errors();
+		libxml_use_internal_errors(TRUE);
+		$xml = simplexml_load_file($xml_file);
+
+		//check for errors with the xml file that will prevent a successful parse
+		$errors = libxml_get_errors();
+		if (!empty($errors)){
+			parseXmlErrors($errors,$xml_file);
+		}
+		$i++;
+	}
+	
+	if(!$xml){die ("Too many errors with Stats.xml file.\n");}
 
 	// Example xml structure of Stats.xml file:
 	// $xml->SongScores->Song[11]['Dir'];
@@ -132,7 +170,7 @@ function statsXMLtoArray ($xml_file){
 	$display_name = (string)$xml->GeneralData->DisplayName;
 
 	foreach ($xml->SongScores->Song as $song){
-		$song_dir = fixEncoding((string)$song['Dir']);
+		$song_dir = (string)$song['Dir'];
 		
 		foreach ($song->Steps as $steps){		
 			$steps_type = (string)$steps['StepsType']; //dance-single, dance-double, etc.
@@ -219,11 +257,11 @@ for (;;){
 		}
 		$file['ftime'] = $file['mtime'];
 	}
-	clearstatcache();
-	sleep($frequency);
 	if ($autoRun){
 		//autorun was not set, break the loop
 		break;
 	}
+	clearstatcache();
+	sleep($frequency);
 }
 ?>
