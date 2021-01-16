@@ -12,7 +12,9 @@ $songsDir = "D:/StepMania 5.1/Songs";
 
 //list of song packs/groups to ignore while scraping
 //Example: "~WIP","Secret Folder","MyDog's")
+//RegEx matching for dynamic ignoring of pack names
 $packsIgnore = array("~WIP");
+$packsIgnoreRegex = "";
 
 //Target url for POSTING updates to the server and uploading banner images to the server.
 $target_url = "https://[URL]";
