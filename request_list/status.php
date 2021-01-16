@@ -339,8 +339,8 @@ function scrapeSong($songCache_array){
 		$retval = mysqli_query( $conn, $sql );
 		
 		$sql_notedata_values = "";
-		$installed = "";
-		$scraper = "";
+		//$installed = "";
+		//$scraper = "";
 		
 		if(mysqli_num_rows($retval) == 0){
 		//This song doesn't yet exist in the db, let's add it!
@@ -464,7 +464,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 			}
 			//save row ids of updated/inserted records for marking requests later
 			$lastplayedIDUpdated[] = $id;
-			echo $lastplayed['LastPlayed'].": ".$songInfo['title']." from ".$songInfo['pack'];
+			echo $lastplayed['LastPlayed'].": ".$songInfo['title']." from ".$songInfo['pack']."\n";
 		}else{
 			//echo "record already exists. No need to update/insert.";
 		}
