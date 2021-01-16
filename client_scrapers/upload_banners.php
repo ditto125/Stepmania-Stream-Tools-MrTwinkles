@@ -119,6 +119,6 @@ foreach ($img_arr as $img){
 $cPacks = $cPacks - $notFoundBanners;
 
 //STATS!
-echo "Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs.\n";
+echo "Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs.";
 
 ?>

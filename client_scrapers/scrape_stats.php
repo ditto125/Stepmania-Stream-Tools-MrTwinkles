@@ -92,29 +92,24 @@ function fixEncoding($line){
 
 function parseXmlErrors($errors,$xml_file){
 	unset($xml);
-	//open file for fixin'
-	$xml = file($xml_file);
 
 	foreach ($errors as $error){
 		if ($error->code == 9){
 			//error code: 9 is "Invalid UTF-8 encoding detected"
 			echo "Oh look! StepMania left us invalid UTF-8 characters in an XML file.".PHP_EOL;
-			echo "I recommend removing all special characters from this song's directory name!".PHP_EOL;
 			//get line number of the invalid character(s)
 			$lineNo = $error->line - 1;
 			//open file, fix encoding, and write new file
-			//$xml = file($xml_file);
-			echo "Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...".PHP_EOL;
+			$xml = file($xml_file);
+			echo "Line ".$lineNo.": [".$xml[$lineNo]."] Fixing...".PHP_EOL;
 			$xml[$lineNo] = fixEncoding($xml[$lineNo]);
 			//write back changes to the file
-			//file_put_contents($xml_file,implode("",$xml));
-			$xml = implode("",$xml);
+			file_put_contents($xml_file,implode("",$xml));
 		}elseif($error->code != 9){
 			//error code is not "9"
 			print_r($errors);
 		}
 	}
-	return $xml;
 }
 
 function find_statsxml($directory,$profileIDs){
@@ -144,23 +139,22 @@ function statsXMLtoArray ($xml_file){
 	$stats_arr = array();
 	unset ($xml,$errors);
 	$xml = FALSE;
+	$i = 0;
 	
 	//open xml file
-	libxml_clear_errors();
-	libxml_use_internal_errors(TRUE);
-	$xml = simplexml_load_file($xml_file);
-
-	//check for errors with the xml file that will prevent a successful parse
-	$errors = libxml_get_errors();
-	if (!empty($errors)){
-		//attempt to fix errors in memory then load xml (fixed) via string
-		//not a great solution, but blame StepMania, not me!
-		$xml_str = parseXmlErrors($errors,$xml_file);
+	while ((!$xml) && ($i < 3)){
 		libxml_clear_errors();
-		$xml = simplexml_load_string($xml_str);
-	}
+		libxml_use_internal_errors(TRUE);
+		$xml = simplexml_load_file($xml_file);
 
-	//die if too many errors
+		//check for errors with the xml file that will prevent a successful parse
+		$errors = libxml_get_errors();
+		if (!empty($errors)){
+			parseXmlErrors($errors,$xml_file);
+		}
+		$i++;
+	}
+	
 	if(!$xml){die ("Too many errors with Stats.xml file.\n");}
 
 	// Example xml structure of Stats.xml file:

@@ -10,15 +10,11 @@
 body {
 	font-family: 'Fundamental', normal;
 	background-color: #000;
-	overflow:auto;
-}
-
-::-webkit-scrollbar{
-  display:none;
+	overflow:hidden;
 }
 
 h2 {
-  letter-spacing:0.01em;
+  letter-spacing:0.03em;
   font-size:10vw;
   margin:0px;
   margin-left:2vw;
@@ -32,7 +28,6 @@ h2 {
        1px 1px 0 #000;
    color: white;
   position:relative;
-  line-height: 1.2;
   z-index:5;
   white-space:nowrap;
   overflow:hidden;
@@ -40,7 +35,7 @@ h2 {
 }
 
 h2a {
-  letter-spacing:0.01em;
+  letter-spacing:0.03em;
   font-size:6vw;
   margin:0px;
   margin-left:1vw;
@@ -56,7 +51,6 @@ h2a {
    color: white;
   opacity: 1;
   position:relative;
-  line-height: 1.2;
   z-index:5;
   white-space:nowrap;
   overflow:hidden;
@@ -64,15 +58,14 @@ h2a {
 }
 
 h3 {
-  letter-spacing:0.01em;
+  letter-spacing:0.03em;
   font-size:5vw;
   margin:0px;
   margin-left:2vw;
   color: white;
   position:relative;
-  line-height: 1.2;
   float:left;
-  /*display:inline-block;*/
+  display:inline-block;
   z-index:4;
   opacity: 0.85;
   text-shadow: 0.25vw 0.25vw 0.5vw rgba(0,0,0,1);
@@ -84,7 +77,7 @@ h4 {
   background-image: url("images/twitch.png");
   background-size: contain;
   background-repeat: no-repeat;
-  letter-spacing:0.01em;
+  letter-spacing:0.03em;
   font-size:4vw;
   margin:0px;
   margin-bottom:2vw;
@@ -96,14 +89,23 @@ h4 {
   z-index: 3;
   position:relative;
   float:right;
-  /*display:inline-block;*/
+  display:inline-block;
   opacity: 0.85;
   text-shadow: 0.25vw 0.25vw 0.5vw rgba(0,0,0,0.9);
-  -webkit-filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
-  filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
+}
+
+type{
+	position:absolute;
+	font-size:10vw;
+	margin-left:22vw;
+	margin-top:-13vw;
+	z-index:2;
+	height:100%;
+	opacity:0.70;
+	float:right;
 }
 
 .songrow{
@@ -118,14 +120,14 @@ h4 {
 }
 
 .songrow-bg {
-    filter: blur(0.4vw) brightness(.75);
-    -webkit-filter: blur(0.4vw) brightness(.75);
+    filter: blur(0.4vw);
+    -webkit-filter: blur(0.4vw);
     position: absolute;
-    left: -3px;
+    left: 0;
     top: -50%;
-    width: 101%;
+    width: 100%;
     height: auto;
-    /* opacity: 0.75; */
+    opacity: 0.75;
     z-index: 1;
 }
 
@@ -154,93 +156,34 @@ h4 {
 	height:60%;
 	width:auto;
 	opacity:0.70;
-  float:right;
-  -webkit-filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
-  filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
-}
-
-.dance{
-  position:absolute;
-  top:1.5vw;
-  transform:rotate(-45deg);
-	z-index:6;
-  height:auto;
-  -webkit-filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
-  filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
-	opacity:0.85;
-}
-
-.single{
-  left:1.3vw;
-  width:3vw;
-}
-
-.double{
-  left:0vw;
-  width:6vw;
-}
-
-.difficulty {
-  position:absolute;
-  top: 0;
-  left: 0;
-  z-index:6;
-  border-top: 9vw solid rgb(25, 25, 25);
-  border-right: 9vw solid transparent;
-  -webkit-filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
-  filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
-  opacity:0.60;
-}
-
-.beginner {
-  border-top: 9vw solid rgb(0, 255, 255);
-}
-
-.easy {
-  border-top: 9vw solid rgb(251, 169, 0);
-}
-
-.medium {
-  border-top: 9vw solid rgb(250, 0, 160);
-}
-
-.hard {
-  border-top: 9vw solid rgb(102, 250, 0);
-}
-
-.challenge {
-  border-top: 9vw solid rgb(112, 104, 250);
-}
-
-.edit {
-  border-top: 9vw solid rgb(55, 55, 55);
+	float:right;
 }
 
 @keyframes wiggle{
 
-  0%{
-    left:-3vw;
-  }
-  25%{
-    left:3vw;
-  }
-  50%{
-    left:-1.5vw;
-    opacity:1;
-  }
-  75%{
-    left:1.5vw;
-  }
-  90%{
-    left:0.5vw;
-  }
-  100%{
-    left:0vw;
-    opacity:1;
-  }
+                0%{
+                        left:-3vw;
+                }
+                25%{
+			left:3vw;
+                }
+                50%{
+                        left:-1.5vw;
+			opacity:1;
+                }
+                75%{
+                        left:1.5vw;
+                }
+		90%{
+			left:0.5vw;
+		}
+		100%{
+			left:0vw;
+			opacity:1;
+		}
 }
 
 @keyframes fadeoff{
-  0%{opacity:1;}
-  100%{opacity:0.45;}
+		0%{opacity:1;}
+		100%{opacity:0.45;}
 }

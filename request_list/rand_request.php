@@ -24,7 +24,7 @@ if(!isset($_GET["random"]) && !isset($_GET["num"]) && !is_numeric($_GET["num"]))
 	die();
 }
 
-function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty){
+function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $stepstype){
 
 	$userobj = check_user($twitchid, $requestor);
 
@@ -35,8 +35,6 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $req
         check_cooldown($requestor);
 		}
 
-	if(empty($request_type)){$request_type = "random";}
-
 	global $conn;
 
 	$sql0 = "SELECT COUNT(*) AS total FROM sm_requests WHERE song_id = '$song_id' AND state <> 'canceled' AND request_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
@@ -44,7 +42,7 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $req
 	$row0 = mysqli_fetch_assoc($retval0);
 	if(($row0["total"] > 0) && ($userobj["whitelisted"] != "true")){die("That song has already been requested recently!");}
 
-        $sql = "INSERT INTO sm_requests (song_id, request_time, requestor, twitch_tier, broadcaster, request_type, stepstype, difficulty) VALUES ('{$song_id}', NOW(), '{$requestor}', '{$tier}', '{$broadcaster}', '{$request_type}', '{$stepstype}', '{$difficulty}')";
+        $sql = "INSERT INTO sm_requests (song_id, request_time, requestor, twitch_tier, broadcaster, request_type, stepstype) VALUES ('{$song_id}', NOW(), '{$requestor}', '{$tier}', '{$broadcaster}', 'random', '{$stepstype}')";
         $retval = mysqli_query( $conn, $sql );
 
 }
@@ -101,15 +99,12 @@ if(!empty($broadcasterLimits) && is_array($broadcasterLimits)){
 //	if(empty($stepstype)){$stepstype = '%';}
 //	if(empty($meter)){$meter = '99999999999';}
 }
-$difficulty = "";
 
 //get scoring type
 global $scoreType;
 
 //standard random request from songs that have at least been played once
 if($_GET["random"] == "random"){
-
-	$request_type = "random";
 
         $sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,SUM(sm_songsplayed.numplayed) AS numplayed 
 		FROM sm_songs 
@@ -125,7 +120,7 @@ if($_GET["random"] == "random"){
 			$i=1;
     		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
+					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $stepstype);
 					echo ("{$user} randomly requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
 				}
@@ -140,8 +135,6 @@ die();
 //standard portal request, any installed/unbanned songs can be selected
 if($_GET["random"] == "portal"){
 
-	$request_type = "portal";
-
         $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned<>1 ORDER BY RAND() LIMIT 100";
         $retval = mysqli_query( $conn, $sql );
 
@@ -149,7 +142,7 @@ if($_GET["random"] == "portal"){
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
+					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $stepstype);
 					echo ("$user opened a portal to " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
 				}
@@ -164,20 +157,17 @@ die();
 //standard top request of 1 random 100 most played songs
 if($_GET["random"] == "top"){
 
-	$request_type = "top";
-	if(empty($stepstype)){$stepstype = '%';}
-
-        $sql = "SELECT id,title,subtitle,artist,pack,numplayed,stepstype 
+        $sql = "SELECT id,title,subtitle,artist,pack,numplayed,stepstype
 				FROM sm_songs 
 				JOIN 
-					(SELECT song_id,SUM(numplayed) AS numplayed,stepstype 
+					(SELECT song_id,SUM(numplayed) AS numplayed,stepstype
 					FROM sm_songsplayed
-					WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
+					WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}' 
 					GROUP BY song_id
 					ORDER BY numplayed desc
 					LIMIT 100) AS t2
 				ON t2.song_id=sm_songs.id 
-				WHERE banned<>1 AND installed=1 AND stepstype LIKE '{$stepstype}'  
+				WHERE banned<>1 AND installed=1  
 				ORDER BY RAND()";
         $retval = mysqli_query( $conn, $sql );
 
@@ -185,7 +175,7 @@ if($_GET["random"] == "top"){
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $difficulty);
+					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $row['stepstype']);
 					echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
 				}
@@ -200,22 +190,19 @@ die();
 //random worst 25 scored top 100 songs
 if($_GET["random"] == "gitgud"){
 
-	$request_type = "gitgud";
-	if(empty($stepstype)){$stepstype = '%';}
-
-        $sql = "SELECT id,title,subtitle,artist,pack,percentdp,score,stepstype,difficulty 
+        $sql = "SELECT id,title,subtitle,artist,pack,percentdp,score,stepstype 
 				FROM sm_songs 
 				JOIN 
-				(SELECT song_id,MAX(percentdp) AS percentdp,score,stepstype,difficulty 
+				(SELECT song_id,MAX(percentdp) AS percentdp,score,stepstype 
 					FROM sm_scores 
 					WHERE EXISTS 
 						(SELECT song_id,SUM(numplayed) AS numplayed   
 						FROM sm_songsplayed 
-						WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
+						WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}'  
 						GROUP BY song_id 
 						ORDER BY numplayed DESC 
 						LIMIT 100) 
-					AND grade <> 'Failed' AND percentdp > 0 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
+					AND grade <> 'Failed' AND percentdp > 0 AND username LIKE '{$profileName}'  
 					GROUP BY song_id 
 					ORDER BY percentdp ASC 
 					LIMIT 25) AS t2 
@@ -228,7 +215,7 @@ if($_GET["random"] == "gitgud"){
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $row['difficulty']);
+					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $row['stepstype']);
 					switch ($scoreType){
 						case "ddr":
 							$displayScore = number_format($row['score'],0,".",",");
@@ -253,8 +240,6 @@ die();
 
 //edge-case random request just for djfipu
 if($_GET["random"] == "djfipu"){
-
-	$request_type = "djfipu";
 		
 		$random = $_GET["random"];
 		$random = htmlspecialchars($random);
@@ -267,7 +252,7 @@ if($_GET["random"] == "djfipu"){
 			$i=1;
     		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
+					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $stepstype);
 					echo ("$user requested djfipu's favorite song " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
 				}
@@ -295,11 +280,10 @@ if($_GET["random"] == "roll"){
 	if (mysqli_num_rows($retval) > 0) {
 		echo "$user rolled (request with !requestid [song id]):\n";
 		$i=1;
-		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
-			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-			echo " [ ".$row["id"]. " => " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
-			$i++;
-			}
+		while($row = mysqli_fetch_assoc($retval)) {
+			if($i>$num){die();}
+		echo " [ ".$row["id"]. " => " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
+		$i++;
 		}
 	}
 die();
@@ -307,16 +291,14 @@ die();
 
 //special random for regulars: picks a random song from top 10 requested by requestor
 if($_GET["random"] == "theusual"){
-	
 	$userLC = strtolower($user);
-	$request_type = "theusual";
 	
 	$sql = "SELECT id,title,subtitle,artist,pack,idcount    
 			FROM sm_songs  
 			JOIN 
 				(SELECT song_id, COUNT(song_id) AS idcount 
 				FROM sm_requests 
-				WHERE song_id>0 AND LOWER(requestor) LIKE '{$userLC}' AND state <> 'canceled' AND state <> 'skipped' 
+				WHERE song_id>0 AND LOWER(requestor) LIKE '{$userLC}' AND state<>'canceled' 
 				GROUP BY song_id 
 				ORDER BY idcount DESC  
 				LIMIT 20) AS t2 
@@ -325,17 +307,17 @@ if($_GET["random"] == "theusual"){
 			ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
 
-	if (mysqli_num_rows($retval) >= 10) {
+	if (mysqli_num_rows($retval) > 0) {
 		$i=1;
 		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-				request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-				echo ("Of course {$user} would request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . ". HoW oRiGiNaL! ");
+				request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $stepstype);
+				echo ("Of course {$user} would request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . ". How original! ");
 				$i++;
 			}
 		}
 	} else {
-		die("$user hasn't met the minimum number of requested songs or isn't a reqular around here.");
+		die("$user hasn't requested enough songs or isn't a reqular around here.");
 	}
 
 	die();
@@ -346,7 +328,6 @@ if($_GET["random"] == "theusual"){
 if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 		
 		$random = $_GET["random"];
-		if(isset($_GET["type"])){$request_type = mysqli_real_escape_string($conn,$_GET["type"]);}
 		$random = htmlspecialchars($random);
 		//$random = clean($random);
 		
@@ -362,7 +343,7 @@ if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 			$i=1;
     		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
+					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $stepstype);
 					echo ("$user randomly requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
 				}

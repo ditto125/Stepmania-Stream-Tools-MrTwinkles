@@ -113,7 +113,7 @@ if(isset($_GET["cancel"])){
 		die("Good one, ".$user. ", but only positive integers are allowed!");
 	}
 
-        $sql = "SELECT * FROM sm_requests WHERE requestor = '{$user}' AND broadcaster LIKE '{$broadcasterQuery}' AND state <> 'canceled' AND state <> 'skipped' AND state <> 'completed' ORDER BY request_time DESC LIMIT 1 OFFSET {$num}";
+        $sql = "SELECT * FROM sm_requests WHERE requestor = '{$user}' AND broadcaster LIKE '{$broadcasterQuery}' AND state <> 'canceled' AND state <> 'skipped' ORDER BY request_time DESC LIMIT 1 OFFSET {$num}";
 	$retval = mysqli_query( $conn, $sql );
 
         if (mysqli_num_rows($retval) == 1) {
@@ -148,7 +148,7 @@ if(isset($_GET["skip"])){
 		die("Good one, ".$user. ", but only positive integers are allowed!");
 	}
 
-	$sql = "SELECT * FROM sm_requests WHERE broadcaster LIKE '{$broadcasterQuery}' AND state <> 'canceled' AND state <> 'skipped' AND state <> 'completed' ORDER BY request_time DESC LIMIT 1 OFFSET {$num}";
+	$sql = "SELECT * FROM sm_requests WHERE broadcaster LIKE '{$broadcasterQuery}' AND state <> 'canceled' AND state <> 'skipped' ORDER BY request_time DESC LIMIT 1 OFFSET {$num}";
         $retval = mysqli_query( $conn, $sql );
 
                 while($row = mysqli_fetch_assoc($retval)) {
@@ -176,7 +176,7 @@ if(isset($_GET["complete"])){
 		die("Good one, ".$user. ", but only positive integers are allowed!");
 	}
 
-	$sql = "SELECT * FROM sm_requests WHERE broadcaster LIKE '{$broadcasterQuery}' AND state <> 'canceled' AND state <> 'skipped' AND state <> 'requested' ORDER BY request_time DESC LIMIT 1 OFFSET {$num}";
+	$sql = "SELECT * FROM sm_requests WHERE broadcaster LIKE '{$broadcasterQuery}' AND state = 'requested' ORDER BY request_time DESC LIMIT 1 OFFSET {$num}";
         $retval = mysqli_query( $conn, $sql );
 
                 while($row = mysqli_fetch_assoc($retval)) {

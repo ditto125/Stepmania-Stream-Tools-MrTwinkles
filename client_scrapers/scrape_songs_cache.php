@@ -177,7 +177,6 @@ function prepareCacheFiles($filesArr){
 
 function isIgnoredPack($songfilename){
 	global $packsIgnore;
-	global $packsIgnoreRegex;
 
 	$return = FALSE;
 	if(!empty($songfilename)){
@@ -190,10 +189,6 @@ function isIgnoredPack($songfilename){
 		//if the pack is on ignore list, skip it
 		if (in_array($pack,$packsIgnore)){
 			$return = TRUE;
-		}elseif(!empty($packsIgnoreRegex)){
-			if(preg_match($packsIgnoreRegex,$pack)){
-				$return = TRUE;
-			}
 		}
 	}
 	return $return;
