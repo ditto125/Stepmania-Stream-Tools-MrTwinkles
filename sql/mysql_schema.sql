@@ -138,7 +138,7 @@ CREATE TABLE `sm_requests` (
   `twitch_tier` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL,
   `broadcaster` tinytext CHARACTER SET utf8 DEFAULT NULL,
   `state` enum('requested','canceled','completed','skipped') CHARACTER SET utf8 COLLATE utf8_bin DEFAULT 'requested',
-  `request_type` enum('normal','random','top','portal','gitgud') CHARACTER SET utf8 DEFAULT NULL,
+  `request_type` enum('normal','random','top','portal','gitgud','theusual','djfipu','itg','ddr','ben','bgs','gimmick','hkc') CHARACTER SET utf8 DEFAULT NULL,
   `stepstype` tinytext CHARACTER SET utf8 DEFAULT NULL,
   `difficulty` tinytext CHARACTER SET utf8 DEFAULT NULL,
   `timestamp` datetime DEFAULT NULL ON UPDATE current_timestamp()
@@ -220,9 +220,9 @@ CREATE TABLE `sm_songs` (
   `credit` text CHARACTER SET utf8 DEFAULT NULL,
   `display_bpm` varchar(50) CHARACTER SET utf8 DEFAULT NULL,
   `music_length` decimal(10,0) DEFAULT NULL,
-  `bga` bit(1) DEFAULT NULL,
-  `installed` bit(1) DEFAULT NULL,
-  `banned` bit(1) DEFAULT b'0',
+  `bga` tinyint(4) DEFAULT NULL,
+  `installed` tinyint(4) DEFAULT NULL,
+  `banned` tinyint(4) DEFAULT b'0',
   `added` datetime DEFAULT NULL,
   `checksum` varchar(50) CHARACTER SET utf8 DEFAULT NULL,
   `scraper` tinyint(4) DEFAULT NULL
