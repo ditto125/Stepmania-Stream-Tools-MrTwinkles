@@ -14,13 +14,14 @@ $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 
 function clean_user($user){
-	global $conn;
-	$user = trim(mysqli_real_escape_string($conn,$user));
-	$user = strtolower($user);
-	if (strpos($user,'@') == 0){
-		$user = substr($user,1);
-	}
-	return $user;
+        global $conn;
+        $user = urldecode(trim($user));
+        $user = mysqli_real_escape_string($conn,$user);
+        $user = strtolower($user);
+        if (strpos($user,'@') === 0){
+                $user = substr($user,1);
+        }
+        return $user;
 }
 
 function toggle_ban($user){

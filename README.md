@@ -1,32 +1,104 @@
-# What's Different in this Fork?
-This is my fork of the project for the MrTwinkles47 and Danizom813 Twitch channels. The main differences in this fork are mostly methodology and optimizations of certain existing features.
+# Stepmania-Stream-Tools-MrTwinkles Fork
+This is my fork of the project for the MrTwinkles47 and Danizom813 Twitch channels. The main differences in this fork are mostly methodology and optimizations of certain existing features. 
 
 A quick summary:
 * Support for multiple channels/broadcasters with a single SM5 instance and song database.
 * Complete rewrite of the songlist to support searching and display of additional song/chart information.
 * New song scraper which iterates through the SM5 Cache directory instead of the Songs folder. This improves the parity of the database and StepMania.
   * Focus on indexing songs by their song_dir string--the method SM5 uses to differentiate songs.
-  * New metadata is collected (and more can be added in the future) about each song including all chart information (sm_notedata database).
+  * New metadata is collected (and more can be added in the future) about each song including all chart information (sm_notedata table).
   * Downsides to using the Cache directory means that installing new songs requires SM5 to build the cache before the scraper will find the new songs.
   * Occasionally a purge of the Cache is needed if you delete a bunch of song packs.
   * Scraper will update songs if it detects that the cache file has changed, preserving the original song ID.
 * New scraper for StepMania's Stats.xml files in the LocalProfile directory.
 * Request lift mark-off method to use StepMania 5's built-in stats tracking files (Stats.xml) instead of the python/lua scripts.
-  * NOTE: This method has its pros and cons. Pro: no need to modify your theme lua files; Con: some marks-off are missed due to the limited number of high score slots that are available.
+  * NOTE: This method uses an infinite-loop PHP script that runs on the local SM machine.
   * The python/lua scripts can still be used (and have been slightly improved) with minor modifications to some mysql queries.
-  * The lua script is updated to pass the SongDir() string, which improves matching songs in the database.
 * Request list has some minor formatting and aesthetic changes.
   * New DDR-like font, addition of subtitles in the song name, special formatting of pack names (customizable), and a request type feature showing whether the request was normal or random.
   * Different new/cancel "dings."
+  * Shows single/double modes and difficulties.
 * New banner image uploader finds the banner images for each song pack, formats the file name, and uploads it to the images/packs folder.
 * Random request methods are *slightly* different. Special random requests are scalable and much quicker to add.
-  * Create personal random requests for regulars of the channel (i.g. !randomHellKite, !randomdjfipu, !randomben).
-  * New possible commands thanks to the collection of step/score statistics.
+  * Create personal random requests for regulars of the channel (e.g. !randomHellKite, !randomdjfipu, !randomben).
+  * New possible commands thanks to the collection of step/score statistics (e.g. !gitgud, !top).
 * Ability to ban songs via chat commands by song name or ID.
 * Additional session stats including recent scores, high score lists, and shout-outs to frequent requestors.
 
+---
 
-# Stepmania-Stream-Tools
+# Getting Started
+## Prerequisites
+This fork currently does not utilize Docker. Please ignore any docker-specific procedures.
+### Client-side
+* Stepmania 5.0.12, 5.1x, or 5.3-Oufox with local profiles set up and enabled
+* PHP 7.3.x - 7.4.x
+### Server-side (web hosting)
+* PHP 7.x
+* MariaDB (latest)
+* Nginx/Apache/some kind of web hosting
+* phpMyAdmin or similar DB management software
+### Twitch Chat Bot
+* Third-party chatbot which support custom APIs or URLfetch can be used such as Moobot, StreamElements, NightBot, etc.
+### Streaming Software
+* Ability to add a browser-source, OBS/SLOBS
+
+---
+
+# Setup
+## Server-side
+1. Git clone or copy the request_list directory to the appropriate directory on your webserver
+2. Import the /sql/.sql schema file into your already created database.
+3. Edit the config.php file with your db information, credentials, and security key.
+4. Check that the song list webpage is available at your domain (sub.domain.tld/songlist.php).
+## Client-side (SM5 machine)
+1. Git clone or copy the client_scraper directory to an accessible directory on your system.
+2. Download php 7.x NTS x86/x64 https://windows.php.net/download#php-7.4 (depending on your system) and copy the extracted folder to "C:/php".
+### Configure PHP (edit php.ini):
+1. If no php.ini exists in the php directory, rename the php.ini-production file to php.ini
+    * Remove semicolon in front of ";extension=curl" to enable the cURL extension.
+    * Remove semicolon in front of ";extension=mbstring" to enable multi-byte string functions
+2. Configure php scripts (edit config.php) with your StepMania directories and security key.
+3. Highly Recommended: Delete all contents of your SM5 Cache/Songs directory, start SM5, and have it rebuild new cache files.
+4. Edit "scrape stats.bat" to add your LocalProfile ID number(s) you want to scrape and whether the script should run in “auto” mode.
+### Browser Source
+1. To show the request board/widget on stream, add a new broswer source for "[URL]/show_requests.php?security_key=[KEY]"
+    * If you are using multiple broadcasters, append "&broadcaster=[BROADCASTER]"
+2. To show stats on stream, add a new browser source for "[URL]/stats.php?data=[?]"
+    * [?] = "songs" : ## songs played this session
+    * [?] = "requests" : ## requests this session
+    * [?] = "scores&judgement=[itg/ddr]" : table of top scores for the session, specify itg *or* ddr scoring
+    * [?] = "recent" : most recently played songs and their scores
+    * [?] = "requestors" : list of top 5 requestors for the session
+## Twitch Chat Bot
+You can use your existing chat bot or roll your own custom bot. Whichever bot you choose must be capable of custom commands with variables and GET urlfetch capability. I recommend using StreamElements.
+* Command variables that are supported across end-points. Refer to your bot’s documentation to determine how to use variables.
+  * Arguments -- bot must support multi-word arguments
+  * Twitch user -- required for request commands
+  * Broadcaster -- required for broadcast commands and multiple stream accounts
+  * Game/Category -- Useful if your bot goes not have game specific commands (SE)
+  * Twitch tier -- Useful for limiting requests to certain user levels (subscriber, moderator, etc.)
+
+# Limitations/Known Bugs
+  * Only 4/8-panel "dance" mode is supported. Other modes that are supported by SM5 can be implemented, but they are not as of now.
+  * Weird things may happen with random commands, if you start with a brand new profile Stats.xml file.
+  * Stats.xml files from other judgement modes in Simply Love (FA+/Casual) are not supported.
+  * StepMania 5 does not remove associated song cache files on song deletion. If you delete a song/pack, you must remove the cache file also before the song scraper will detect the song as "not installed."
+  * The song request widget/board requires at least one song to continue to update automatically.
+
+# Milestones
+ - [x] Multiple broadcaster support
+ - [x] Stats.xml scraping
+ - [x] Support for steps type and difficulties in requests
+ - [ ] Offline mode - support dedicated SM5 machines with no network access
+ - [ ] Songlist re-re-write
+ - [ ] Fix custom chat bot
+ - [ ] Docker support
+
+---
+---
+
+# Stepmania-Stream-Tools (From ddrDave's original fork. Sone information beblow might be out-of-date.)
 Tools and utilities for interacting with Stepmania 5 to provide added features for live streaming.
 
 ## New Stuff
