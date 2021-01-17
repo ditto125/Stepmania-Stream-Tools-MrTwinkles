@@ -1,4 +1,4 @@
-# # Stepmania-Stream-Tools-MrTwinkles Fork
+# Stepmania-Stream-Tools-MrTwinkles Fork
 This is my fork of the project for the MrTwinkles47 and Danizom813 Twitch channels. The main differences in this fork are mostly methodology and optimizations of certain existing features. 
 
 A quick summary:
@@ -87,13 +87,13 @@ You can use your existing chat bot or roll your own custom bot. Whichever bot yo
   * The song request widget/board requires at least one song to continue to update automatically.
 
 # Milestones
-  [x] Multiple broadcaster support
-  [x] Stats.xml scraping
-  [x] Support for steps type and difficulties in requests
-  [ ] Offline mode - support dedicated SM5 machines with no network access
-  [ ] Songlist re-re-write
-  [ ] Fix custom chat bot
-  [ ] Docker support
+ - [x] Multiple broadcaster support
+ - [x] Stats.xml scraping
+ - [x] Support for steps type and difficulties in requests
+ - [ ] Offline mode - support dedicated SM5 machines with no network access
+ - [ ] Songlist re-re-write
+ - [ ] Fix custom chat bot
+ - [ ] Docker support
 
 ---
 ---
