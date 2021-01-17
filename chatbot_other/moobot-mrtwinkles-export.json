@@ -60,7 +60,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/song_admin.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&bansong=<args>",
+                    "url_fetch_url": "https://domain.tld/song_admin.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&bansong=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -97,7 +97,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/song_admin.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&bansongid=<args>",
+                    "url_fetch_url": "https://domain.tld/song_admin.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&bansongid=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -134,7 +134,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/requestor.php?security_key=secret-key&broadcaster=<channel.name>&banuser=<args>",
+                    "url_fetch_url": "https://domain.tld/requestor.php?security_key=secret-key&broadcaster=<channel.name>&banuser=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -175,7 +175,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&cancel=<args>",
+                    "url_fetch_url": "https://domain.tld/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&cancel=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -216,47 +216,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=gitgud&num=<args>",
-                    "url_fetch_type": "text",
-                    "url_fetch_version": 1,
-                    "url_fetch_method": "GET",
-                    "random_number_range_start": 1,
-                    "random_number_range_end": 100,
-                    "random_number_range_custom": true,
-                    "random_number_display_range": false,
-                    "mod_editable": false
-                },
-                {
-                    "colored": false,
-                    "identifier": "petdog",
-                    "text": "<username> wants you to pet Tara.",
-                    "counter": 0,
-                    "counter_usergroups": [
-                        2,
-                        3,
-                        4,
-                        0,
-                        1
-                    ],
-                    "counter_cooldown": 1,
-                    "counter_trigger_increment": true,
-                    "cooldown": 5,
-                    "enabled": true,
-                    "expires_disable": false,
-                    "trigger_states": [
-                        0,
-                        1,
-                        2,
-                        3
-                    ],
-                    "trigger_usergroups": [
-                        2,
-                        3,
-                        4,
-                        0,
-                        1
-                    ],
-                    "display_full_duration": false,
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=gitgud&num=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -297,7 +257,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=portal&num=<args>",
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=portal&num=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -338,7 +298,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=random&num=<args>",
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=random&num=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -379,7 +339,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=Ben+Speirs&num=<args.1>",
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&type=ben&random=Ben+Speirs&num=<args.1>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -420,7 +380,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=Dance+Dance+Revolution%7CDancing+Stage&num=<args.1>",
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&type=ddr&random=Dance+Dance+Revolution%7CDancing+Stage&num=<args.1>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -461,7 +421,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=djfipu&num=<args.1>",
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=djfipu&num=<args.1>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -502,7 +462,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=HellKiteChaoS&num=<args.1>",
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&type=hkc&random=HellKiteChaoS&num=<args.1>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -543,7 +503,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&song=<args>",
+                    "url_fetch_url": "https://domain.tld/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&song=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -585,7 +545,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&songid=<args.1>",
+                    "url_fetch_url": "https://domain.tld/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&songid=<args.1>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -623,7 +583,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&skip=<args>",
+                    "url_fetch_url": "https://domain.tld/request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&skip=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -636,7 +596,7 @@
                 {
                     "colored": true,
                     "identifier": "songlist",
-                    "text": "The songlist for requesting songs can be found here: https://domain.tld/sm5/songlist.php",
+                    "text": "The songlist for requesting songs can be found here: https://domain.tld/songlist.php",
                     "counter": 0,
                     "counter_usergroups": [
                         2,
@@ -704,7 +664,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=top&num=<args>",
+                    "url_fetch_url": "https://domain.tld/rand_request.php?security_key=secret-key&broadcaster=<channel.name>&user=<user.name>&userid=<user.id>&tier=<user.tier>&random=top&num=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",
@@ -781,7 +741,7 @@
                         1
                     ],
                     "display_full_duration": false,
-                    "url_fetch_url": "https://domain.tld/sm5/requestor.php?security_key=secret-key&broadcaster=<channel.name>&whitelist=<args>",
+                    "url_fetch_url": "https://domain.tld/requestor.php?security_key=secret-key&broadcaster=<channel.name>&whitelist=<args>",
                     "url_fetch_type": "text",
                     "url_fetch_version": 1,
                     "url_fetch_method": "GET",

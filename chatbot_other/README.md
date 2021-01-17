@@ -1,0 +1,1 @@
+Example custom commands for third-party Twitch chat bots.
