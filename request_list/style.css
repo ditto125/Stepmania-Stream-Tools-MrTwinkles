@@ -129,6 +129,27 @@ h4 {
     z-index: 1;
 }
 
+.admindiv{
+  width:100%;
+  margin-bottom:1vw;
+}
+
+.adminbuttons{
+  font-size:3vw;
+  font-weight:300;
+  display:inline-block;
+  cursor:pointer;
+  text-align: center;
+  padding: 1vw;
+  color:white;
+  border-radius: 1vw;
+}
+
+.adminbuttons:active {
+	position:relative;
+	top:1px;
+}
+
 .completed{
 	animation:fadeoff 1s forwards;
 }

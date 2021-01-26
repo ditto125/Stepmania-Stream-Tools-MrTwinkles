@@ -83,9 +83,6 @@ echo '<html>
 		case "theusual":
 			$request_type = '<img src="images/theusual.png" class="type">';
 			break;
-		case "djfipu":
-			$request_type = '<img src="images/djfipu.png" class="type">';
-			break;
 		case "itg":
 			$request_type = '<img src="images/itg.png" class="type">';
 			break;
@@ -151,6 +148,7 @@ echo '<html>
 		echo "<span id=\"lastid\" style=\"display:none;\">$request_id</span>\n";
 		echo "<span id=\"security_key\" style=\"display:none;\">".urlencode($_GET["security_key"])."</span>\n";
 		echo "<span id=\"broadcaster\" style=\"display:none;\">".urlencode($broadcaster)."</span>\n";
+		if(isset($_GET['admin'])){echo "<span id=\"admin\" style=\"display:none;\">admin</span>\n";}
 		echo "\n";
 	}
 
@@ -179,6 +177,12 @@ echo $difficulty."\n";
 echo $stepstype."\n";
 echo "<img class=\"songrow-bg\" src=\"{$pack_img}\" />
 </div>\n";
+if(isset($_GET['admin'])){
+	echo "<div class=\"admindiv\" id=\"requestadmin_".$request_id."\">
+	<button class=\"adminbuttons\" style=\"margin-left:4vw; background-color:rgb(0, 128, 0);\" type=\"button\" onclick=\"MarkCompleted(".$request_id.")\">Mark Complete</button>\n
+	<button class=\"adminbuttons\" style=\"background-color:rgb(153, 153, 0);\" type=\"button\" onclick=\"MarkSkipped(".$request_id.")\">Mark Skipped</button>
+	</div>\n";
+}
 
 	$ids[] = $request_id;
 	$i++;

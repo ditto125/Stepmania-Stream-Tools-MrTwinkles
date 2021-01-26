@@ -26,7 +26,6 @@
     * '!randomroll'* : Responds with 3 random songs, which then can be requested by ID
     * '!theusual' : Picks a random song from your top 10 most requested songs
 * Special Request Commands
-    * '!randomdjfipu' : Picks djfipu's favorite song
     * '!random["something"]' : Queries the song list filtering by pack name and credit. Examples:
         * '!randomddr' : Picks a random official DDR song
         * '!randomben' : Picks a random song charted by Ben Speirs

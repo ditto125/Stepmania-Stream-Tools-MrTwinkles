@@ -118,34 +118,107 @@ function get_skips_since($id,$oldid,$broadcaster){
 
 }
 
+//mark completed or skipped for "offline mode"
+
+function MarkCompleted($requestid){
+
+	global $conn;
+	$requestupdated = 0;
+
+	$sql0 = "SELECT * FROM sm_requests WHERE id = \"$requestid\" AND state <> \"completed\"";
+	$retval0 = mysqli_query( $conn, $sql0 );
+	$numrows = mysqli_num_rows($retval0);
+	if($numrows == 0){
+		die();	
+		//die("Marked Complete request could not be found.");
+	}
+
+	if($numrows == 1){
+			$row0 = mysqli_fetch_assoc($retval0);
+			
+			$sql = "UPDATE sm_requests SET state=\"completed\" WHERE id=\"$requestid\" LIMIT 1";
+			$retval = mysqli_query( $conn, $sql );
+
+			//echo "Request ".$requestid." updated to Completed";
+			$requestupdated = 1;
+	} else {
+		//echo "Too many requests found.";
+	}
+	return $requestupdated;
+}
+
+function MarkSkipped($requestid){
+
+	global $conn;
+	$requestupdated = 0;
+
+	$sql0 = "SELECT * FROM sm_requests WHERE id = \"$requestid\" AND state <> \"completed\"";
+	$retval0 = mysqli_query( $conn, $sql0 );
+	$numrows = mysqli_num_rows($retval0);
+	if($numrows == 0){
+		die();	
+		//die("Mark Skipped request could not be found.");
+	}
+
+	if($numrows == 1){
+			$row0 = mysqli_fetch_assoc($retval0);
+			
+			$sql = "UPDATE sm_requests SET state=\"skipped\" WHERE id=\"$requestid\" LIMIT 1";
+			$retval = mysqli_query( $conn, $sql );
+
+			//echo "Request ".$requestid." updated to skipped";
+			$requestupdated = 1;
+	} else {
+		//echo "Too many requests found.";
+	}
+	return $requestupdated;
+}
+
 if(!isset($_GET["id"])){die("You must specify an id");}
 
 $id = $_GET["id"];
-if(!empty($_GET["oldid"])){
-	$oldid = $_GET["oldid"];
-}else{
-	$oldid = 0;
+
+if(isset($_GET["func"])){
+	switch($_GET["func"]){
+		case "MarkCompleted":
+			$requestupdated = MarkCompleted($id);
+		break;
+		case "MarkSkipped":
+			$requestupdated = MarkSkipped($id);
+		break;
+		default:
+			die();
+			//die("Your function is in another castle.");
+	}
+
+	$output["requestsupdated"] = $requestupdated;
+
+}elseif(!isset($_GET["func"])){
+	if(!empty($_GET["oldid"])){
+		$oldid = $_GET["oldid"];
+	}else{
+		$oldid = 0;
+	}
+
+	if(!empty($_GET["broadcaster"])){
+		$broadcaster = $_GET["broadcaster"];
+	}else{
+		$broadcaster = "%";
+	}
+
+	$cancels = get_cancels_since($id,$oldid,$broadcaster);
+
+	$requests = get_requests_since($id,$oldid,$broadcaster);
+
+	$completions = get_completions_since($id,$oldid,$broadcaster);
+
+	$skips = get_skips_since($id,$oldid,$broadcaster);
+
+	$output["cancels"] = $cancels;
+	$output["requests"] = $requests;
+	$output["completions"] = $completions;
+	$output["skips"] = $skips;
 }
-
-
-if(!empty($_GET["broadcaster"])){
-	$broadcaster = $_GET["broadcaster"];
-}else{
-	$broadcaster = "%";
-}
-
-$cancels = get_cancels_since($id,$oldid,$broadcaster);
-
-$requests = get_requests_since($id,$oldid,$broadcaster);
-
-$completions = get_completions_since($id,$oldid,$broadcaster);
-
-$skips = get_skips_since($id,$oldid,$broadcaster);
-
-$output["cancels"] = $cancels;
-$output["requests"] = $requests;
-$output["completions"] = $completions;
-$output["skips"] = $skips;
 
 $output = json_encode($output);
 

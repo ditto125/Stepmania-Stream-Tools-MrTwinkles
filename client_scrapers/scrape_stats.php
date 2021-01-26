@@ -106,14 +106,14 @@ function parseXmlErrors($errors,$xml_file){
 			//$xml = file($xml_file);
 			echo "Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...".PHP_EOL;
 			$xml[$lineNo] = fixEncoding($xml[$lineNo]);
-			//write back changes to the file
-			//file_put_contents($xml_file,implode("",$xml));
-			$xml = implode("",$xml);
 		}elseif($error->code != 9){
 			//error code is not "9"
 			print_r($errors);
 		}
 	}
+	//write back changes to the file in memory
+	//file_put_contents($xml_file,implode("",$xml));
+	$xml = implode("",$xml);
 	return $xml;
 }
 

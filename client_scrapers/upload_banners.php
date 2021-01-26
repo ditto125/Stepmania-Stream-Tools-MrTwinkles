@@ -40,6 +40,21 @@ function findFiles($directory) {
     return $dir_paths;
 }
 
+function isIgnoredPack($pack){
+	global $packsIgnore;
+	global $packsIgnoreRegex;
+
+	$return = FALSE;
+	if (in_array($pack,$packsIgnore)){
+		$return = TRUE;
+	}elseif(!empty($packsIgnoreRegex)){
+		if(preg_match($packsIgnoreRegex,$pack)){
+			$return = TRUE;
+		}
+	}
+	return $return;
+}
+
 function curl_upload($file,$pack_name){
 	global $target_url;
 	global $security_key;
@@ -86,22 +101,26 @@ foreach ($pack_dir as $path){
 	$img_path = "";
 	//get pack name from folder
 	$pack_name = substr($path,strrpos($path,"/")+1);
-	//clean up pack name and replace spaces with underscore
-	$pack_name = strtolower(preg_replace('/\s+/', '_', trim($pack_name)));
-	//look for any picture file in the pack directory
-	$img_path = glob("{$path}/*{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,bmp,BMP}",GLOB_BRACE);
-	
-	if (isset($img_path) && !empty($img_path)){
-		//use the first result as the pack banner and add to array
-		//check for filesize
-		if (filesize($img_path[0]) > $fileSizeMax){
-			echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!\n";
+	//check if pack is to be ignored and skip if it is
+	if(!isIgnoredPack($pack_name)){
+		//pack is not ignored
+		//clean up pack name and replace spaces with underscore
+		$pack_name = strtolower(preg_replace('/\s+/', '_', trim($pack_name)));
+		//look for any picture file in the pack directory
+		$img_path = glob("{$path}/*{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,bmp,BMP}",GLOB_BRACE);
+		
+		if (isset($img_path) && !empty($img_path)){
+			//use the first result as the pack banner and add to array
+			//check for filesize
+			if (filesize($img_path[0]) > $fileSizeMax){
+				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!\n";
+			}else{
+				$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
+			}
 		}else{
-			$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
+			echo "No banner image for ".$pack_name."\n";
+			$notFoundBanners++;
 		}
-	}else{
-		echo "No banner image for ".$pack_name."\n";
-		$notFoundBanners++;
 	}
 }
 

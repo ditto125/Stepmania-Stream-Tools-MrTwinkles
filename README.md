@@ -20,7 +20,7 @@ A quick summary:
   * Shows single/double modes and difficulties.
 * New banner image uploader finds the banner images for each song pack, formats the file name, and uploads it to the images/packs folder.
 * Random request methods are *slightly* different. Special random requests are scalable and much quicker to add.
-  * Create personal random requests for regulars of the channel (e.g. !randomHellKite, !randomdjfipu, !randomben).
+  * Create personal random requests for regulars of the channel (e.g. !randomHellKite, !randomben, !randombgs).
   * New possible commands thanks to the collection of step/score statistics (e.g. !gitgud, !top).
 * Ability to ban songs via chat commands by song name or ID.
 * Additional session stats including recent scores, high score lists, and shout-outs to frequent requestors.
