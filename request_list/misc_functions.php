@@ -370,7 +370,7 @@ function wh_log($log_msg)
     }
     $log_file_data = $log_filename.'/log_' . date('d-M-Y') . '.log';
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
-    file_put_contents($log_file_data, $log_msg . "\n", FILE_APPEND);
+    file_put_contents($log_file_data, date("Y-m-d H:i:s") . "  " . $log_msg . "\n", FILE_APPEND);
 } 
 
 mysqli_close($conn);

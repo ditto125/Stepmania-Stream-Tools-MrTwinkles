@@ -157,7 +157,6 @@ function scrapeSongEnd($cFiles){
 
 }
 
-
 function scrapeSong($songCache_array){
 	//This function processes the song cache arrays and inserts/updates song records into the sm_songs table
 	global $conn;
@@ -348,7 +347,7 @@ function scrapeSong($songCache_array){
 			$scraper = 2;
 			echo "Adding to DB: ".stripslashes($title)." from ".stripslashes($pack)." \n";
 
-		$sql_songs_query = "INSERT INTO sm_songs (title, subtitle, artist, pack, strippedtitle, strippedsubtitle, strippedartist, song_dir, credit, display_bpm, music_length, bga, installed, added, checksum, scraper) VALUES (\"$title\", \"$subtitle\", \"$artist\", \"$pack\", \"$strippedtitle\", \"$strippedsubtitle\", \"$strippedartist\", \"$song_dir/\", \"$song_credit\", {$display_bpm}, {$music_length}, {$bga}, {$installed}, NOW(), \"$file_hash\", {$scraper})";
+		$sql_songs_query = "INSERT INTO sm_songs (title, subtitle, artist, pack, strippedtitle, strippedsubtitle, strippedartist, song_dir, credit, display_bpm, music_length, bga, installed, added, checksum, scraper) VALUES (\"$title\", \"$subtitle\", \"$artist\", \"$pack\", \"$strippedtitle\", \"$strippedsubtitle\", \"$strippedartist\", \"$song_dir/\", \"$song_credit\", '$display_bpm', '$music_length', '$bga', '$installed', NOW(), \"$file_hash\", '$scraper')";
 			
 			if (!mysqli_query($conn, $sql_songs_query)) {
 				echo "Error: " . $sql_songs_query . "\n" . mysqli_error($conn) . "\n";
@@ -379,8 +378,8 @@ function scrapeSong($songCache_array){
 					$installed = 1;
 					$scraper = 3;
 					$sql_songs_query = "UPDATE sm_songs SET 
-					title=\"$title\", subtitle=\"$subtitle\", artist=\"$artist\", pack=\"$pack\", strippedtitle=\"$strippedtitle\", strippedsubtitle=\"$strippedsubtitle\", strippedartist=\"$strippedartist\", credit=\"$song_credit\", display_bpm={$display_bpm}, music_length={$music_length}, bga={$bga}, installed={$installed}, checksum=\"$file_hash\", scraper={$scraper}   
-					WHERE id={$song_id}";
+					title=\"$title\", subtitle=\"$subtitle\", artist=\"$artist\", pack=\"$pack\", strippedtitle=\"$strippedtitle\", strippedsubtitle=\"$strippedsubtitle\", strippedartist=\"$strippedartist\", credit=\"$song_credit\", display_bpm='$display_bpm', music_length='$music_length', bga='$bga', installed={$installed}, checksum=\"$file_hash\", scraper='$scraper'   
+					WHERE id='$song_id'";
 			
 				echo "Changes detected in {$song_id}: ".stripslashes($title)." from ".stripslashes($pack)." Updating...\n";
 			
@@ -410,7 +409,7 @@ function scrapeSong($songCache_array){
 					//we will mark the existing record as "installed"
 					$installed = 1;
 					$scraper = 1;
-					$sql_songs_query = "UPDATE sm_songs SET installed={$installed}, scraper={$scraper} WHERE id={$song_id}";
+					$sql_songs_query = "UPDATE sm_songs SET installed='$installed', scraper='$scraper' WHERE id='$song_id'";
 						if (!mysqli_query($conn, $sql_songs_query)) {
 							echo "Error: " . $sql_songs_query . "\n" . mysqli_error($conn) . "\n";
 						}
@@ -464,7 +463,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 			}
 			//save row ids of updated/inserted records for marking requests later
 			$lastplayedIDUpdated[] = $id;
-			echo $lastplayed['LastPlayed'].": ".$songInfo['title']." from ".$songInfo['pack']."\n";
+			echo $lastplayed['LastPlayed']."-- ".$songInfo['title']." from ".$songInfo['pack']."\n";
 		}else{
 			//echo "record already exists. No need to update/insert.";
 		}

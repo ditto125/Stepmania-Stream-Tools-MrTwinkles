@@ -251,34 +251,6 @@ if($_GET["random"] == "gitgud"){
 die();
 }
 
-//edge-case random request just for djfipu
-if($_GET["random"] == "djfipu"){
-
-	$request_type = "djfipu";
-		
-		$random = $_GET["random"];
-		$random = htmlspecialchars($random);
-		//$random = clean($random);
-		
-        $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned<>1 AND (artist IN('e-rotic','erotic','crispy','aqua','missing heart') OR title IN('exotic ethnic','Dadadadadadadadadada','Bi') OR title LIKE '%euro%' OR subtitle LIKE '%euro%') ORDER BY RAND() LIMIT 100";
-		$retval = mysqli_query( $conn, $sql );
-
-	if (mysqli_num_rows($retval) > 0) {
-			$i=1;
-    		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
-				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-					echo ("$user requested djfipu's favorite song " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
-					$i++;
-				}
-			}
-	} else {
-        	die("djfipu, what's this all about!?");
-}
-
-die();
-}
-
 //roll command responds with 3 random songs that the user can then request with "requestid"
 if($_GET["random"] == "roll"){
 	
