@@ -92,10 +92,12 @@ if(isset($_GET["userid"])){
 //}
 
 //get broadcaster
-if(isset($_GET["broadcaster"])){
+if(isset($_GET["broadcaster"]) && !empty($_GET["broadcaster"])){
 	$broadcaster = $_GET["broadcaster"];
 	$broadcasterQuery = $broadcaster;
-	check_request_toggle($broadcaster);
+	if (isset($_GET["song"]) || isset($_GET["songid"])){
+		check_request_toggle($broadcaster);
+	}
 }else{
 	$broadcaster = "";
 	$broadcasterQuery = "%";

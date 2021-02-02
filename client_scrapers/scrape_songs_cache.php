@@ -199,6 +199,52 @@ function isIgnoredPack($songfilename){
 	return $return;
 }
 
+function doesFileExist($songFilename){
+	global $songsDir;
+	$return = FALSE;
+
+	//check if the chart file exists on the filesystem
+	if(substr($songFilename,0,strpos($songFilename,"/",1)) == "/Songs/"){
+		//file is in the normal "Songs" folder
+		$songFilename = str_replace("/Songs/",$songsDir."/",$songFilename);
+		if(file_exists($songFilename)){
+			$return = TRUE;
+		}
+	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)) == "/AdditionalSongs/"){
+		//file is in one of the "AdditionalSongs" folder(s)
+		$addSongDirs = additionalSongsFolders();
+		foreach($addSongDirs as $songsDir){
+			//loop through the "AdditionalSongsFolders"
+			$songFilename = str_replace("/AdditionalSongs/",$songsDir."/",$songFilename);
+			if(file_exists($songFilename)){
+				$return = TRUE;
+			}
+		}
+	}
+	return $return;
+}
+
+function additionalSongsFolders(){
+	global $saveDir;
+
+	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
+	$prefFile = $saveDir."/Preferences.ini";
+	$addSongDirs = array();
+	if(file_exists($prefFile)){
+		$lines = file($prefFile);
+		foreach ($lines as $line){
+			$addSongFolder = substr(strstr($line,"AdditionalSongFolders="),22);
+			if(strlen($addSongFolder) > 1){
+				//file exists, line is in file, and line contains at least 1 directory
+				//directories are delimited by ","
+				$addSongDirs = array_map('trim',explode(',',$addSongFolder));
+			break;
+			}
+		}
+	}
+	return $addSongDirs;
+}
+
 function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
@@ -270,7 +316,7 @@ foreach ($files as $filesChunk){
 		//sanity on the file, if no filename or notedata, ignore
 		if (isset($metadata['#SONGFILENAME']) && !empty($metadata['#SONGFILENAME']) && !empty($notedata_array)){
 			//check if this file is in an ignored pack
-			if (isIgnoredPack($metadata['#SONGFILENAME']) == FALSE){
+			if (isIgnoredPack($metadata['#SONGFILENAME']) === FALSE && doesFileExist($metadata['#SONGFILENAME']) === TRUE){
 				$cache_file = array('metadata' => $metadata, 'notedata' => $notedata_array);
 				$cache_array[] = $cache_file;
 				$i++;
