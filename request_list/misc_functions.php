@@ -112,8 +112,9 @@ function is_emote_request($song){
         "danizoOHNO"        =>  "Minna no Kimochi",
         "beniplKitty"       =>  "Kitty From Hell",
         "ddrDav2"           =>  "Heaven is a 57 metallic gray",
-        "hellki1Nabi1"      =>  "My Babby Mama",
-        "iambgsKool"        =>  "New Horizons TOKYO"
+        "hellki1Nabi1"      =>  "My Baby Mama",
+        "iambgsKool"        =>  "New Horizons TOKYO",
+        "kikoiaRusty"       =>  "Doom Crossing"
     );
 
     if(array_key_exists($song,$emoteArray)){

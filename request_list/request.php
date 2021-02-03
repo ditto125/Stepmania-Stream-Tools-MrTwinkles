@@ -196,7 +196,7 @@ if(isset($_GET["complete"])){
 die();
 }
 
-if(isset($_GET["songid"])){
+if(isset($_GET["songid"]) && !empty($_GET["songid"])){
 	$commandArgs = parseCommandArgs($_GET["songid"],$user,$broadcaster);
 	$song = $commandArgs["song"];
         //lookup by ID and request it
@@ -218,13 +218,13 @@ if(isset($_GET["songid"])){
 die();
 }
 
-if(isset($_GET["song"])){
+if(isset($_GET["song"]) && !empty($_GET["song"])){
 	$commandArgs = parseCommandArgs($_GET["song"],$user,$broadcaster);
 	$song = $commandArgs["song"];
 
 	//easter egg requests
 	$song = is_emote_request($song);
-	//process/clean song
+	//process & clean song
 	$song = clean($song);
 	
 	//Determine if there's a song with this exact title. If someone requested "Tsugaru", this would match "TSUGARU" but would not match "TSUGARU (Apple Mix)"
@@ -233,9 +233,9 @@ if(isset($_GET["song"])){
 
 	if (mysqli_num_rows($retval) == 1) {
 		while($row = mysqli_fetch_assoc($retval)) {
-        		request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
-        		echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"];
-    		}
+        	request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
+        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"];
+    	}
 	die();
 	//end exact match
 	}
@@ -247,31 +247,32 @@ if(isset($_GET["song"])){
 				ORDER BY SUM(sm_songsplayed.numplayed) DESC, title ASC, pack ASC";
         $retval = mysqli_query( $conn, $sql );
 
-if (mysqli_num_rows($retval) == 1) {
-    while($row = mysqli_fetch_assoc($retval)) {
-	request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
-        echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"];
-    }
-die();
-//end one match
-}
-//no one match
-if (mysqli_num_rows($retval) > 0) {
-	echo "$user Top matches (request with !requestid [song id]):\n";
-	$i=1;
-    while($row = mysqli_fetch_assoc($retval)) {
-        if($i>4){die();}
-	echo " [ ".$row["id"]. " => " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ] ";
-	$i++;
-    }
-} elseif (is_numeric($song)) {
-	echo "Did you mean to use !requestid ".$song."?";
-}else{
-	echo "Didn't find any songs matching that name! Check the !songlist.";
-}
+	if (mysqli_num_rows($retval) == 1) {
+    	while($row = mysqli_fetch_assoc($retval)) {
+			request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
+        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"];
+    	}
+	die();
+	//end one match
+	}
+	//no one match
+	if (mysqli_num_rows($retval) > 0) {
+		echo "$user Top matches (request with !requestid [song id]):\n";
+		$i=1;
+    	while($row = mysqli_fetch_assoc($retval)) {
+        	if($i>4){die();}
+			echo " [ ".$row["id"]. " => " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ] ";
+			$i++;
+    	}
+	} elseif (is_numeric($song)) {
+		echo "Did you mean to use !requestid ".$song."?";
+	}else{
+		echo "Didn't find any songs matching that name! Check the !songlist.";
+	}
 
-die();
+	die();
 }
 
 mysqli_close($conn);
+die();
 ?>
