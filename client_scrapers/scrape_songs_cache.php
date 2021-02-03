@@ -175,14 +175,14 @@ function prepareCacheFiles($filesArr){
 	return $filesArr;
 }
 
-function isIgnoredPack($songfilename){
+function isIgnoredPack($songFilename){
 	global $packsIgnore;
 	global $packsIgnoreRegex;
 
 	$return = FALSE;
-	if(!empty($songfilename)){
+	if(!empty($songFilename)){
 		//song has a an associated simfile
-		$song_dir = substr($songfilename,1,strrpos($songfilename,"/")-1); //remove benginning slash and file extension
+		$song_dir = substr($songFilename,1,strrpos($songFilename,"/")-1); //remove benginning slash and file extension
 
 		//Get pack name
 		$pack = substr($song_dir, 0, strripos($song_dir, "/"));
@@ -204,13 +204,15 @@ function doesFileExist($songFilename){
 	$return = FALSE;
 
 	//check if the chart file exists on the filesystem
-	if(substr($songFilename,0,strpos($songFilename,"/",1)) == "/Songs/"){
+	if(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/Songs/"){
 		//file is in the normal "Songs" folder
 		$songFilename = str_replace("/Songs/",$songsDir."/",$songFilename);
 		if(file_exists($songFilename)){
 			$return = TRUE;
+		}else{
+			echo "File: ".$songFilename."\n";
 		}
-	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)) == "/AdditionalSongs/"){
+	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/"){
 		//file is in one of the "AdditionalSongs" folder(s)
 		$addSongDirs = additionalSongsFolders();
 		foreach($addSongDirs as $songsDir){
@@ -218,6 +220,8 @@ function doesFileExist($songFilename){
 			$songFilename = str_replace("/AdditionalSongs/",$songsDir."/",$songFilename);
 			if(file_exists($songFilename)){
 				$return = TRUE;
+			}else{
+				echo "File: ".$songFilename."\n";
 			}
 		}
 	}
@@ -316,10 +320,12 @@ foreach ($files as $filesChunk){
 		//sanity on the file, if no filename or notedata, ignore
 		if (isset($metadata['#SONGFILENAME']) && !empty($metadata['#SONGFILENAME']) && !empty($notedata_array)){
 			//check if this file is in an ignored pack
-			if (isIgnoredPack($metadata['#SONGFILENAME']) === FALSE && doesFileExist($metadata['#SONGFILENAME']) === TRUE){
+			if (isIgnoredPack($metadata['#SONGFILENAME']) == FALSE && doesFileExist($metadata['#SONGFILENAME']) == TRUE){
 				$cache_file = array('metadata' => $metadata, 'notedata' => $notedata_array);
 				$cache_array[] = $cache_file;
 				$i++;
+			}else{
+				echo $metadata['file']." is either in an Ignored Pack or the orginal chart files are missing!\n";
 			}
 		}else{
 			echo "There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping...\n";
