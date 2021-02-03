@@ -75,14 +75,15 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 ## Twitch Chat Bot
 You can use your existing chat bot or roll your own custom bot. Whichever bot you choose must be capable of custom commands with variables and GET urlfetch capability. I recommend using StreamElements.
 * Command variables that are supported across end-points. Refer to your bot’s documentation to determine how to use variables.
-  * Arguments -- bot must support multi-word arguments
+  * Arguments -- bot must support multi-word arguments!
   * Twitch user -- required for request commands
+  * Twitch user id -- lookup by user id is also available
   * Broadcaster -- required for broadcast commands and multiple stream accounts
   * Game/Category -- Useful if your bot goes not have game specific commands (SE)
   * Twitch tier -- Useful for limiting requests to certain user levels (subscriber, moderator, etc.)
 # Usage
 ## First-run
-Once all setup is complete it's time to populate the database tables and upload banner images IN THIS ORDER.
+Once all setup is complete it's time to populate the database tables and upload banner images IN THIS ORDER:
 1. Run the "scrape new songs.bat" 
 2. Run the "upload banners.bat"
 3. Run the "scrape stats.bat"
@@ -99,7 +100,7 @@ Once all setup is complete it's time to populate the database tables and upload 
  - [x] Multiple broadcaster support
  - [x] Stats.xml scraping
  - [x] Support for steps type and difficulties in requests
- - [ ] Offline mode - support dedicated SM5 machines with no network access
+ - [x] Offline mode - support dedicated SM5 machines with no network access
  - [ ] Songlist re-re-write
  - [ ] Fix custom chat bot
  - [ ] Docker support / Electron app
