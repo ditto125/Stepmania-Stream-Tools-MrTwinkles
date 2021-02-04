@@ -14,10 +14,6 @@ Command:    !skip
 User Level: moderator
 Response:   $(urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&skip=$(querystring))
 
-Command:    !complete
-User Level: moderator
-Response:   $(urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&complete=$(querystring))
-
 Command:    !random
 User Level: everyone
 Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=random&num=$(querystring))
@@ -38,17 +34,21 @@ Command:    !randomddr
 User Level: everyone
 Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=ddr&random=Dance+Dance+Revolution%7CDancing+Stage&num=$(querystring))
 
+Command:    !randomitg
+User Level: everyone
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=itg&random=ITG%7CIn+The+Groove&num=$(querystring))
+
 Command:    !banuser
 User Level: moderator
-Response:   $(urlfetch https://[URL]/requestor.php?security_key=[KEY]&broadcaster=$(channel)&game=$(twitch $(channel) "{{game}}")&banuser=$(queryescape))
+Response:   $(urlfetch https://[URL]/requestor.php?security_key=[KEY]&broadcaster=$(channel)&game=$(twitch $(channel) "{{game}}")&banuser=$(querystring))
 
 Command:    !whitelist
 User Level: moderator
-Response:   $(urlfetch https://[URL]/requestor.php?security_key=[KEY]&broadcaster=$(channel)&game=$(twitch $(channel) "{{game}}")&whitelist=$(queryescape))
+Response:   $(urlfetch https://[URL]/requestor.php?security_key=[KEY]&broadcaster=$(channel)&game=$(twitch $(channel) "{{game}}")&whitelist=$(querystring))
 
 Command:    !bansong
 User Level: moderator
-Response:   $(urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&game=$(twitch $(channel) "{{game}}")&bansong=$(queryescape))
+Response:   $(urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&game=$(twitch $(channel) "{{game}}")&bansong=$(querystring))
  
 Command:    !bansongid
 User Level: moderator
@@ -72,7 +72,7 @@ Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadca
 
 Command:    !requesttoggle
 User Level: moderator
-Response:   $(urlfetch https://[URL]/broadcaster.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&requesttoggle=$(queryescape))
+Response:   $(urlfetch https://[URL]/broadcaster.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&requesttoggle=$(querystring))
 
 Command:    !stepstype
 User Level: moderator
