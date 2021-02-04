@@ -84,7 +84,7 @@ if(isset($_GET["broadcaster"]) && !empty($_GET["broadcaster"])){
 //get number of random requests, if not specified, set as 1
 if (isset($_GET["num"]) && !empty($_GET["num"]) && is_numeric($_GET["num"]) && $_GET["num"] > 0){
 	$num = $_GET["num"];
-}elseif(!isset($_GET["num"]) && empty($_GET["num"])){
+}elseif(!isset($_GET["num"]) || empty($_GET["num"])){
 	$num = 1;
 }else{ 
 	die("Good one, $user, but only positive integers are allowed!");
