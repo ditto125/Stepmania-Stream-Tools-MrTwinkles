@@ -62,6 +62,10 @@ $broadcasters = array(
 //A value of 0.5 equates to 30 seconds of cooldown per active global request.
 $cooldownMultiplier = 0.4;
 
+//Length of the on-stream request widget (max # of visible requests).
+//The default value is 10.
+$requestWidgetLength = 10;
+
 //Max requests. Maximum active requests before requests are halted.
 //This number should be 10 or less.
 $maxRequests = 10;

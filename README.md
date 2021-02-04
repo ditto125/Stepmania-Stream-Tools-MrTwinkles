@@ -58,12 +58,14 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 1. If no php.ini exists in the php directory, rename the php.ini-production file to php.ini
     * Remove semicolon in front of ";extension=curl" to enable the cURL extension.
     * Remove semicolon in front of ";extension=mbstring" to enable multi-byte string functions
-2. Configure php scripts (edit config.php) with your StepMania directories and security key.
+2. Configure php scripts (edit config.php) with your StepMania directories, security key, and URL.
 3. Highly Recommended: Delete all contents of your SM5 Cache/Songs directory, start SM5, and have it rebuild new cache files.
 4. Edit "scrape stats.bat" to add your LocalProfile ID number(s) you want to scrape and whether the script should run in “auto” mode.
+    * Run this script in "auto" mode to continuously scrape the Stats.xml file as you play/stream.
 ### Browser Source
 1. To show the request board/widget on stream, add a new broswer source for "[URL]/show_requests.php?security_key=[KEY]"
     * If you are using multiple broadcasters, append "&broadcaster=[BROADCASTER]"
+    * For "offline mode", append "&admin" to the end of the URL to add buttons for manually marking songs as completed or skipped.
 2. To show stats on stream, add a new browser source for "[URL]/stats.php?data=[?]"
     * [?] = "songs" : ## songs played this session
     * [?] = "requests" : ## requests this session
@@ -73,11 +75,18 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 ## Twitch Chat Bot
 You can use your existing chat bot or roll your own custom bot. Whichever bot you choose must be capable of custom commands with variables and GET urlfetch capability. I recommend using StreamElements.
 * Command variables that are supported across end-points. Refer to your bot’s documentation to determine how to use variables.
-  * Arguments -- bot must support multi-word arguments
+  * Arguments -- bot must support multi-word arguments!
   * Twitch user -- required for request commands
+  * Twitch user id -- lookup by user id is also available
   * Broadcaster -- required for broadcast commands and multiple stream accounts
   * Game/Category -- Useful if your bot goes not have game specific commands (SE)
   * Twitch tier -- Useful for limiting requests to certain user levels (subscriber, moderator, etc.)
+# Usage
+## First-run
+Once all setup is complete it's time to populate the database tables and upload banner images IN THIS ORDER:
+1. Run the "scrape new songs.bat" 
+2. Run the "upload banners.bat"
+3. Run the "scrape stats.bat"
 
 # Limitations/Known Bugs
   * Only 4/8-panel "dance" mode is supported. Other modes that are supported by SM5 can be implemented, but they are not as of now.
@@ -85,15 +94,16 @@ You can use your existing chat bot or roll your own custom bot. Whichever bot yo
   * Stats.xml files from other judgement modes in Simply Love (FA+/Casual) are not supported.
   * StepMania 5 does not remove associated song cache files on song deletion. If you delete a song/pack, you must remove the cache file also before the song scraper will detect the song as "not installed."
   * The song request widget/board requires at least one song to continue to update automatically.
+  * Sometimes the PHP-CLI scripts will hang. Pressing "enter" will gently encourage the script to get back to work.
 
 # Milestones
  - [x] Multiple broadcaster support
  - [x] Stats.xml scraping
  - [x] Support for steps type and difficulties in requests
- - [ ] Offline mode - support dedicated SM5 machines with no network access
+ - [x] Offline mode - support dedicated SM5 machines with no network access
  - [ ] Songlist re-re-write
  - [ ] Fix custom chat bot
- - [ ] Docker support
+ - [ ] Docker support / Electron app
 
 ---
 ---

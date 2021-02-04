@@ -49,8 +49,12 @@ echo '<html>
 
 }
 
+	if(empty($requestWidgetLength) || !is_numeric($requestWidgetLength) || $requestWidgetLength > 50){
+		$requestWidgetLength = 10;
+	}
+
         //$sql = "SELECT * FROM sm_requests WHERE state=\"requested\" OR state=\"completed\" ORDER BY request_time DESC LIMIT 10";
-        $sql = "SELECT * FROM sm_requests WHERE ((state=\"requested\" OR state=\"completed\") AND broadcaster LIKE \"{$broadcaster}\") ORDER BY request_time DESC LIMIT 10";
+        $sql = "SELECT * FROM sm_requests WHERE ((state=\"requested\" OR state=\"completed\") AND broadcaster LIKE \"{$broadcaster}\") ORDER BY request_time DESC LIMIT $requestWidgetLength";
         $retval = mysqli_query( $conn, $sql );
 		  $i=0;
 

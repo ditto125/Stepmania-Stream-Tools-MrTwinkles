@@ -16,13 +16,16 @@ $cPacks = 0;
 $fileSizeMax = 5242880; //5MB
 
 function additionalSongsFolders($directory){
+	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
 	$prefFile = $directory."/Preferences.ini";
 	$addSongDirs = array();
 	if(file_exists($prefFile)){
 		$lines = file($prefFile);
 		foreach ($lines as $line){
 			$addSongFolder = substr(strstr($line,"AdditionalSongFolders="),22);
-			if(strlen($addSongFolder) > 0){
+			if(strlen($addSongFolder) > 1){
+				//file exists, line is in file, and line contains at least 1 directory
+				//directories are delimited by ","
 				$addSongDirs = array_map('trim',explode(',',$addSongFolder));
 			break;
 			}
