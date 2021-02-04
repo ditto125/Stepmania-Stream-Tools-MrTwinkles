@@ -324,7 +324,7 @@ foreach ($files as $filesChunk){
 		$notedata_array = parseNotedata($file);
 		//sanity on the file, if no filename or notedata, ignore
 		if (isset($metadata['#SONGFILENAME']) && !empty($metadata['#SONGFILENAME']) && !empty($notedata_array)){
-			//check if this file is in an ignored pack
+			//check if this file is in an ignored pack and that the chart file exists
 			if (isIgnoredPack($metadata['#SONGFILENAME']) == FALSE && doesFileExist($metadata['#SONGFILENAME']) == TRUE){
 				$cache_file = array('metadata' => $metadata, 'notedata' => $notedata_array);
 				$cache_array[] = $cache_file;
