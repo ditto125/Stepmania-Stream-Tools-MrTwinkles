@@ -203,6 +203,11 @@ function doesFileExist($songFilename){
 	global $songsDir;
 	$return = FALSE;
 
+	//fix possible character encoding
+	//convert string to UTF-8 then back to ISO-8859-1 so Windows can understand it
+	$songFilename = fixEncoding($songFilename);
+	$songFilename = utf8_decode($songFilename);
+
 	//check if the chart file exists on the filesystem
 	if(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/Songs/"){
 		//file is in the normal "Songs" folder
