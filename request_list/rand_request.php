@@ -147,7 +147,8 @@ if($_GET["random"] == "random"){
 		LIMIT 100";
 		$retval = mysqli_query( $conn, $sql );
 		
-		if(mysqli_num_rows($retval) > 0) {
+		if(mysqli_num_rows($retval) >= 10) {
+			//let's hope for at least 10 results so that it at least seems like a random pick
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
@@ -156,10 +157,12 @@ if($_GET["random"] == "random"){
 					$i++;
 				}
 			}
+		}else{
+			die("Too few songs played/requested to pick a random song!");
 		}
 	
 	} else {
-        	die("Didn't find any random songs!");
+        die("Didn't find any random songs!");
 }
 
 die();
@@ -234,7 +237,8 @@ if($_GET["random"] == "top"){
 				ORDER BY RAND()";
 		$retval = mysqli_query( $conn, $sql );
 		
-		if(mysqli_num_rows($retval) > 0) {
+		if(mysqli_num_rows($retval) >= 10) {
+			//let's hope for at least 10 results so that it at least seems like a random pick
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
@@ -243,6 +247,8 @@ if($_GET["random"] == "top"){
 					$i++;
 				}
 			}
+		}else{
+			die("Too few songs played/requested to pick a top song!");
 		}
 	} else {
         die("Didn't find any top songs!");
@@ -344,7 +350,8 @@ if($_GET["random"] == "roll"){
 		LIMIT 100";
 		$retval = mysqli_query( $conn, $sql );
 		
-		if(mysqli_num_rows($retval) > 0) {
+		if(mysqli_num_rows($retval) >= 10) {
+			//let's hope for at least 10 results so that it at least seems like a random pick
 			echo "$user rolled (request with !requestid [song id]):\n";
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
@@ -353,6 +360,8 @@ if($_GET["random"] == "roll"){
 				$i++;
 				}
 			}
+		}else{
+			die("Too few songs played/requested to roll random songs!");
 		}	
 	} else {
 		die("$user rolled a natural 1 BibleThump");
