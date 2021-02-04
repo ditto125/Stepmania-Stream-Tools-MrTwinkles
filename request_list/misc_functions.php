@@ -109,9 +109,14 @@ function recently_played($song_id){
 function is_emote_request($song){
     $emoteArray = array (
         "mrtwin1HaHaHa"     =>  "The Smiler",
-        "danizoOHNO"        =>  "Watch Me",
+        "danizoOHNO"        =>  "Minna no Kimochi",
         "beniplKitty"       =>  "Kitty From Hell",
-        "djfipuMyDog"       =>  "Dadadadadadadadadada"
+        "ddrDav2"           =>  "Heaven is a 57 metallic gray",
+        "hellki1Nabi1"      =>  "My Baby Mama",
+        "iambgsKool"        =>  "New Horizons TOKYO",
+        "kikoiaRusty"       =>  "Doom Crossing",
+        "noreseSLOW"        =>  "VEAH",
+        "xancarDex"         =>  "Ding Dong Song"
     );
 
     if(array_key_exists($song,$emoteArray)){
