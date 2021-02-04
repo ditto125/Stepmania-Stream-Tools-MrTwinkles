@@ -366,6 +366,7 @@ if($_GET["random"] == "roll"){
 	} else {
 		die("$user rolled a natural 1 BibleThump");
 	}
+	die();
 }
 
 //special random for regulars: picks a random song from top 10 requested by requestor
