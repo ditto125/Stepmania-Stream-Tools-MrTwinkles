@@ -51,6 +51,8 @@ switch($_GET["data"]){
 					$tier = "ddr_tier";
 					$grade = "ddr_grade";
 				break;
+				default:
+				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
 			}
 		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
 		
@@ -75,30 +77,40 @@ switch($_GET["data"]){
 				case "itg":
 					$tier = "itg_tier";
 					$grade = "itg_grade";
+					$score = "itg";
 				break;
 				case "ddr":
 					$tier = "ddr_tier";
 					$grade = "ddr_grade";
+					$score = "ddr";
 				break;
+				default:
+				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
 			}
 		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
 
 		$timestamp = getLastRequest()['request_time'];
 
-		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.$grade,FORMAT(sm_scores.percentdp*100,2) AS percentdp 
+		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.$grade,FORMAT(sm_scores.percentdp*100,2) AS percentdp,FORMAT(score,0) AS score  
 		FROM sm_scores 
 		JOIN sm_grade_tiers ON sm_grade_tiers.$tier = sm_scores.grade 
 		JOIN sm_songs ON sm_songs.id = sm_scores.song_id 
-		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' 
+		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0  
 		ORDER BY sm_scores.datetime DESC 
 		LIMIT 5";
 		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 
+		if($score == "ddr"){
+			$score = "score";
+		}else{
+			$score = "percentdp";
+		}
+
 		echo '<table>';
 		while ($row = mysqli_fetch_assoc($retval)){
 			echo '<tr>';
-			echo '<td>'.$row['title'].'</td><td>'.$row['pack'].'</td><td><strong>'.$row['itg_grade'].'</strong></td><td>('.$row['percentdp'].')';
+			echo '<td>'.$row['title'].'</td><td>'.$row['pack'].'</td><td><strong>'.$row[$grade].'</strong></td><td>('.$row[$score].')';
 			echo '</tr>';
 		}
 		echo '</table>';
