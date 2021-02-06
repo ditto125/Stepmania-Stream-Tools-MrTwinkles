@@ -127,7 +127,7 @@ switch($_GET["data"]){
 		$broadcasters = getLastRequest()['broadcaster'];
 		$timestamp = getLastRequest()['request_time'];
 
-		$sql = "SELECT requestor,COUNT(id) AS count FROM sm_requests WHERE state <> 'canceled' AND LOWER(requestor) NOT IN(\"{$broadcasters}\") AND request_time > date_sub(\"{$timestamp}\", interval 3 hour) GROUP BY requestor ORDER BY count DESC LIMIT 5";
+		$sql = "SELECT requestor,COUNT(id) AS count FROM sm_requests WHERE state <> 'canceled' AND state <> 'skipped' AND LOWER(requestor) NOT IN(\"{$broadcasters}\") AND request_time > date_sub(\"{$timestamp}\", interval 3 hour) GROUP BY requestor ORDER BY count DESC,requestor DESC LIMIT 5";
 		$retval = mysqli_query( $conn, $sql );
 
 		echo '<h1>Special thanks to requestors:</h1>';
