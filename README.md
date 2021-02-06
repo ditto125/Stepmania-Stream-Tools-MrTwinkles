@@ -92,6 +92,7 @@ Once all setup is complete it's time to populate the database tables and upload 
   * Only 4/8-panel "dance" mode is supported. Other modes that are supported by SM5 can be implemented, but they are not as of now.
   * Weird things may happen with random commands, if you start with a brand new profile Stats.xml file.
   * Stats.xml files from other judgement modes in Simply Love (FA+/Casual) are not supported.
+  * Currently only one SM5 profile per broadcaster is preferred. The system will function with multiple SM5 profiles (ex. pad profile and a KB profle), but score based commands or calculating top songs maybe give odd results. 
   * StepMania 5 does not remove associated song cache files on song deletion. If you delete a song/pack, you must remove the cache file also before the song scraper will detect the song as "not installed."
   * The song request widget/board requires at least one song to continue to update automatically.
   * Sometimes the PHP-CLI scripts will hang. Pressing "enter" will gently encourage the script to get back to work.

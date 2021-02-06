@@ -46,46 +46,79 @@ switch($_GET["data"]){
 				case "itg":
 					$tier = "itg_tier";
 					$grade = "itg_grade";
+					$score = "itg";
 				break;
 				case "ddr":
 					$tier = "ddr_tier";
 					$grade = "ddr_grade";
+					$score = "ddr";
 				break;
+				default:
+				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
 			}
 		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
 		
 		$timestamp = getLastRequest()['request_time'];
 		
-		$sql = "SELECT sm_grade_tiers.$grade,FORMAT(AVG(sm_scores.percentdp*100),2) AS percentdp,COUNT(sm_scores.grade) AS gradeCount 
+		$sql = "SELECT sm_grade_tiers.$grade,FORMAT(AVG(sm_scores.percentdp*100),2) AS percentdp,FORMAT(score,0) AS score,COUNT(sm_scores.grade) AS gradeCount 
 		FROM sm_scores 
 		LEFT JOIN sm_grade_tiers ON sm_grade_tiers.$tier = sm_scores.grade
-		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' 
+		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0 
 		GROUP BY sm_scores.grade 
 		ORDER BY sm_scores.grade ASC";
 		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
+
+		if($score == "ddr"){
+			$score = "score";
+		}else{
+			$score = "percentdp";
+		}
 		
 		while ($row = mysqli_fetch_assoc($retval)){
-			echo $row[$grade]." (".$row['percentdp'].") - ".$row['gradeCount']."</br>";
+			echo $row[$grade]." (".$row[$score].") - ".$row['gradeCount']."</br>";
 		}
 	break;
 	case "recent":
+		if(isset($_GET["judgement"])){
+			switch ($_GET["judgement"]){
+				case "itg":
+					$tier = "itg_tier";
+					$grade = "itg_grade";
+					$score = "itg";
+				break;
+				case "ddr":
+					$tier = "ddr_tier";
+					$grade = "ddr_grade";
+					$score = "ddr";
+				break;
+				default:
+				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
+			}
+		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
+
 		$timestamp = getLastRequest()['request_time'];
 
-		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.itg_grade,FORMAT(sm_scores.percentdp*100,2) AS percentdp 
+		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.$grade,FORMAT(sm_scores.percentdp*100,2) AS percentdp,FORMAT(score,0) AS score  
 		FROM sm_scores 
-		JOIN sm_grade_tiers ON sm_grade_tiers.itg_tier = sm_scores.grade 
+		JOIN sm_grade_tiers ON sm_grade_tiers.$tier = sm_scores.grade 
 		JOIN sm_songs ON sm_songs.id = sm_scores.song_id 
-		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' 
+		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0  
 		ORDER BY sm_scores.datetime DESC 
 		LIMIT 5";
 		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 
+		if($score == "ddr"){
+			$score = "score";
+		}else{
+			$score = "percentdp";
+		}
+
 		echo '<table>';
 		while ($row = mysqli_fetch_assoc($retval)){
 			echo '<tr>';
-			echo '<td>'.$row['title'].'</td><td>'.$row['pack'].'</td><td><strong>'.$row['itg_grade'].'</strong></td><td>('.$row['percentdp'].')';
+			echo '<td>'.$row['title'].'</td><td>'.$row['pack'].'</td><td><strong>'.$row[$grade].'</strong></td><td>('.$row[$score].')';
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -94,7 +127,7 @@ switch($_GET["data"]){
 		$broadcasters = getLastRequest()['broadcaster'];
 		$timestamp = getLastRequest()['request_time'];
 
-		$sql = "SELECT requestor,COUNT(id) AS count FROM sm_requests WHERE state <> 'canceled' AND LOWER(requestor) NOT IN(\"{$broadcasters}\") AND request_time > date_sub(\"{$timestamp}\", interval 3 hour) GROUP BY requestor ORDER BY count DESC LIMIT 5";
+		$sql = "SELECT requestor,COUNT(id) AS count FROM sm_requests WHERE state <> 'canceled' AND state <> 'skipped' AND LOWER(requestor) NOT IN(\"{$broadcasters}\") AND request_time > date_sub(\"{$timestamp}\", interval 3 hour) GROUP BY requestor ORDER BY count DESC,requestor DESC LIMIT 5";
 		$retval = mysqli_query( $conn, $sql );
 
 		echo '<h1>Special thanks to requestors:</h1>';
