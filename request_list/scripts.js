@@ -123,10 +123,10 @@ function new_request(array){
 function new_cancel(id){
 	request_id = id;
 	if( $("#request_"+request_id).length ){
-        	console.log("Canceling request "+request_id);
-            $("#request_"+request_id).slideUp(600, function() {this.remove(); });
-            $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
-        	$("#cancel")[0].play();
+        console.log("Canceling request "+request_id);
+        $("#request_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#cancel")[0].play();
 	}
 }
 
@@ -135,10 +135,10 @@ function completion(id){
 	if( $("#request_"+request_id).length ){
 		if( $("#request_"+request_id).hasClass("completed") ){
 		}else{
-                        console.log("Completing request "+request_id);
-                        $("#request_"+request_id).removeAttr("style");
-                        $("#request_"+request_id).addClass("completed");
-                        $("#requestadmin_"+request_id).addClass("completed");
+            console.log("Completing request "+request_id);
+            $("#request_"+request_id).removeAttr("style");
+            $("#request_"+request_id).addClass("completed");
+            $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
 			$("#request_"+request_id).append("<img src=\"images/check.png\" class=\"check\" />");
 		}
 	}
@@ -147,10 +147,10 @@ function completion(id){
 function skipped(id){
         request_id = id;
 	if( $("#request_"+request_id).length ){
-        	console.log("Skipping request "+request_id);
-            $("#request_"+request_id).slideUp(600, function() {this.remove(); });
-            $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
-        	$("#cancel")[0].play();
+        console.log("Skipping request "+request_id);
+        $("#request_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#cancel")[0].play();
 	}
 }
 
