@@ -70,11 +70,24 @@ switch($_GET["data"]){
 		}
 	break;
 	case "recent":
+		if(isset($_GET["judgement"])){
+			switch ($_GET["judgement"]){
+				case "itg":
+					$tier = "itg_tier";
+					$grade = "itg_grade";
+				break;
+				case "ddr":
+					$tier = "ddr_tier";
+					$grade = "ddr_grade";
+				break;
+			}
+		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
+
 		$timestamp = getLastRequest()['request_time'];
 
-		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.itg_grade,FORMAT(sm_scores.percentdp*100,2) AS percentdp 
+		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.$grade,FORMAT(sm_scores.percentdp*100,2) AS percentdp 
 		FROM sm_scores 
-		JOIN sm_grade_tiers ON sm_grade_tiers.itg_tier = sm_scores.grade 
+		JOIN sm_grade_tiers ON sm_grade_tiers.$tier = sm_scores.grade 
 		JOIN sm_songs ON sm_songs.id = sm_scores.song_id 
 		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' 
 		ORDER BY sm_scores.datetime DESC 

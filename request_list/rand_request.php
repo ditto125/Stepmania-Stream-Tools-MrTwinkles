@@ -263,10 +263,24 @@ if($_GET["random"] == "gitgud"){
 	$request_type = "gitgud";
 	if(empty($stepstype)){$stepstype = '%';}
 
-        $sql = "SELECT id,title,subtitle,artist,pack,percentdp,score,stepstype,difficulty 
+	switch ($scoreType){
+		case "ddr":
+			$score_grade = "ddr_grade";
+			$score_tier = "ddr_tier";
+			break;
+		case "itg":
+			$score_grade = "itg_grade";
+			$score_tier = "itg_tier";
+			break;
+		default:
+			$score_grade = "itg_grade";
+			$score_tier = "itg_tier";
+	}
+
+        $sql = "SELECT id,title,subtitle,artist,pack,t2.percentdp,score,$score_grade AS grade,stepstype,difficulty 
 				FROM sm_songs 
 				JOIN 
-				(SELECT song_id,MAX(percentdp) AS percentdp,score,stepstype,difficulty 
+				(SELECT song_id,MAX(percentdp) AS percentdp,MAX(score) AS score,grade,stepstype,difficulty 
 					FROM sm_scores 
 					WHERE EXISTS 
 						(SELECT song_id,SUM(numplayed) AS numplayed   
@@ -275,11 +289,13 @@ if($_GET["random"] == "gitgud"){
 						GROUP BY song_id 
 						ORDER BY numplayed DESC 
 						LIMIT 100) 
-					AND grade <> 'Failed' AND percentdp > 0 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
+					AND grade <> 'Failed' AND percentdp > 0 AND percentdp < 1 AND score < 1000000 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
 					GROUP BY song_id 
-					ORDER BY percentdp ASC 
+					ORDER BY percentdp ASC, score ASC 
 					LIMIT 25) AS t2 
 				ON t2.song_id = sm_songs.id 
+				JOIN sm_grade_tiers 
+					ON sm_grade_tiers.$score_tier = t2.grade 
 				WHERE banned <> 1 AND installed = 1 
 				ORDER BY RAND()";
         $retval = mysqli_query( $conn, $sql );
@@ -291,14 +307,13 @@ if($_GET["random"] == "gitgud"){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $row['difficulty']);
 					switch ($scoreType){
 						case "ddr":
-							$displayScore = number_format($row['score'],0,".",",");
+							$displayScore = number_format($row['score'],0,".",",")." [".$row['grade']."]";
 							break;
 						case "itg":
-							$displayScore = number_format($row['percentdp']*100,2);
-							$displayScore = $displayScore."%";
+							$displayScore = number_format($row['percentdp']*100,2)."% [".$row['grade']."]";
 							break;
 						default:
-							$displayScore = number_format($row['percentdp']*100,2);
+							$displayScore = number_format($row['percentdp']*100,2)."% [".$row['grade']."]";
 					}
 					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
