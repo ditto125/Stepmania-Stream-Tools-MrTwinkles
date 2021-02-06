@@ -46,10 +46,12 @@ switch($_GET["data"]){
 				case "itg":
 					$tier = "itg_tier";
 					$grade = "itg_grade";
+					$score = "itg";
 				break;
 				case "ddr":
 					$tier = "ddr_tier";
 					$grade = "ddr_grade";
+					$score = "ddr";
 				break;
 				default:
 				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
@@ -58,17 +60,23 @@ switch($_GET["data"]){
 		
 		$timestamp = getLastRequest()['request_time'];
 		
-		$sql = "SELECT sm_grade_tiers.$grade,FORMAT(AVG(sm_scores.percentdp*100),2) AS percentdp,COUNT(sm_scores.grade) AS gradeCount 
+		$sql = "SELECT sm_grade_tiers.$grade,FORMAT(AVG(sm_scores.percentdp*100),2) AS percentdp,FORMAT(score,0) AS score,COUNT(sm_scores.grade) AS gradeCount 
 		FROM sm_scores 
 		LEFT JOIN sm_grade_tiers ON sm_grade_tiers.$tier = sm_scores.grade
-		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' 
+		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0 
 		GROUP BY sm_scores.grade 
 		ORDER BY sm_scores.grade ASC";
 		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
+
+		if($score == "ddr"){
+			$score = "score";
+		}else{
+			$score = "percentdp";
+		}
 		
 		while ($row = mysqli_fetch_assoc($retval)){
-			echo $row[$grade]." (".$row['percentdp'].") - ".$row['gradeCount']."</br>";
+			echo $row[$grade]." (".$row[$score].") - ".$row['gradeCount']."</br>";
 		}
 	break;
 	case "recent":
