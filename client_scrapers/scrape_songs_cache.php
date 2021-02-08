@@ -254,22 +254,36 @@ function additionalSongsFolders(){
 	return $addSongDirs;
 }
 
+function parseJsonErrors($error,$jsonArray){
+	if($error == "JSON_ERROR_UTF8"){
+		echo json_last_error_msg().PHP_EOL;
+		echo "One of these files has an error. Correct the special character in the song folder name and re-run the script.".PHP_EOL;
+		foreach($jsonArray['data'] as $cacheFile){
+			echo $cacheFile['metadata']['#SONGFILENAME'].PHP_EOL;
+		}
+		die();
+	}else{
+		die(json_last_error_msg().PHP_EOL);
+	}
+}
+
 function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
-	unset($ch,$result,$post,$jsonArray);
+	unset($ch,$result,$post,$jsonArray,$errorJson);
 	//add the security_key to the array
 	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
-	if(json_last_error_msg() != "No error"){
-		//there was an error with the json string, die
-		//print_r($array);
-		die(json_last_error_msg());
+	$errorJson = json_last_error();
+	if($errorJson != "JSON_ERROR_NONE"){
+		//there was an error with the json string
+		parseJsonErrors($errorJson,$jsonArray);
+		die();
 	}
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php");
+	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php?$postSource");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
@@ -330,7 +344,7 @@ foreach ($files as $filesChunk){
 				$cache_array[] = $cache_file;
 				$i++;
 			}else{
-				echo $metadata['file']." is either in an Ignored Pack or the orginal chart files are missing!\n";
+				echo $metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!\n";
 			}
 		}else{
 			echo "There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping...\n";

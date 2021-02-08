@@ -289,7 +289,7 @@ if($_GET["random"] == "gitgud"){
 						GROUP BY song_id 
 						ORDER BY numplayed DESC 
 						LIMIT 100) 
-					AND grade <> 'Failed' AND percentdp > 0 AND percentdp < 1 AND score < 1000000 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
+					AND grade <> 'Failed' AND percentdp > 0 AND percentdp < 1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
 					GROUP BY song_id 
 					ORDER BY percentdp ASC, score ASC 
 					LIMIT 25) AS t2 
@@ -307,7 +307,16 @@ if($_GET["random"] == "gitgud"){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $row['difficulty']);
 					switch ($scoreType){
 						case "ddr":
-							$displayScore = number_format($row['score'],0,".",",")." [".$row['grade']."]";
+							$score = $row['score'];
+							$score !== 0 ? $base = ceil(log10($score)) : $base = 1;
+							if($base > 6){
+								//score is >1000000. It was obtained while using a non-modern-ddr theme.
+								//translate the score to ddr range (out of 1M)
+								$score = $score / pow(10,$base - 6);
+								$displayScore = number_format($score,0,".",",")."* [".$row['grade']."]";
+							}else{
+								$displayScore = number_format($score,0,".",",")." [".$row['grade']."]";
+							}
 							break;
 						case "itg":
 							$displayScore = number_format($row['percentdp']*100,2)."% [".$row['grade']."]";

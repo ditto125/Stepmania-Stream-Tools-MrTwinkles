@@ -222,9 +222,14 @@ function curlPost($postSource, $array){
 	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
+	$errorJson = json_last_error();
+	if($errorJson != "JSON_ERROR_NONE"){
+		//there was an error with the json string
+		die(json_last_error_msg().PHP_EOL);
+	}
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php");
+	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php?$postSource");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini

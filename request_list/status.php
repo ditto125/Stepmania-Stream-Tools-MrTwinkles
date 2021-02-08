@@ -24,7 +24,7 @@ if(strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0){
 //Make sure that the content type of the POST request has been set to application/json
 $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
 if(strcasecmp($contentType, 'application/json') != 0){
-	echo('Content type must be: application/jsonn\n');
+	echo('Content type must be: application/json\n');
 }
  
 //Receive the RAW post data.
@@ -433,30 +433,31 @@ function addLastPlayedtoDB ($lastplayed_array){
 			//existing record is not found - let's either update or insert a record
 			$id = "";
 			//check if the number of times played has increased and update db
-			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND numplayed < \"{$lastplayed['NumTimesPlayed']}\" AND lastplayed <= \"{$lastplayed['LastPlayed']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\"";
-			if (!$retval = mysqli_query($conn, $sql0)){
+			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND numplayed < \"{$lastplayed['NumTimesPlayed']}\" AND lastplayed <= \"{$lastplayed['LastPlayed']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
+			if (!mysqli_query($conn, $sql0)){
 				echo "Error: " . $sql0 . "\n" . mysqli_error($conn) . "\n";
 			}
 			if (mysqli_num_rows($retval) > 0){
 				//there are updates - update the db record for song_dir
 				//first let's also grab the song_id just in case the entry here is 0
-				$row = mysqli_fetch_assoc($retval);
-				$song_id = $row['song_id'];
-				if($row['song_id'] == 0){
-					$songInfo = lookupSongID($row['song_dir']);
-					$song_id = $songInfo['id'];
+				while($row = mysqli_fetch_assoc($retval)){
+					$song_id = $row['song_id'];
+					if($song_id == 0){
+						$songInfo = lookupSongID($row['song_dir']);
+						$song_id = $songInfo['id'];
+					}
+					$id = $row['id'];
+					$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
+					if (!mysqli_query($conn, $sql0)){
+						echo "Error: " . $sql0 . "\n" . mysqli_error($conn) . "\n";
+					}
 				}
-				$id = $row['id'];
-				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
-				if (!$retval = mysqli_query($conn, $sql0)){
-					echo "Error: " . $sql0 . "\n" . mysqli_error($conn) . "\n";
-				}
-			}elseif (mysqli_num_rows($retval) == 0){
+			}elseif(mysqli_num_rows($retval) == 0){
 				//record does not exist - insert a new row
 				$songInfo = lookupSongID($lastplayed['SongDir']);
 				$song_id = $songInfo['id'];
 				$sql0 = "INSERT INTO sm_songsplayed (song_id,song_dir,stepstype,difficulty,username,numplayed,lastplayed,datetime) VALUES (\"{$song_id}\",\"{$lastplayed['SongDir']}\",\"{$lastplayed['StepsType']}\",\"{$lastplayed['Difficulty']}\",\"{$lastplayed['DisplayName']}\",\"{$lastplayed['NumTimesPlayed']}\",\"{$lastplayed['LastPlayed']}\",NOW())";
-				if (!$retval = mysqli_query($conn, $sql0)){
+				if (!mysqli_query($conn, $sql0)){
 					echo "Error: " . $sql0 . "\n" . mysqli_error($conn) . "\n";
 				}
 				$id = mysqli_insert_id($conn);
@@ -464,8 +465,21 @@ function addLastPlayedtoDB ($lastplayed_array){
 			//save row ids of updated/inserted records for marking requests later
 			$lastplayedIDUpdated[] = $id;
 			echo $lastplayed['LastPlayed']."-- ".$songInfo['title']." from ".$songInfo['pack']."\n";
-		}else{
+		}elseif(mysqli_num_rows($retval) > 0){
 			//echo "record already exists. No need to update/insert.";
+			//Let's update the song ID, just in case it was added before a song cache scrape
+			while($row = mysqli_fetch_assoc($retval)){
+				$song_id = $row['song_id'];
+				if($song_id == 0){
+					$songInfo = lookupSongID($row['song_dir']);
+					$song_id = $songInfo['id'];
+					$id = $row['id'];
+					$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\" WHERE id = \"{$id}\"";
+					if (!mysqli_query($conn, $sql0)){
+						echo "Error: " . $sql0 . "\n" . mysqli_error($conn) . "\n";
+					}
+				}
+			}
 		}
 	}
 	return $lastplayedIDUpdated;
@@ -554,20 +568,21 @@ function addHighScoretoDB ($highscore_array){
 			if (!mysqli_query($conn, $sql2)){
 				echo "Error: " . $sql2 . "\n" . mysqli_error($conn) . "\n";
 			}
-		}else{
+		}elseif(mysqli_num_rows($retval) > 0){
 			//echo "This entry already exists in the db, skipping \n";
 			//Let's update the song ID, just in case it was added before a song cache scrape
-			$row = mysqli_fetch_assoc($retval);
-			$song_id = $row['song_id'];
-			if($row['song_id'] == 0){
-				$songInfo = lookupSongID($row['song_dir']);
-				$song_id = $songInfo['id'];
-			}
-				$id = $row['id'];
-				$sql0 = "UPDATE sm_scores SET song_id = \"{$song_id}\" WHERE id = \"{$id}\"";
-				if (!$retval = mysqli_query($conn, $sql0)){
-					echo "Error: " . $sql0 . "\n" . mysqli_error($conn) . "\n";
+			while($row = mysqli_fetch_assoc($retval)){
+				$song_id = $row['song_id'];
+				if($song_id == 0){
+					$songInfo = lookupSongID($row['song_dir']);
+					$song_id = $songInfo['id'];
+					$id = $row['id'];
+					$sql0 = "UPDATE sm_scores SET song_id = \"{$song_id}\" WHERE id = \"{$id}\"";
+					if (!mysqli_query($conn, $sql0)){
+						echo "Error: " . $sql0 . "\n" . mysqli_error($conn) . "\n";
+					}
 				}
+			}
 
 		}
 	}
