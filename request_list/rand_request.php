@@ -204,7 +204,7 @@ if($_GET["random"] == "top"){
 					(SELECT song_id,SUM(numplayed) AS numplayed,stepstype 
 					FROM sm_songsplayed
 					WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
-					GROUP BY song_id
+					GROUP BY song_id,stepstype 
 					ORDER BY numplayed DESC
 					LIMIT 100) AS t2
 				ON t2.song_id=sm_songs.id 
@@ -277,10 +277,10 @@ if($_GET["random"] == "gitgud"){
 			$score_tier = "itg_tier";
 	}
 
-        $sql = "SELECT id,title,subtitle,artist,pack,t2.percentdp,score,$score_grade AS grade,stepstype,difficulty 
+        $sql = "SELECT id,title,subtitle,artist,pack,t2.percentdp,score,stepstype,difficulty 
 				FROM sm_songs 
 				JOIN 
-				(SELECT song_id,MAX(percentdp) AS percentdp,MAX(score) AS score,grade,stepstype,difficulty 
+				(SELECT song_id,MAX(percentdp) AS percentdp,MAX(score) AS score,stepstype,difficulty 
 					FROM sm_scores 
 					WHERE EXISTS 
 						(SELECT song_id,SUM(numplayed) AS numplayed   
@@ -290,12 +290,10 @@ if($_GET["random"] == "gitgud"){
 						ORDER BY numplayed DESC 
 						LIMIT 100) 
 					AND grade <> 'Failed' AND percentdp > 0 AND percentdp < 1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
-					GROUP BY song_id 
+					GROUP BY song_id,stepstype,difficulty 
 					ORDER BY percentdp ASC, score ASC 
 					LIMIT 25) AS t2 
 				ON t2.song_id = sm_songs.id 
-				JOIN sm_grade_tiers 
-					ON sm_grade_tiers.$score_tier = t2.grade 
 				WHERE banned <> 1 AND installed = 1 
 				ORDER BY RAND()";
         $retval = mysqli_query( $conn, $sql );
@@ -313,16 +311,16 @@ if($_GET["random"] == "gitgud"){
 								//score is >1000000. It was obtained while using a non-modern-ddr theme.
 								//translate the score to ddr range (out of 1M)
 								$score = $score / pow(10,$base - 6);
-								$displayScore = number_format($score,0,".",",")."* [".$row['grade']."]";
+								$displayScore = "~".number_format($score,0,".",",");
 							}else{
-								$displayScore = number_format($score,0,".",",")." [".$row['grade']."]";
+								$displayScore = number_format($score,0,".",",");
 							}
 							break;
 						case "itg":
-							$displayScore = number_format($row['percentdp']*100,2)."% [".$row['grade']."]";
+							$displayScore = number_format($row['percentdp']*100,2)."%";
 							break;
 						default:
-							$displayScore = number_format($row['percentdp']*100,2)."% [".$row['grade']."]";
+							$displayScore = number_format($row['percentdp']*100,2)."%";
 					}
 					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
 					$i++;
@@ -433,7 +431,7 @@ if($_GET["random"] == "theusual"){
 //randomben, randomddr, randomnitg, randomhellkite...
 if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 		
-		$random = $_GET["random"];
+		$random = mysqli_real_escape_string($conn,$_GET["random"]);
 		if(isset($_GET["type"])){$request_type = mysqli_real_escape_string($conn,$_GET["type"]);}
 		$random = htmlspecialchars($random);
 		//$random = clean($random);
