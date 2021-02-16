@@ -365,17 +365,31 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
     return $result;
 }
 
-function wh_log($log_msg)
-{
+function display_ModeDiff($commandArgs){
+    //for now we are assuming the game is always StepMania
+    $displayModeDiff = "";
+    if(!empty($commandArgs['stepstype'])){
+        $stepstype = ucwords(str_ireplace("dance-","",$commandArgs['stepstype']));
+        $displayModeDiff = " [".$stepstype;
+        if(!empty($commandArgs['difficulty'])){
+            $displayModeDiff = $displayModeDiff."/".ucwords($commandArgs['difficulty'])."] ";
+        }else{
+            $displayModeDiff = $displayModeDiff."] ";
+        }
+    }
+    return $displayModeDiff;
+}
+
+function wh_log($log_msg){
     $log_filename = "log";
     if (!file_exists($log_filename)) 
     {
         // create directory/folder uploads.
         mkdir($log_filename, 0777, true);
     }
-    $log_file_data = $log_filename.'/log_' . date('d-M-Y') . '.log';
+    $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
-    file_put_contents($log_file_data, date("Y-m-d H:i:s") . "  " . $log_msg . "\n", FILE_APPEND);
+    file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtouppper(basename(__FILE__)). "] : ". $log_msg . "\n", FILE_APPEND);
 } 
 
 mysqli_close($conn);

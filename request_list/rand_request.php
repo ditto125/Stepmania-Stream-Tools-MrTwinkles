@@ -217,7 +217,8 @@ if($_GET["random"] == "top"){
 		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 				request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $difficulty);
-				echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+				$displayModeDiff = display_ModeDiff(array('stepstype' => $row['stepstype'],'difficulty' => $difficulty));
+				echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . $displayModeDiff . " ");
 				$i++;
 			}
 		}
@@ -308,7 +309,7 @@ if($_GET["random"] == "gitgud"){
 							$score = $row['score'];
 							$score !== 0 ? $base = ceil(log10($score)) : $base = 1;
 							if($base > 6){
-								//score is >1000000. It was obtained while using a non-modern-ddr theme.
+								//score is >1M. It was obtained while using a non-modern-ddr theme.
 								//translate the score to ddr range (out of 1M)
 								$score = $score / pow(10,$base - 6);
 								$displayScore = "~".number_format($score,0,".",",");
@@ -322,7 +323,8 @@ if($_GET["random"] == "gitgud"){
 						default:
 							$displayScore = number_format($row['percentdp']*100,2)."%";
 					}
-					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+					$displayModeDiff = display_ModeDiff(array('stepstype' => $row['stepstype'],'difficulty' => $row['difficulty']));
+					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . $displayModeDiff . " ");
 					$i++;
 				}
 			}
