@@ -68,6 +68,46 @@ include ('config.php');
 
 //
 
+$initialLastPlayed = array();
+$initialHighScores = array();
+
+function prune_stats_array($stats_arr){
+	global $initialLastPlayed;
+	global $initialHighScores;
+
+	$prMicro = microtime(true);
+	if(empty($initialLastPlayed) && !empty($stats_arr['LastPlayed'])){
+		$initialLastPlayed = $stats_arr['LastPlayed'];
+	}elseif(!empty($initialLastPlayed) && !empty($stats_arr['LastPlayed'])){
+		$cLastPlayed = count($stats_arr['LastPlayed']);
+		$stats_arr['LastPlayed'] = array_diff($stats_arr['LastPlayed'],$initialLastPlayed);
+		wh_log ("Pruned " . $cLastPlayed - count($stats_arr['LastPlayed']) . " elements from LastPlayed array.");
+	}
+	if(empty($initialHighScores) && !empty($stats_arr['HighScores'])){
+		$initialHighScores = $stats_arr['HighScores'];
+	}elseif(!empty($initialHighScores) && !empty($stats_arr['HighScores'])){
+		$cHighScores = count($stats_arr['HighScores']);
+		$stats_arr['HighScores'] = array_diff($stats_arr['HighScores'],$initialHighScores);
+		wh_log ("Pruned " . $cHighScores - count($stats_arr['HighScores']) . " elements from HighScores array.");
+	}
+
+	wh_log ("Pruned stats array in: " . round(microtime(true) - $prMicro,3) . " secs.");
+	return $stats_arr;
+}
+
+function wh_log($log_msg){
+    $log_filename = __DIR__."/log";
+    if (!file_exists($log_filename)) 
+    {
+        // create directory/folder uploads.
+        mkdir($log_filename, 0777, true);
+    }
+    $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
+	$log_msg = str_replace(array("\r", "\n"), '', $log_msg); //remove line endings
+    // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
+    file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
+}
+
 function fixEncoding($line){
 	//detect and convert ascii directory string to UTF-8 (Thanks, StepMania!)
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
@@ -100,14 +140,17 @@ function parseXmlErrors($errors,$xml_file){
 			//error code: 9 is "Invalid UTF-8 encoding detected"
 			echo "Oh look! StepMania left us invalid UTF-8 characters in an XML file.".PHP_EOL;
 			echo "I recommend removing all special characters from this song's directory name!".PHP_EOL;
+			wh_log("Oh look! StepMania left us invalid UTF-8 characters in an XML file. I recommend removing all special characters from this song's directory name!");
 			//get line number of the invalid character(s)
 			$lineNo = $error->line - 1;
 			//open file, fix encoding, and write new file
 			//$xml = file($xml_file);
 			echo "Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...".PHP_EOL;
+			wh_log("Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...");
 			$xml[$lineNo] = fixEncoding($xml[$lineNo]);
 		}elseif($error->code != 9){
 			//error code is not "9"
+			wh_log(implode(" ",$errors));
 			print_r($errors);
 		}
 	}
@@ -131,6 +174,7 @@ function find_statsxml($directory,$profileIDs){
 			$i++;
 		}
 		if (empty($file_arr)){
+			wh_log("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
 			exit ("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
 		}
 	}
@@ -161,7 +205,7 @@ function statsXMLtoArray ($xml_file){
 	}
 
 	//die if too many errors
-	if(!$xml){die ("Too many errors with Stats.xml file.\n");}
+	if(!$xml){wh_log("Too many errors with Stats.xml file."); die ("Too many errors with Stats.xml file.\n");}
 
 	// Example xml structure of Stats.xml file:
 	// $xml->SongScores->Song[11]['Dir'];
@@ -219,12 +263,15 @@ function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
 	//add the security_key to the array
+	$jsMicro = microtime(true);
 	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
+	wh_log ("Creating JSON took: " . round(microtime(true) - $jsMicro,3) . " secs.");
 	$errorJson = json_last_error();
 	if($errorJson != "JSON_ERROR_NONE"){
 		//there was an error with the json string
+		wh_log(json_last_error_msg());
 		die(json_last_error_msg().PHP_EOL);
 	}
 	//this curl method only works with PHP 5.5+
@@ -236,11 +283,14 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
 	//$error = curl_strerror(curl_errno($ch));
-	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);}
-	curl_close ($ch);
+	if(curl_exec($ch) === FALSE){wh_log("Curl error: ".curl_error($ch)); echo 'Curl error: '.curl_error($ch);}
 	echo $result; //echo from the server-side script
+	wh_log($result);
+	wh_log("cURL exec took: " . round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs");
+	curl_close ($ch);
 	unset($ch,$result,$post,$jsonArray);
 }
 
@@ -248,6 +298,7 @@ $file_arr = find_statsxml ($profileDir,$profileIDs);
 
 if (!$autoRun){
 	echo "\\\\\\\\\\\\\\\\\\AUTO MODE ENABLED////////\n";
+	wh_log("AUTO MODE ENABLED");
 }
 
 //endless loop
@@ -257,13 +308,25 @@ for (;;){
 
 		$file['mtime'] = filemtime($file['file']);
 		if ($file['ftime'] <> $file['mtime']) {
+			$startMicro = microtime(true);
 			echo "Starting scrape of profile ".$file['id']."...\n";
+			wh_log("Starting scrape of profile ".$file['id']);
+			//parse stats.xml file to an array
+			$statsMicro = microtime(true);
 			$stats_arr = statsXMLtoArray ($file['file']);
+			wh_log ("Stats.XML parse of " . $file['id'] . " took: " . round(microtime(true) - $statsMicro,3) . " secs.");
+			//prune stats array
+			//$stats_arr = prune_stats_array($stats_arr);
 			//LastPlayed
+			$lpMicro = microtime(true);
 			curlPost("lastplayed", $stats_arr['LastPlayed']);
+			wh_log ("POST and processing of LastPlayed of " . $file['id'] . " took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			//HighScores
+			$hsMicro = microtime(true);
 			curlPost("highscores", $stats_arr['HighScores']);
+			wh_log ("POST and processing of HighScores of " . $file['id'] . " took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			echo "Done \n";
+			wh_log ("Done. Scrape of " . $file['id'] . " took: " . round(microtime(true) - $startMicro,3) . " secs.");
 			unset($stats_arr);
 		}
 		$file['ftime'] = $file['mtime'];
@@ -272,6 +335,7 @@ for (;;){
 		//autorun was not set, break the loop
 		break;
 	}
+	echo ".";
 	clearstatcache();
 	sleep($frequency);
 }
