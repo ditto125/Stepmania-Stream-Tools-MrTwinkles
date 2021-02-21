@@ -111,7 +111,7 @@ foreach (additionalSongsFolders($saveDir) as $addPack){
 }
 $cPacks = count($pack_dir);
 
-if ($cPacks == 0){wh_log("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\""); die ("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\"");}
+if ($cPacks == 0){wh_log("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\""); die ("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\"" . PHP_EOL);}
 
 $img_arr = array();
 
@@ -133,13 +133,13 @@ foreach ($pack_dir as $path){
 			//use the first result as the pack banner and add to array
 			//check for filesize
 			if (filesize($img_path[0]) > $fileSizeMax){
-				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!\n";
+				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!" . PHP_EOL;
 				wh_log($pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!");
 			}else{
 				$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
 			}
 		}else{
-			echo "No banner image for ".$pack_name."\n";
+			echo "No banner image for ".$pack_name. PHP_EOL;
 			wh_log("No banner image for ".$pack_name);
 			$notFoundBanners++;
 		}
@@ -161,7 +161,7 @@ foreach ($img_arr as $img){
 $cPacks = $cPacks - $notFoundBanners;
 
 //STATS!
-echo "Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs.\n";
+echo "Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs." . PHP_EOL;
 wh_log("Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs.");
 
 ?>

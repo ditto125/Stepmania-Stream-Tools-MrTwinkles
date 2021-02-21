@@ -179,11 +179,11 @@ function parseNotedata($file) {
 
 function prepareCacheFiles($filesArr){
 	//sort files by last modified date
-	echo "Sorting cache files by modified date...\n";
+	echo "Sorting cache files by modified date..." . PHP_EOL;
 	wh_log("Sorting cache files by modified date...");
 	$micros = microtime(true);
 	usort( $filesArr, function( $a, $b ) { return filemtime($b) - filemtime($a); } );
-	echo ("Sort time: ".round(microtime(true) - $micros,3)." secs.\n");
+	echo ("Sort time: ".round(microtime(true) - $micros,3)." secs." . PHP_EOL);
 
 	return $filesArr;
 }
@@ -214,6 +214,14 @@ function isIgnoredPack($songFilename){
 
 function doesFileExist($songFilename){
 	global $songsDir;
+	global $offlineMode;
+
+	//if offline mode is set, always return TRUE
+	if($offlineMode){
+		$return = TRUE;
+		return $return;
+	}
+
 	$return = FALSE;
 
 	//fix possible character encoding
@@ -317,7 +325,7 @@ function curlPost($postSource, $array){
 	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);wh_log("Curl error: ".curl_error($ch));}
 	echo $result; //echo from the server-side script
 	wh_log($result);
-	echo (round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs.\n");
+	echo (round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs." . PHP_EOL);
 	wh_log(round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs");
 	curl_close ($ch);
 	//print_r($result);
@@ -338,14 +346,14 @@ $i = 0;
 $chunk = 500;
 
 //prepare sm_songs database for scraping and check if this is a first-run
-echo "Preparing database for song scraping...\n";
+echo "Preparing database for song scraping..." . PHP_EOL;
 wh_log("Preparing database for song scraping...");
 
 $firstRun = curlPost("songsStart",array(0));
 
 //loop through cache files, process to json strings, and post to the webserver for further processing
 $totalFiles = count($files);
-echo "Looping through ".$totalFiles." cache files...\n";
+echo "Looping through ".$totalFiles." cache files..." . PHP_EOL;
 wh_log("Looping through ".$totalFiles." cache files...");
 $totalChunks = ceil($totalFiles / $chunk);
 $currentChunk = 1;
@@ -372,27 +380,27 @@ foreach ($files as $filesChunk){
 				$cache_array[] = $cache_file;
 				$i++;
 			}else{
-				echo $metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!\n";
+				echo $metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!" . PHP_EOL;
 				wh_log($metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!");
 			}
 		}else{
-			echo "There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping...\n";
+			echo "There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping..." . PHP_EOL;
 			wh_log("There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping...");
 		}
 	}
-	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...\n";
+	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL..." . PHP_EOL;
 	wh_log("Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...");
 	curlPost("songs", $cache_array);
 	$currentChunk++;
 }
 
 //mark songs as (not)installed
-echo "Finishing up...\n";
+echo "Finishing up..." . PHP_EOL;
 wh_log("Finishing up...");
 curlPost("songsEnd",array($i));
 
 //display time
-echo ("\nTotal time: ". round((microtime(true) - $microStart)/60,1) . " mins.\n");
+echo (PHP_EOL . "Total time: ". round((microtime(true) - $microStart)/60,1) . " mins." . PHP_EOL);
 wh_log("Total time: ". round((microtime(true) - $microStart)/60,1) . " mins.");
 
 //

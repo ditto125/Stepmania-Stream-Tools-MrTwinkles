@@ -68,6 +68,9 @@ include ('config.php');
 
 //
 
+//check for offline mode in the config
+if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!");}
+
 $initialLastPlayed = array();
 $initialHighScores = array();
 
@@ -201,6 +204,7 @@ function statsXMLtoArray ($xml_file){
 		//not a great solution, but blame StepMania, not me!
 		$xml_str = parseXmlErrors($errors,$xml_file);
 		libxml_clear_errors();
+		wh_log("Loading Stats.xml file as a string (after correcting for UTF-8 errors).");
 		$xml = simplexml_load_string($xml_str);
 	}
 
@@ -262,9 +266,10 @@ function statsXMLtoArray ($xml_file){
 function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
+	global $offlineMode;
 	//add the security_key to the array
 	$jsMicro = microtime(true);
-	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'data' => $array);
+	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'offline' => $offlineMode, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
 	wh_log ("Creating JSON took: " . round(microtime(true) - $jsMicro,3) . " secs.");
