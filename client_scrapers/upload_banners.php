@@ -28,10 +28,16 @@ function wh_log($log_msg){
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
 }
 
-function additionalSongsFolders($directory){
+function additionalSongsFolders($saveDir){
 	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
-	$prefFile = $directory."/Preferences.ini";
+	$prefFile = $saveDir."/Preferences.ini";
 	$addSongDirs = array();
+
+	//if offline mode is set, always return empty
+	if($offlineMode){
+		return $addSongDirs;
+	}
+
 	if(file_exists($prefFile)){
 		$lines = file($prefFile);
 		foreach ($lines as $line){
@@ -43,6 +49,7 @@ function additionalSongsFolders($directory){
 			break;
 			}
 		}
+		wh_log("Preferences.ini file loaded. Adding directories: " . implode(',',$addSongDirs));
 	}else{
 		wh_log("Preferences.ini file not found!");
 	}

@@ -188,7 +188,7 @@ function scrapeSong($songCache_array){
 		if(isset($metadata['#SONGFILENAME'])){
 				//song has a an associated simfile
 				//echo "directory to simfile\n";
-				$song_dir = substr($metadata['#SONGFILENAME'],1,strrpos($metadata['#SONGFILENAME'],"/")-1); //remove benginning slash and file extension
+				$song_dir = substr($metadata['#SONGFILENAME'],1,strrpos($metadata['#SONGFILENAME'],"/")-1); //remove beginning slash and file extension
 				//echo "'$song_dir'\n";
 			}else{
 				echo $file . PHP_EOL . "There's something truly wrong with this song, like how?" . PHP_EOL;

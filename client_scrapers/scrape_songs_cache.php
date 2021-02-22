@@ -215,6 +215,7 @@ function isIgnoredPack($songFilename){
 function doesFileExist($songFilename){
 	global $songsDir;
 	global $offlineMode;
+	global $addSongDirs;
 
 	//if offline mode is set, always return TRUE
 	if($offlineMode){
@@ -241,7 +242,6 @@ function doesFileExist($songFilename){
 		}
 	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/"){
 		//file is in one of the "AdditionalSongs" folder(s)
-		$addSongDirs = additionalSongsFolders();
 		foreach($addSongDirs as $songsDir){
 			//loop through the "AdditionalSongsFolders"
 			$songFilename = str_replace("/AdditionalSongs/",$songsDir."/",$songFilename);
@@ -256,12 +256,16 @@ function doesFileExist($songFilename){
 	return $return;
 }
 
-function additionalSongsFolders(){
-	global $saveDir;
-
+function additionalSongsFolders($saveDir){
 	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
 	$prefFile = $saveDir."/Preferences.ini";
 	$addSongDirs = array();
+
+	//if offline mode is set, always return empty
+	if($offlineMode){
+		return $addSongDirs;
+	}
+
 	if(file_exists($prefFile)){
 		$lines = file($prefFile);
 		foreach ($lines as $line){
@@ -273,6 +277,7 @@ function additionalSongsFolders(){
 			break;
 			}
 		}
+		wh_log("Preferences.ini file loaded. Adding directories: " . implode(',',$addSongDirs));
 	}else{
 		wh_log("Preferences.ini file not found!");
 	}
@@ -361,6 +366,10 @@ if ($firstRun != TRUE){
 	//only sort files if NOT first run
 	$files = prepareCacheFiles($files);
 }
+
+//read preferences.ini file for AddtionalSongsFolder(s)
+$addSongDirs = additionalSongsFolders($saveDir);
+
 //print_r($files);
 $files = array_chunk($files,$chunk,true);
 foreach ($files as $filesChunk){
