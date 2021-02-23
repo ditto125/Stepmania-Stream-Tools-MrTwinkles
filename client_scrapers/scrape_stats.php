@@ -71,8 +71,8 @@ include ('config.php');
 //check for offline mode in the config
 if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!");}
 
-$initialLastPlayed = array();
-$initialHighScores = array();
+//$initialLastPlayed = array();
+//$initialHighScores = array();
 
 function prune_stats_array($stats_arr){
 	global $initialLastPlayed;
