@@ -29,6 +29,8 @@ function wh_log($log_msg){
 }
 
 function additionalSongsFolders($saveDir){
+	global $offlineMode;
+	
 	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
 	$prefFile = $saveDir."/Preferences.ini";
 	$addSongDirs = array();
