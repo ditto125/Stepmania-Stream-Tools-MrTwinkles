@@ -88,6 +88,8 @@ SMrequests can operate in two modes:
       * This is the default operation mode. No additional configuration required.
   2. Offline Mode -- No real-time access to the SM5 machine/cabinet. Requests need to be manually completed and Stats.XML scraping isn't possible or cannot be continuous.
       * `$offlineMode` in `client_scrapers/config.php` must be set to `TRUE`.
+      * SM5's cache folder containing all the song cache files must be copied to the machine running the php scripts. Update your config.php file to point to this "cloned" cache directory.
+      * Limitations: Requests are completed manually, banner uploading is not supported, and score-based random functions will not function fully (you can scrape your existing Stats.XML file(s) occasionally to update your songs played records).
 ## First-run
 Once all setup is complete it's time to populate the database tables and upload banner images IN THIS ORDER:
 1. Run the `scrape new songs.bat` 
