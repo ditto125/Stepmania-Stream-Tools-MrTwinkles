@@ -3,7 +3,7 @@ const { exec } = require("child_process");
 const { isNull, isNullOrUndefined } = require('util');
 require('dotenv').config()
 
-if(isNullOrUndefined(process.env.BOTUSERNAME) || isNullOrUndefined(process.env.BOTPASSWORD) || isNullOrUndefined(process.env.BOTCHANNEL) || isNullOrUndefined(process.env.URLBASE) || isNullOrUndefined(process.env.SECRET_KEY)){
+if(isNullOrUndefined(process.env.BOTUSERNAME) || isNullOrUndefined(process.env.BOTPASSWORD) || isNullOrUndefined(process.env.BOTCHANNEL) || isNullOrUndefined(process.env.URLBASE) || isNullOrUndefined(process.env.SECRET_KEY) || (!(process.env.SECRET_KEY))){
 	console.log("Invalid environment variables!");
 	process.exit();
 }
@@ -40,18 +40,9 @@ function onMessageHandler (target, context, msg, self) {
   displayName = context["display-name"];
   emotes = context["emotes"];
   moderator = context["mod"];
-  //if (context.hasOwnProperty("badges")) {
-  //  if(context["badges"].hasOwnProperty("broadcaster")){
-  //    if(context["badges"]["broadcaster"] == "1"){
-  //      moderator = true;
-  //    }
-  //  }
-  //}
   subscriber = context["subscriber"];
   userId = context["user-id"];
-  
-  //console.log("emotes: "+emotes);
-  //console.log(emotes);
+
   howManyEmotes = 0;
   for (var emoteId in emotes) {
     howManyEmotes++;
@@ -62,9 +53,6 @@ function onMessageHandler (target, context, msg, self) {
   if(howManyEmotes < 1 && (msg.indexOf("bandit") !== -1 || msg.indexOf("Bandit") !== -1)){
       client.say(target, "woof!");
   }
-  //bandit face is emote 922359
-  //aa emote is 922366
-  //do max 300 emote is 922375
 
   // Remove whitespace from chat message
   const commandName = msg.trim();
@@ -116,9 +104,9 @@ function onMessageHandler (target, context, msg, self) {
 	
   }
   
-  if(theCommand.startsWith("!ban ")){
+  if(theCommand.startsWith("!bansong ")){
 	if(moderator){
-		encodedURI = encodeURI('/requestor.php?security_key='+secretKey+'&ban='+theArgs);
+		encodedURI = encodeURI('/song_admin.php?security_key='+secretKey+'&bansong='+theArgs);
 		requestURI = urlbase+encodedURI;
 		var request = require("request");
 		request(
@@ -134,51 +122,72 @@ function onMessageHandler (target, context, msg, self) {
 	}
   }
   
-  if(theCommand == "!cancel"){
-	encodedURI = encodeURI('/request.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&cancel');
-	requestURI = urlbase+encodedURI;
-	var request = require("request");
-	request(
-		{ uri: urlbase+encodedURI },
-		function(error, response, body) {
-			console.log(error);
-			console.log(body);
-			client.say(target, body);
-		}
-	);
-  }
-  
-  if(theCommand == "!random"){
-	encodedURI = encodeURI('/request_random.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&count='+theArgs);
-	requestURI = urlbase+encodedURI;
-	var request = require("request");
-	request(
-		{ uri: urlbase+encodedURI },
-		function(error, response, body) {
-			console.log(error);
-			console.log(body);
-			client.say(target, body);
-		}
-	);
-  }
-  
-  if(theCommand == "!randomben"){
-	encodedURI = encodeURI('/request_ben.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId);
-	requestURI = urlbase+encodedURI;
-	var request = require("request");
-	request(
-		{ uri: urlbase+encodedURI },
-		function(error, response, body) {
-			console.log(error);
-			console.log(body);
-			client.say(target, body);
-		}
-	);
-  }
-  
-  if(theCommand == "!skip"){
+  if(theCommand.startsWith("!banuser ")){
 	if(moderator){
-		encodedURI = encodeURI('/request.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&skip');
+		encodedURI = encodeURI('/requestor.php?security_key='+secretKey+'&banuser='+theArgs);
+		requestURI = urlbase+encodedURI;
+		var request = require("request");
+		request(
+			{ uri: urlbase+encodedURI },
+			function(error, response, body) {
+				console.log(error);
+				console.log(body);
+				client.say(target, body);
+			}
+		);
+	}else{
+	  //Not a mod
+	}
+  }
+
+  if(theCommand == "!cancel "){
+	encodedURI = encodeURI('/request.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&cancel='+theArgs);
+	requestURI = urlbase+encodedURI;
+	var request = require("request");
+	request(
+		{ uri: urlbase+encodedURI },
+		function(error, response, body) {
+			console.log(error);
+			console.log(body);
+			client.say(target, body);
+		}
+	);
+  }
+  
+  if(theCommand == "!random "){
+	if(theArgs == ""){theArgs ="1";}
+	encodedURI = encodeURI('/rand_request.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&random=random&num='+theArgs);
+	requestURI = urlbase+encodedURI;
+	var request = require("request");
+	request(
+		{ uri: urlbase+encodedURI },
+		function(error, response, body) {
+			console.log(error);
+			console.log(body);
+			client.say(target, body);
+		}
+	);
+  }
+  
+  if(theCommand == "!randomben "){
+	if(theArgs == ""){theArgs ="1";}
+	encodedURI = encodeURI('/rand_request.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&random=Ben+Speirs&num='+theArgs);
+	requestURI = urlbase+encodedURI;
+	var request = require("request");
+	request(
+		{ uri: urlbase+encodedURI },
+		function(error, response, body) {
+			console.log(error);
+			console.log(body);
+			client.say(target, body);
+		}
+	);
+  }
+  
+  if(theCommand == "!skip "){
+	if(theArgs == ""){theArgs ="1";}
+	if(moderator){
+		encodedURI = encodeURI('/request.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&skip='+theArgs);
 		requestURI = urlbase+encodedURI;
 		var request = require("request");
 		request(
@@ -198,8 +207,9 @@ function onMessageHandler (target, context, msg, self) {
 	client.say(target, `The song list can be found here: https://www.davelinger.com/twitch/songlist.php`);
   }
   
-  if(theCommand == "!top"){
-	encodedURI = encodeURI('/request_top.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId);
+  if(theCommand == "!top "){
+	if(theArgs == ""){theArgs ="1";}
+	encodedURI = encodeURI('/rand_request.php?security_key='+secretKey+'&user='+displayName+'&userid='+userId+'&random=top&num='+theArgs);
 	requestURI = urlbase+encodedURI;
 	var request = require("request");
 	request(

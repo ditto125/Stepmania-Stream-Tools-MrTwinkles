@@ -54,7 +54,7 @@ $categoryGame = array('StepMania','OutFox','Etterna');
 $broadcasters = array(
 						//twitch id			//SM5 profile
 						'ddrdave' 		=> 	'Dave',
-						'mrtwinkles' => 	'MRT'
+						'mrtwinkles'    => 	'MRT'
 					 );
 
 //User request cooldown interval. This value is a multiplier of active global requests.
