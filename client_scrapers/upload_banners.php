@@ -15,10 +15,31 @@ $notFoundBanners = 0;
 $cPacks = 0;
 $fileSizeMax = 5242880; //5MB
 
-function additionalSongsFolders($directory){
+function wh_log($log_msg){
+    $log_filename = __DIR__."/log";
+    if (!file_exists($log_filename)) 
+    {
+        // create directory/folder uploads.
+        mkdir($log_filename, 0777, true);
+    }
+    $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
+	$log_msg = str_replace(array("\r", "\n"), '', $log_msg); //remove line endings
+    // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
+    file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
+}
+
+function additionalSongsFolders($saveDir){
+	global $offlineMode;
+	
 	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
-	$prefFile = $directory."/Preferences.ini";
+	$prefFile = $saveDir."/Preferences.ini";
 	$addSongDirs = array();
+
+	//if offline mode is set, always return empty
+	if($offlineMode){
+		return $addSongDirs;
+	}
+
 	if(file_exists($prefFile)){
 		$lines = file($prefFile);
 		foreach ($lines as $line){
@@ -30,6 +51,9 @@ function additionalSongsFolders($directory){
 			break;
 			}
 		}
+		wh_log("Preferences.ini file loaded. Adding directories: " . implode(',',$addSongDirs));
+	}else{
+		wh_log("Preferences.ini file not found!");
 	}
 	return $addSongDirs;
 }
@@ -77,11 +101,13 @@ function curl_upload($file,$pack_name){
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
 	$error = curl_strerror(curl_errno($ch));
 	//print_r(curl_getinfo($ch));
 	curl_close ($ch);
 	echo $result; //echo from the server-side script
+	wh_log($result);
 
 	return $error;
 }
@@ -94,7 +120,7 @@ foreach (additionalSongsFolders($saveDir) as $addPack){
 }
 $cPacks = count($pack_dir);
 
-if ($cPacks == 0){die ("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\"");}
+if ($cPacks == 0){wh_log("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\""); die ("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\"" . PHP_EOL);}
 
 $img_arr = array();
 
@@ -116,12 +142,14 @@ foreach ($pack_dir as $path){
 			//use the first result as the pack banner and add to array
 			//check for filesize
 			if (filesize($img_path[0]) > $fileSizeMax){
-				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!\n";
+				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!" . PHP_EOL;
+				wh_log($pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!");
 			}else{
 				$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
 			}
 		}else{
-			echo "No banner image for ".$pack_name."\n";
+			echo "No banner image for ".$pack_name. PHP_EOL;
+			wh_log("No banner image for ".$pack_name);
 			$notFoundBanners++;
 		}
 	}
@@ -133,6 +161,7 @@ foreach ($img_arr as $img){
 	//output any errors from the curl upload
 	if ($cError != "No error"){
 		echo "CURL Error: ".$cError."\n";
+		wh_log("CURL Error: ".$cError);
 	}else{
 		$banners_copied++;
 	}
@@ -141,6 +170,7 @@ foreach ($img_arr as $img){
 $cPacks = $cPacks - $notFoundBanners;
 
 //STATS!
-echo "Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs.\n";
+echo "Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs." . PHP_EOL;
+wh_log("Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs.");
 
 ?>

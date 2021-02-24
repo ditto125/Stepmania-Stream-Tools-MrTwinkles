@@ -108,6 +108,7 @@ function new_request(array){
         data = data + `<div class=\"admindiv\" id=\"requestadmin_${request_id}\">
         <button class=\"adminbuttons\" style=\"margin-left:4vw; background-color:rgb(0, 128, 0);\" type=\"button\" onclick=\"MarkCompleted(${request_id})\">Mark Complete</button>\n
         <button class=\"adminbuttons\" style=\"background-color:rgb(153, 153, 0);\" type=\"button\" onclick=\"MarkSkipped(${request_id})\">Mark Skipped</button>
+        <button class=\"adminbuttons\" style=\"margin-right:4vw; float:right; background-color:rgb(178, 34, 34);\" type=\"button\" onclick=\"MarkBanned(${request_id})\">Mark Banned</button>
         </div>`;
     }
 
@@ -176,6 +177,20 @@ function MarkSkipped(id){
             result = JSON.parse(result);
             if(result["requestsupdated"] > 0){
                 console.log(`Request ${id} marked as Skipped`);
+                refresh_data();
+                }};
+            }
+        });
+}
+
+function MarkBanned(id){
+    security_key = $("#security_key").html();
+    url = `get_updates.php?security_key=${security_key}&func=MarkBanned&id=${id}`;
+    $.ajax({url: url, success: function(result){
+        if(result){
+            result = JSON.parse(result);
+            if(result["requestsupdated"] > 0){
+                console.log(`Song from request ${id} marked as Banned`);
                 refresh_data();
                 }};
             }

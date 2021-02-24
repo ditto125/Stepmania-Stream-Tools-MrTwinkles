@@ -174,6 +174,37 @@ function MarkSkipped($requestid){
 	return $requestupdated;
 }
 
+function MarkBanned($requestid){
+
+	global $conn;
+	$requestupdated = 0;
+
+	$sql0 = "SELECT * FROM sm_requests WHERE id = \"$requestid\" AND state <> \"completed\"";
+	$retval0 = mysqli_query( $conn, $sql0 );
+	$numrows = mysqli_num_rows($retval0);
+	if($numrows == 0){
+		die();	
+		//die("Mark Banned request could not be found.");
+	}
+
+	if($numrows == 1){
+			$row0 = mysqli_fetch_assoc($retval0);
+			$song_id = $row0['song_id'];
+			
+			$sql = "UPDATE sm_songs SET banned = 1 WHERE id=\"$song_id\" LIMIT 1";
+			$retval = mysqli_query( $conn, $sql );
+
+			$sql = "UPDATE sm_requests SET state=\"skipped\" WHERE id=\"$requestid\" LIMIT 1";
+			$retval = mysqli_query( $conn, $sql );
+
+			//echo "Song from request ".$requestid." updated to banned";
+			$requestupdated = 1;
+	} else {
+		//echo "Too many requests found.";
+	}
+	return $requestupdated;
+}
+
 if(!isset($_GET["id"])){die("You must specify an id");}
 
 $id = $_GET["id"];
@@ -185,6 +216,9 @@ if(isset($_GET["func"])){
 		break;
 		case "MarkSkipped":
 			$requestupdated = MarkSkipped($id);
+		break;
+		case "MarkBanned":
+			$requestupdated = MarkBanned($id);
 		break;
 		default:
 			die();

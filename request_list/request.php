@@ -207,7 +207,8 @@ if(isset($_GET["songid"]) && !empty($_GET["songid"])){
 	if (mysqli_num_rows($retval) == 1) {
     		while($row = mysqli_fetch_assoc($retval)) {
         		request_song($song, $user, $tier, $twitchid, $broadcaster, $commandArgs);
-        		echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"];
+				$displayModeDiff = display_ModeDiff($commandArgs);
+        		echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"].$displayModeDiff;
         		die();
     		}
 	} else {
@@ -234,7 +235,8 @@ if(isset($_GET["song"]) && !empty($_GET["song"])){
 	if (mysqli_num_rows($retval) == 1) {
 		while($row = mysqli_fetch_assoc($retval)) {
         	request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
-        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"];
+			$displayModeDiff = display_ModeDiff($commandArgs);
+        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"].$displayModeDiff;;
     	}
 	die();
 	//end exact match
@@ -250,18 +252,19 @@ if(isset($_GET["song"]) && !empty($_GET["song"])){
 	if (mysqli_num_rows($retval) == 1) {
     	while($row = mysqli_fetch_assoc($retval)) {
 			request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
-        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"];
+			$displayModeDiff = display_ModeDiff($commandArgs);
+        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"].$displayModeDiff;;
     	}
 	die();
 	//end one match
 	}
 	//no one match
 	if (mysqli_num_rows($retval) > 0) {
-		echo "$user Top matches (request with !requestid [song id]):\n";
+		echo "$user => Top matches (request with !requestid [song id]):\n";
 		$i=1;
     	while($row = mysqli_fetch_assoc($retval)) {
         	if($i>4){die();}
-			echo " [ ".$row["id"]. " => " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ] ";
+			echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ] ";
 			$i++;
     	}
 	} elseif (is_numeric($song)) {
