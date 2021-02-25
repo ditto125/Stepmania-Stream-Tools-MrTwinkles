@@ -204,7 +204,7 @@ if($_GET["random"] == "top"){
 					(SELECT song_id,SUM(numplayed) AS numplayed,stepstype 
 					FROM sm_songsplayed
 					WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
-					GROUP BY song_id
+					GROUP BY song_id,stepstype 
 					ORDER BY numplayed DESC
 					LIMIT 100) AS t2
 				ON t2.song_id=sm_songs.id 
@@ -217,7 +217,8 @@ if($_GET["random"] == "top"){
 		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 				request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $difficulty);
-				echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+				$displayModeDiff = display_ModeDiff(array('stepstype' => $row['stepstype'],'difficulty' => $difficulty));
+				echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . $displayModeDiff . " ");
 				$i++;
 			}
 		}
@@ -263,10 +264,24 @@ if($_GET["random"] == "gitgud"){
 	$request_type = "gitgud";
 	if(empty($stepstype)){$stepstype = '%';}
 
-        $sql = "SELECT id,title,subtitle,artist,pack,percentdp,score,stepstype,difficulty 
+	switch ($scoreType){
+		case "ddr":
+			$score_grade = "ddr_grade";
+			$score_tier = "ddr_tier";
+			break;
+		case "itg":
+			$score_grade = "itg_grade";
+			$score_tier = "itg_tier";
+			break;
+		default:
+			$score_grade = "itg_grade";
+			$score_tier = "itg_tier";
+	}
+
+        $sql = "SELECT id,title,subtitle,artist,pack,t2.percentdp,score,stepstype,difficulty 
 				FROM sm_songs 
 				JOIN 
-				(SELECT song_id,MAX(percentdp) AS percentdp,score,stepstype,difficulty 
+				(SELECT song_id,MAX(percentdp) AS percentdp,MAX(score) AS score,stepstype,difficulty 
 					FROM sm_scores 
 					WHERE EXISTS 
 						(SELECT song_id,SUM(numplayed) AS numplayed   
@@ -275,9 +290,9 @@ if($_GET["random"] == "gitgud"){
 						GROUP BY song_id 
 						ORDER BY numplayed DESC 
 						LIMIT 100) 
-					AND grade <> 'Failed' AND percentdp > 0 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
-					GROUP BY song_id 
-					ORDER BY percentdp ASC 
+					AND grade <> 'Failed' AND percentdp > 0 AND percentdp < 1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
+					GROUP BY song_id,stepstype,difficulty 
+					ORDER BY percentdp ASC, score ASC 
 					LIMIT 25) AS t2 
 				ON t2.song_id = sm_songs.id 
 				WHERE banned <> 1 AND installed = 1 
@@ -291,16 +306,25 @@ if($_GET["random"] == "gitgud"){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $row['difficulty']);
 					switch ($scoreType){
 						case "ddr":
-							$displayScore = number_format($row['score'],0,".",",");
+							$score = $row['score'];
+							$score !== 0 ? $base = ceil(log10($score)) : $base = 1;
+							if($base > 6){
+								//score is >1M. It was obtained while using a non-modern-ddr theme.
+								//translate the score to ddr range (out of 1M)
+								$score = $score / pow(10,$base - 6);
+								$displayScore = "~".number_format($score,0,".",",");
+							}else{
+								$displayScore = number_format($score,0,".",",");
+							}
 							break;
 						case "itg":
-							$displayScore = number_format($row['percentdp']*100,2);
-							$displayScore = $displayScore."%";
+							$displayScore = number_format($row['percentdp']*100,2)."%";
 							break;
 						default:
-							$displayScore = number_format($row['percentdp']*100,2);
+							$displayScore = number_format($row['percentdp']*100,2)."%";
 					}
-					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+					$displayModeDiff = display_ModeDiff(array('stepstype' => $row['stepstype'],'difficulty' => $row['difficulty']));
+					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . $displayModeDiff . " ");
 					$i++;
 				}
 			}
@@ -409,7 +433,7 @@ if($_GET["random"] == "theusual"){
 //randomben, randomddr, randomnitg, randomhellkite...
 if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 		
-		$random = $_GET["random"];
+		$random = mysqli_real_escape_string($conn,$_GET["random"]);
 		if(isset($_GET["type"])){$request_type = mysqli_real_escape_string($conn,$_GET["type"]);}
 		$random = htmlspecialchars($random);
 		//$random = clean($random);

@@ -78,6 +78,7 @@ h3 {
   text-shadow: 0.25vw 0.25vw 0.5vw rgba(0,0,0,1);
   overflow:hidden;
   text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 h4 {
@@ -169,10 +170,10 @@ h4 {
 
 .type{
 	position:absolute;
-	right:1vw;
+	right:6vw;
 	top:1vw;
 	z-index:2;
-	height:60%;
+	height:70%;
 	width:auto;
 	opacity:0.70;
   float:right;
@@ -182,8 +183,8 @@ h4 {
 
 .dance{
   position:absolute;
-  top:1.5vw;
-  transform:rotate(-45deg);
+  top:1.7vw;
+  transform:rotate(45deg);
 	z-index:6;
   height:auto;
   -webkit-filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
@@ -192,49 +193,49 @@ h4 {
 }
 
 .single{
-  left:1.3vw;
-  width:3vw;
+  right:1.7vw;
+  width:4vw;
 }
 
 .double{
-  left:0vw;
-  width:6vw;
+  right:0vw;
+  width:8vw;
 }
 
 .difficulty {
   position:absolute;
   top: 0;
-  left: 0;
+  right: 0;
   z-index:6;
-  border-top: 9vw solid rgb(25, 25, 25);
-  border-right: 9vw solid transparent;
+  border-top: 12vw solid rgb(25, 25, 25);
+  border-left: 12vw solid transparent;
   -webkit-filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
   filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
   opacity:0.60;
 }
 
 .beginner {
-  border-top: 9vw solid rgb(0, 255, 255);
+  border-top: 12vw solid rgb(0, 255, 255);
 }
 
 .easy {
-  border-top: 9vw solid rgb(251, 169, 0);
+  border-top: 12vw solid rgb(251, 169, 0);
 }
 
 .medium {
-  border-top: 9vw solid rgb(250, 0, 160);
+  border-top: 12vw solid rgb(250, 0, 160);
 }
 
 .hard {
-  border-top: 9vw solid rgb(102, 250, 0);
+  border-top: 12vw solid rgb(102, 250, 0);
 }
 
 .challenge {
-  border-top: 9vw solid rgb(112, 104, 250);
+  border-top: 12vw solid rgb(112, 104, 250);
 }
 
 .edit {
-  border-top: 9vw solid rgb(55, 55, 55);
+  border-top: 12vw solid rgb(55, 55, 55);
 }
 
 @keyframes wiggle{

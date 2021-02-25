@@ -108,6 +108,7 @@ function new_request(array){
         data = data + `<div class=\"admindiv\" id=\"requestadmin_${request_id}\">
         <button class=\"adminbuttons\" style=\"margin-left:4vw; background-color:rgb(0, 128, 0);\" type=\"button\" onclick=\"MarkCompleted(${request_id})\">Mark Complete</button>\n
         <button class=\"adminbuttons\" style=\"background-color:rgb(153, 153, 0);\" type=\"button\" onclick=\"MarkSkipped(${request_id})\">Mark Skipped</button>
+        <button class=\"adminbuttons\" style=\"margin-right:4vw; float:right; background-color:rgb(178, 34, 34);\" type=\"button\" onclick=\"MarkBanned(${request_id})\">Mark Banned</button>
         </div>`;
     }
 
@@ -123,10 +124,10 @@ function new_request(array){
 function new_cancel(id){
 	request_id = id;
 	if( $("#request_"+request_id).length ){
-        	console.log("Canceling request "+request_id);
-            $("#request_"+request_id).slideUp(600, function() {this.remove(); });
-            $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
-        	$("#cancel")[0].play();
+        console.log("Canceling request "+request_id);
+        $("#request_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#cancel")[0].play();
 	}
 }
 
@@ -135,10 +136,10 @@ function completion(id){
 	if( $("#request_"+request_id).length ){
 		if( $("#request_"+request_id).hasClass("completed") ){
 		}else{
-                        console.log("Completing request "+request_id);
-                        $("#request_"+request_id).removeAttr("style");
-                        $("#request_"+request_id).addClass("completed");
-                        $("#requestadmin_"+request_id).addClass("completed");
+            console.log("Completing request "+request_id);
+            $("#request_"+request_id).removeAttr("style");
+            $("#request_"+request_id).addClass("completed");
+            $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
 			$("#request_"+request_id).append("<img src=\"images/check.png\" class=\"check\" />");
 		}
 	}
@@ -147,10 +148,10 @@ function completion(id){
 function skipped(id){
         request_id = id;
 	if( $("#request_"+request_id).length ){
-        	console.log("Skipping request "+request_id);
-            $("#request_"+request_id).slideUp(600, function() {this.remove(); });
-            $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
-        	$("#cancel")[0].play();
+        console.log("Skipping request "+request_id);
+        $("#request_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#requestadmin_"+request_id).slideUp(600, function() {this.remove(); });
+        $("#cancel")[0].play();
 	}
 }
 
@@ -176,6 +177,20 @@ function MarkSkipped(id){
             result = JSON.parse(result);
             if(result["requestsupdated"] > 0){
                 console.log(`Request ${id} marked as Skipped`);
+                refresh_data();
+                }};
+            }
+        });
+}
+
+function MarkBanned(id){
+    security_key = $("#security_key").html();
+    url = `get_updates.php?security_key=${security_key}&func=MarkBanned&id=${id}`;
+    $.ajax({url: url, success: function(result){
+        if(result){
+            result = JSON.parse(result);
+            if(result["requestsupdated"] > 0){
+                console.log(`Song from request ${id} marked as Banned`);
                 refresh_data();
                 }};
             }

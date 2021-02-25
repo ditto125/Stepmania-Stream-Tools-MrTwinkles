@@ -28,6 +28,19 @@ include ('config.php');
 
 // Code
 
+function wh_log($log_msg){
+    $log_filename = __DIR__."/log";
+    if (!file_exists($log_filename)) 
+    {
+        // create directory/folder uploads.
+        mkdir($log_filename, 0777, true);
+    }
+    $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
+	$log_msg = str_replace(array("\r", "\n"), '', $log_msg); //remove line endings
+    // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
+    file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
+}
+
 function fixEncoding($line){
 	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
@@ -91,7 +104,6 @@ function parseNotedata($file) {
 	$eol = ";";
 	$notedata_array = array();
 	
-	//$data = utf8_encode(file_get_contents($file));
 	$data = file_get_contents($file);
 
 	if( strpos($data,"#NOTEDATA:")){
@@ -167,10 +179,11 @@ function parseNotedata($file) {
 
 function prepareCacheFiles($filesArr){
 	//sort files by last modified date
-	echo "Sorting cache files by modified date...\n";
+	echo "Sorting cache files by modified date..." . PHP_EOL;
+	wh_log("Sorting cache files by modified date...");
 	$micros = microtime(true);
 	usort( $filesArr, function( $a, $b ) { return filemtime($b) - filemtime($a); } );
-	echo ("Sort time: ".round(microtime(true) - $micros,3)." secs.\n");
+	echo ("Sort time: ".round(microtime(true) - $micros,3)." secs." . PHP_EOL);
 
 	return $filesArr;
 }
@@ -201,6 +214,15 @@ function isIgnoredPack($songFilename){
 
 function doesFileExist($songFilename){
 	global $songsDir;
+	global $offlineMode;
+	global $addSongDirs;
+
+	//if offline mode is set, always return TRUE
+	if($offlineMode){
+		$return = TRUE;
+		return $return;
+	}
+
 	$return = FALSE;
 
 	//fix possible character encoding
@@ -215,30 +237,37 @@ function doesFileExist($songFilename){
 		if(file_exists($songFilename)){
 			$return = TRUE;
 		}else{
-			echo "File: ".$songFilename."\n";
+			//echo "File: ".$songFilename."\n";
+			wh_log("File Not Found: ".$songFilename);
 		}
 	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/"){
 		//file is in one of the "AdditionalSongs" folder(s)
-		$addSongDirs = additionalSongsFolders();
 		foreach($addSongDirs as $songsDir){
 			//loop through the "AdditionalSongsFolders"
 			$songFilename = str_replace("/AdditionalSongs/",$songsDir."/",$songFilename);
 			if(file_exists($songFilename)){
 				$return = TRUE;
 			}else{
-				echo "File: ".$songFilename."\n";
+				//echo "File: ".$songFilename."\n";
+				wh_log("File Not Found: ".$songFilename);
 			}
 		}
 	}
 	return $return;
 }
 
-function additionalSongsFolders(){
-	global $saveDir;
-
+function additionalSongsFolders($saveDir){
+	global $offlineMode;
+	
 	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
 	$prefFile = $saveDir."/Preferences.ini";
 	$addSongDirs = array();
+
+	//if offline mode is set, always return empty
+	if($offlineMode){
+		return $addSongDirs;
+	}
+
 	if(file_exists($prefFile)){
 		$lines = file($prefFile);
 		foreach ($lines as $line){
@@ -250,36 +279,61 @@ function additionalSongsFolders(){
 			break;
 			}
 		}
+		wh_log("Preferences.ini file loaded. Adding directories: " . implode(',',$addSongDirs));
+	}else{
+		wh_log("Preferences.ini file not found!");
 	}
 	return $addSongDirs;
+}
+
+function parseJsonErrors($error,$jsonArray){
+	if($error == "JSON_ERROR_UTF8"){
+		echo json_last_error_msg().PHP_EOL;
+		echo "One of these files has an error. Correct the special character in the song folder name and re-run the script.".PHP_EOL;
+		wh_log("One of these files has an error. Correct the special character in the song folder name and re-run the script.");
+		foreach($jsonArray['data'] as $cacheFile){
+			//echo $cacheFile['metadata']['#SONGFILENAME'].PHP_EOL;
+			$songFilename = $cacheFile['metadata']['#SONGFILENAME'];
+			echo $songFilename.PHP_EOL;
+			wh_log($songFilename);
+		}
+		die();
+	}else{
+		wh_log(json_last_error_msg());
+		die(json_last_error_msg().PHP_EOL);
+	}
 }
 
 function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
-	unset($ch,$result,$post,$jsonArray);
+	unset($ch,$result,$post,$jsonArray,$errorJson);
 	//add the security_key to the array
 	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
-	if(json_last_error_msg() != "No error"){
-		//there was an error with the json string, die
-		//print_r($array);
-		die(json_last_error_msg());
+	$errorJson = json_last_error();
+	if($errorJson != "JSON_ERROR_NONE"){
+		//there was an error with the json string
+		parseJsonErrors($errorJson,$jsonArray);
+		die();
 	}
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php");
+	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php?$postSource");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
-	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);}
+	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);wh_log("Curl error: ".curl_error($ch));}
 	echo $result; //echo from the server-side script
-	echo (round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs.\n");
+	wh_log($result);
+	echo (round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs." . PHP_EOL);
+	wh_log(round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs");
 	curl_close ($ch);
 	//print_r($result);
 	return $result;
@@ -293,24 +347,31 @@ foreach(glob("{$cacheDir}/*", GLOB_BRACE) as $file) {
     $files[] = $file;
 }
 
-if(count($files) == 0){die("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\".");}
+if(count($files) == 0){wh_log("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\"."); die("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\".");}
 
 $i = 0;
 $chunk = 500;
 
 //prepare sm_songs database for scraping and check if this is a first-run
-echo "Preparing database for song scraping...\n";
+echo "Preparing database for song scraping..." . PHP_EOL;
+wh_log("Preparing database for song scraping...");
+
 $firstRun = curlPost("songsStart",array(0));
 
 //loop through cache files, process to json strings, and post to the webserver for further processing
 $totalFiles = count($files);
-echo "Looping through ".$totalFiles." cache files...\n";
+echo "Looping through ".$totalFiles." cache files..." . PHP_EOL;
+wh_log("Looping through ".$totalFiles." cache files...");
 $totalChunks = ceil($totalFiles / $chunk);
 $currentChunk = 1;
 if ($firstRun != TRUE){
 	//only sort files if NOT first run
 	$files = prepareCacheFiles($files);
 }
+
+//read preferences.ini file for AddtionalSongsFolder(s)
+$addSongDirs = additionalSongsFolders($saveDir);
+
 //print_r($files);
 $files = array_chunk($files,$chunk,true);
 foreach ($files as $filesChunk){
@@ -330,23 +391,28 @@ foreach ($files as $filesChunk){
 				$cache_array[] = $cache_file;
 				$i++;
 			}else{
-				echo $metadata['file']." is either in an Ignored Pack or the orginal chart files are missing!\n";
+				echo $metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!" . PHP_EOL;
+				wh_log($metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!");
 			}
 		}else{
-			echo "There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping...\n";
+			echo "There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping..." . PHP_EOL;
+			wh_log("There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping...");
 		}
 	}
-	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...\n";
+	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL..." . PHP_EOL;
+	wh_log("Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...");
 	curlPost("songs", $cache_array);
 	$currentChunk++;
 }
 
 //mark songs as (not)installed
-echo "Finishing up...\n";
+echo "Finishing up..." . PHP_EOL;
+wh_log("Finishing up...");
 curlPost("songsEnd",array($i));
 
 //display time
-echo ("\nTotal time: ". round((microtime(true) - $microStart)/60,1) . " mins.\n");
+echo (PHP_EOL . "Total time: ". round((microtime(true) - $microStart)/60,1) . " mins." . PHP_EOL);
+wh_log("Total time: ". round((microtime(true) - $microStart)/60,1) . " mins.");
 
 //
 

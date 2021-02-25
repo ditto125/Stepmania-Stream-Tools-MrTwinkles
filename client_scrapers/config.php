@@ -23,4 +23,8 @@ $target_url = "https://subdomain.smrequests.com";
 //This way people can't hit your endpoints directly without permission. This MUST match the security key on the server-side.
 $security_key = "any-secret-here";
 
+//Offline Mode
+//Set this to TRUE if you are running the request system on a separate machine that has no realtime access to the StepMania machine/cabinet
+$offlineMode = FALSE;
+
 ?>
