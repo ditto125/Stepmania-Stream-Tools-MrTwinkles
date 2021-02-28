@@ -432,6 +432,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 		if (mysqli_num_rows($retval) == 0){
 			//existing record is not found - let's either update or insert a record
 			$id = "";
+			$songInfo = array();
 			//check if the number of times played has increased and update db
 			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND numplayed < \"{$lastplayed['NumTimesPlayed']}\" AND lastplayed <= \"{$lastplayed['LastPlayed']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
 			if (!$retval = mysqli_query($conn, $sql0)){
@@ -442,7 +443,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 				//first let's also grab the song_id just in case the entry here is 0
 				while($row = mysqli_fetch_assoc($retval)){
 					$song_id = $row['song_id'];
-					if($song_id == 0){
+					if($song_id === 0){
 						$songInfo = lookupSongID($row['song_dir']);
 						$song_id = $songInfo['id'];
 					}
@@ -470,7 +471,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 			//Let's update the song ID, just in case it was added before a song cache scrape
 			while($row = mysqli_fetch_assoc($retval)){
 				$song_id = $row['song_id'];
-				if($song_id == 0){
+				if($song_id === 0){
 					$songInfo = lookupSongID($row['song_dir']);
 					$song_id = $songInfo['id'];
 					$id = $row['id'];
