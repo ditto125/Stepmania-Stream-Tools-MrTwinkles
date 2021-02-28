@@ -74,7 +74,7 @@ if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 //check if the active channel category/game is StepMania, etc.
 if(isset($_GET["game"]) && !empty($_GET["game"])){
 	$game = $_GET["game"];
-    if(in_array($game,$categoryGame)==FALSE){
+    if(in_array(strtolower($game),array_map('strtolower',$categoryGame)) == FALSE){
         die("Hmmm...I don't think it's possible to request songs in ".$game.".");
     }
 }
@@ -198,7 +198,7 @@ die();
 
 if(isset($_GET["songid"]) && !empty($_GET["songid"])){
 	$commandArgs = parseCommandArgs($_GET["songid"],$user,$broadcaster);
-	$song = $commandArgs["song"];
+	$song = clean($commandArgs["song"]);
         //lookup by ID and request it
 
         $sql = "SELECT * FROM sm_songs WHERE id = '{$song}' AND installed=1 ORDER BY title ASC";
@@ -212,7 +212,7 @@ if(isset($_GET["songid"]) && !empty($_GET["songid"])){
         		die();
     		}
 	} else {
-        	echo "Didn't find any songs matching that id!";
+        	echo "Didn't find any songs matching the id: " . $song . "!";
         	die();
 }
 

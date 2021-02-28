@@ -55,7 +55,7 @@ if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 //check if the active channel category/game is StepMania, etc.
 if(isset($_GET["game"])){
 	$game = $_GET["game"];
-    if(in_array($game,$categoryGame)==FALSE){
+    if(in_array(strtolower($game),array_map('strtolower',$categoryGame)) == FALSE){
         die("Hmmm...I don't think it's possible to request songs in ".$game.".");
     }
 }
