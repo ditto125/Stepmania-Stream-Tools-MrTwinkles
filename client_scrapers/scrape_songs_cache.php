@@ -41,6 +41,26 @@ function wh_log($log_msg){
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
 }
 
+function get_version(){
+	//check the version of this script against the server
+	$versionFilename = __DIR__."/VERSION";
+
+	if(file_exists($versionFilename)){
+		$versionClient = file_get_contents($versionFilename);
+		$versionClient = json_decode($versionClient);
+		$versionClient = $versionClient['version'];
+
+//		if($versionServer > $versionClient){
+//			wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
+//			die("WARNING! Your client scripts are out of date! Update your scripts to the latest version! Exiting..." . PHP_EOL);
+//		}
+	}else{
+		$versionClient = 0;
+		wh_log("Client version not found or unexpected value. Check VERSION file in client scrapers folder.");
+	}
+	return $versionClient;
+}
+
 function fixEncoding($line){
 	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
@@ -151,10 +171,10 @@ function parseNotedata($file) {
 					//build array of notedata chart information
 					
 				//Not all chart files have these descriptors, so let's check if they exist to avoid notices/errors	
-					array_key_exists('#CHARTNAME',$lines) 	? addslashes($lines['#CHARTNAME']) 	: $lines['#CHARTNAME']   = "";
-					array_key_exists('#DESCRIPTION',$lines) ? addslashes($lines['#DESCRIPTION']): $lines['#DESCRIPTION'] = "";
-					array_key_exists('#CHARTSTYLE',$lines)  ? addslashes($lines['#CHARTSTYLE']) : $lines['#CHARTSTYLE']  = "";
-					array_key_exists('#CREDIT',$lines)      ? addslashes($lines['#CREDIT']) 	: $lines['#CREDIT']      = "";
+					array_key_exists('#CHARTNAME',$lines) 	? $lines['#CHARTNAME'] 	: $lines['#CHARTNAME']   = "";
+					array_key_exists('#DESCRIPTION',$lines) ? $lines['#DESCRIPTION']: $lines['#DESCRIPTION'] = "";
+					array_key_exists('#CHARTSTYLE',$lines)  ? $lines['#CHARTSTYLE'] : $lines['#CHARTSTYLE']  = "";
+					array_key_exists('#CREDIT',$lines)      ? $lines['#CREDIT'] 	: $lines['#CREDIT']      = "";
 					
 					if( array_key_exists('#DISPLAYBPM',$lines)){
 						if( strpos($lines['#DISPLAYBPM'],':') > 0){
@@ -286,30 +306,46 @@ function additionalSongsFolders($saveDir){
 	return $addSongDirs;
 }
 
+function prepare_for_scraping(){
+	//prepare sm_songs database for scraping, check if this is a first-run, grab compare array, and version check
+	echo "Preparing database for song scraping..." . PHP_EOL;
+	wh_log("Preparing database for song scraping...");
+
+	$songsStart = curlPost("songsStart",array(0));
+
+	return $songsStart;
+}
+
 function parseJsonErrors($error,$jsonArray){
-	if($error == "JSON_ERROR_UTF8"){
+	if($error == "JSON_ERROR_UTF8" || $error == 5){
 		echo json_last_error_msg().PHP_EOL;
 		echo "One of these files has an error. Correct the special character in the song folder name and re-run the script.".PHP_EOL;
 		wh_log("One of these files has an error. Correct the special character in the song folder name and re-run the script.");
 		foreach($jsonArray['data'] as $cacheFile){
 			//echo $cacheFile['metadata']['#SONGFILENAME'].PHP_EOL;
 			$songFilename = $cacheFile['metadata']['#SONGFILENAME'];
-			echo $songFilename.PHP_EOL;
-			wh_log($songFilename);
+			foreach($cacheFile['metadata'] as $metaDataLine){
+				if(!json_encode($metaDataLine)){
+					echo "json encoding error for song $songFilename at the following line:".PHP_EOL;
+					wh_log("json encoding error for song $songFilename at the following line:");
+					wh_log(print_r($metaDataLine));
+				}
+			}
 		}
 		die();
 	}else{
-		wh_log(json_last_error_msg());
-		die(json_last_error_msg().PHP_EOL);
+		wh_log("Json encode error: " . json_last_error_msg());
+		die("Json encode error: " . json_last_error_msg() . PHP_EOL . " Exiting." . PHP_EOL);
 	}
 }
 
 function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
+	$versionClient = get_version();
 	unset($ch,$result,$post,$jsonArray,$errorJson);
 	//add the security_key to the array
-	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'data' => $array);
+	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'version' => $versionClient, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
 	$errorJson = json_last_error();
@@ -350,13 +386,9 @@ foreach(glob("{$cacheDir}/*", GLOB_BRACE) as $file) {
 if(count($files) == 0){wh_log("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\"."); die("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\".");}
 
 $i = 0;
-$chunk = 500;
+$chunk = 573;
 
-//prepare sm_songs database for scraping and check if this is a first-run
-echo "Preparing database for song scraping..." . PHP_EOL;
-wh_log("Preparing database for song scraping...");
-
-$firstRun = curlPost("songsStart",array(0));
+$firstRun = prepare_for_scraping();
 
 //loop through cache files, process to json strings, and post to the webserver for further processing
 $totalFiles = count($files);
@@ -401,7 +433,9 @@ foreach ($files as $filesChunk){
 	}
 	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL..." . PHP_EOL;
 	wh_log("Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...");
-	curlPost("songs", $cache_array);
+	if(!empty($cache_array)){
+		curlPost("songs", $cache_array);
+	}
 	$currentChunk++;
 }
 

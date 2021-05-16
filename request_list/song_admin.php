@@ -1,6 +1,7 @@
 <?php
 
 include("config.php");
+include("misc_functions.php");
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");
@@ -12,12 +13,6 @@ if(!isset($_GET["bansong"]) && !isset($_GET["bansongid"]) && !isset($_GET["user"
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
-
-function clean($string) {
-   $string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-   return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
-   $string = mysqli_real_escape_string($conn, $string); // Removes sql injection atempts.
-}
 
 function toggle_ban_song($song){
 

@@ -8,6 +8,13 @@
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 
+function clean($string) {
+	global $conn;
+    $string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
+    $string =  preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
+    return $string;
+}
+
 function add_user($userid, $user){
 
 	global $conn;
@@ -91,7 +98,7 @@ function check_cooldown($user){
     $retval0 = mysqli_query( $conn, $sql0 );
     $numrows = mysqli_num_rows($retval0);
     if($numrows > 0){
-        die("Slow down there, part'ner! Try again in ".ceil($interval)." minutes.");
+        die("Slow down there, part'ner! Try again in ".floor($interval)." minutes.");
     }
 }
 
@@ -216,6 +223,26 @@ function check_notedata($broadcaster,$song_id,$stepstype,$difficulty,$user){
     return $response;
 }
 
+function get_duplicate_song_artist($song_id){
+    //check if the title/pack of the songid is a duplicate and return the artist
+    global $conn;
+    $response = "";
+
+    $sql = "SELECT * FROM sm_songs
+            JOIN sm_songs AS t2 ON
+            sm_songs.strippedtitle = t2.strippedtitle AND sm_songs.strippedsubtitle = t2.strippedsubtitle AND sm_songs.pack = t2.pack
+            WHERE t2.id = '$song_id' AND sm_songs.installed = 1";
+    $retval = mysqli_query( $conn, $sql);
+    if(mysqli_num_rows($retval) > 1){
+        //the song title is a duplicate in this pack, return the artist of the songid
+        $sql = "SELECT artist FROM sm_songs WHERE id = '$song_id'";
+        $retval = mysqli_query( $conn, $sql);
+        $response = mysqli_fetch_assoc($retval)['artist'];
+        $response = " by " . $response;
+    }
+    return $response;
+}
+
 function parseCommandArgs($argsStr,$user,$broadcaster){
     global $conn;
 
@@ -230,13 +257,7 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 $result['difficulty'] = "Easy";
             break;
             case "DSP":
-                $result['stepstype'] = "dance-single";
-                $result['difficulty'] = "Medium";
-            break;
             case "MSP":
-                $result['stepstype'] = "dance-single";
-                $result['difficulty'] = "Medium";
-            break;
             case "SSP":
                 $result['stepstype'] = "dance-single";
                 $result['difficulty'] = "Medium";
@@ -262,13 +283,7 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 $result['difficulty'] = "Easy";
             break;
             case "DDP":
-                $result['stepstype'] = "dance-double";
-                $result['difficulty'] = "Medium";
-            break;
             case "MDP":
-                $result['stepstype'] = "dance-double";
-                $result['difficulty'] = "Medium";
-            break;
             case "SDP":
                 $result['stepstype'] = "dance-double";
                 $result['difficulty'] = "Medium";
@@ -297,17 +312,11 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
         foreach ($args as $arg){
             switch (strtolower($arg)){
                 case "single":
-                    $result['stepstype'] = "dance-single";
-                break;
                 case "singles":
                     $result['stepstype'] = "dance-single";
                 break;
                 case "double":
-                    $result['stepstype'] = "dance-double";
-                break;
                 case "doubles":
-                    $result['stepstype'] = "dance-double";
-                break;
                 case "doublays":
                     $result['stepstype'] = "dance-double";
                 break;
@@ -315,29 +324,19 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                     $result['difficulty'] = "Beginner";
                 break;
                 case "easy":
-                    $result['difficulty'] = "Easy";
-                break;
                 case "light":
                     $result['difficulty'] = "Easy";
                 break;
                 case "medium":
-                    $result['difficulty'] = "Medium";
-                break;
                 case "standard":
                     $result['difficulty'] = "Medium";
                 break;
                 case "hard":
-                    $result['difficulty'] = "Hard";
-                break;
                 case "heavy":
-                    $result['difficulty'] = "Hard";
-                break;
                 case "expert":
                     $result['difficulty'] = "Hard";
                 break;
                 case "challenge":
-                    $result['difficulty'] = "Challenge";
-                break;
                 case "oni":
                     $result['difficulty'] = "Challenge";
                 break;

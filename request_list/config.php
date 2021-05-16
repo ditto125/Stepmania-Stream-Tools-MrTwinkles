@@ -75,4 +75,7 @@ $maxRequests = 10;
 //Values can be "itg" or "ddr". ITG scores are in percentage and DDR scores are a number out of 1M.
 $scoreType = "itg";
 
+//limit to how many random songs can be requested at once
+$max_num = 3;
+
 ?>

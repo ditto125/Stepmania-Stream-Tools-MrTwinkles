@@ -71,33 +71,6 @@ include ('config.php');
 //check for offline mode in the config
 if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!");}
 
-//$initialLastPlayed = array();
-//$initialHighScores = array();
-
-function prune_stats_array($stats_arr){
-	global $initialLastPlayed;
-	global $initialHighScores;
-
-	$prMicro = microtime(true);
-	if(empty($initialLastPlayed) && !empty($stats_arr['LastPlayed'])){
-		$initialLastPlayed = $stats_arr['LastPlayed'];
-	}elseif(!empty($initialLastPlayed) && !empty($stats_arr['LastPlayed'])){
-		$cLastPlayed = count($stats_arr['LastPlayed']);
-		$stats_arr['LastPlayed'] = array_diff($stats_arr['LastPlayed'],$initialLastPlayed);
-		wh_log ("Pruned " . $cLastPlayed - count($stats_arr['LastPlayed']) . " elements from LastPlayed array.");
-	}
-	if(empty($initialHighScores) && !empty($stats_arr['HighScores'])){
-		$initialHighScores = $stats_arr['HighScores'];
-	}elseif(!empty($initialHighScores) && !empty($stats_arr['HighScores'])){
-		$cHighScores = count($stats_arr['HighScores']);
-		$stats_arr['HighScores'] = array_diff($stats_arr['HighScores'],$initialHighScores);
-		wh_log ("Pruned " . $cHighScores - count($stats_arr['HighScores']) . " elements from HighScores array.");
-	}
-
-	wh_log ("Pruned stats array in: " . round(microtime(true) - $prMicro,3) . " secs.");
-	return $stats_arr;
-}
-
 function wh_log($log_msg){
     $log_filename = __DIR__."/log";
     if (!file_exists($log_filename)) 
@@ -109,6 +82,26 @@ function wh_log($log_msg){
 	$log_msg = str_replace(array("\r", "\n"), '', $log_msg); //remove line endings
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
+}
+
+function get_version(){
+	//check the version of this script against the server
+	$versionFilename = __DIR__."/VERSION";
+
+	if(file_exists($versionFilename)){
+		$versionClient = file_get_contents($versionFilename);
+		$versionClient = json_decode($versionClient);
+		$versionClient = $versionClient['version'];
+
+//		if($versionServer > $versionClient){
+//			wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
+//			die("WARNING! Your client scripts are out of date! Update your scripts to the latest version! Exiting..." . PHP_EOL);
+//		}
+	}else{
+		$versionClient = 0;
+		wh_log("Client version not found or unexpected value. Check VERSION file in client scrapers folder.");
+	}
+	return $versionClient;
 }
 
 function fixEncoding($line){
@@ -133,11 +126,7 @@ function fixEncoding($line){
 	return $line;
 }
 
-function parseXmlErrors($errors,$xml_file){
-	unset($xml);
-	//open file for fixin'
-	$xml = file($xml_file);
-
+function parseXmlErrors($errors,$xmlArray){
 	foreach ($errors as $error){
 		if ($error->code == 9){
 			//error code: 9 is "Invalid UTF-8 encoding detected"
@@ -146,21 +135,19 @@ function parseXmlErrors($errors,$xml_file){
 			wh_log("Oh look! StepMania left us invalid UTF-8 characters in an XML file. I recommend removing all special characters from this song's directory name!");
 			//get line number of the invalid character(s)
 			$lineNo = $error->line - 1;
-			//open file, fix encoding, and write new file
-			//$xml = file($xml_file);
+			//open file, fix encoding, and write a new line
 			echo "Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...".PHP_EOL;
 			wh_log("Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...");
-			$xml[$lineNo] = fixEncoding($xml[$lineNo]);
+			$xmlArray[$lineNo] = fixEncoding($xmlArray[$lineNo]);
 		}elseif($error->code != 9){
 			//error code is not "9"
-			wh_log(implode(" ",$errors));
+			wh_log(implode(PHP_EOL,$errors)); 
 			print_r($errors);
 		}
 	}
-	//write back changes to the file in memory
-	//file_put_contents($xml_file,implode("",$xml));
-	$xml = implode("",$xml);
-	return $xml;
+	//write back changes to the file in memory and save as string
+	$xmlStr = implode(PHP_EOL,$xmlArray);
+	return $xmlStr;
 }
 
 function find_statsxml($directory,$profileIDs){
@@ -169,11 +156,12 @@ function find_statsxml($directory,$profileIDs){
 	$i = 0;
 	foreach ($profileIDs as $profileID){
 		foreach (glob($directory."/".$profileID."/Stats.xml",GLOB_BRACE) as $xml_file){
-			//build array of file directory, IDs, and modified file times
+			//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
 			$file_arr[$i]['id'] = $profileID;
 			$file_arr[$i]['file'] = $xml_file;
 			$file_arr[$i]['ftime'] = '';
 			$file_arr[$i]['mtime'] = filemtime($xml_file);
+			$file_arr[$i]['timestampLastPlayed'] = 0;
 			$i++;
 		}
 		if (empty($file_arr)){
@@ -184,13 +172,12 @@ function find_statsxml($directory,$profileIDs){
 	return $file_arr;
 }
 
-function statsXMLtoArray ($xml_file){
+function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 	//create array to store xml file
 	$statsLastPlayed = array();
 	$statsHighScores = array();
 	$stats_arr = array();
-	unset ($xml,$errors);
-	$xml = FALSE;
+	unset ($xml,$xmlArray,$xmlStr,$errors);
 	
 	//open xml file
 	libxml_clear_errors();
@@ -202,10 +189,20 @@ function statsXMLtoArray ($xml_file){
 	if (!empty($errors)){
 		//attempt to fix errors in memory then load xml (fixed) via string
 		//not a great solution, but blame StepMania, not me!
-		$xml_str = parseXmlErrors($errors,$xml_file);
-		libxml_clear_errors();
+		$xmlArray = file($xml_file);
+		$xmlStr = parseXmlErrors($errors,$xmlArray);
+		$xml = FALSE;
 		wh_log("Loading Stats.xml file as a string (after correcting for UTF-8 errors).");
-		$xml = simplexml_load_string($xml_str);
+		while (!$xml){
+			libxml_clear_errors();
+			$xml = simplexml_load_string($xmlStr);
+			$errors = libxml_get_errors();
+			if (!empty($errors)){
+				$xmlArray = explode(PHP_EOL,$xmlStr);
+				$xmlStr = parseXmlErrors($errors,$xmlArray);
+				$xml = FALSE;
+			}
+		}
 	}
 
 	//die if too many errors
@@ -249,17 +246,21 @@ function statsXMLtoArray ($xml_file){
 				
 				if (!empty($highScores)){
 					foreach ($highScores as $highScoreSingle){
-						$statsHighScores[] = array('DisplayName' => $display_name, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played, 'HighScore' => $highScoreSingle);
+						if((string)strtotime($highScoreSingle->DateTime) > strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
+							$statsHighScores[] = array('DisplayName' => $display_name, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played, 'HighScore' => $highScoreSingle);
+						}
 					}
 				}
-
-				$statsLastPlayed[] = array('DisplayName' => $display_name, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played);
-	
+				if(strtotime($last_played) > strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
+					$statsLastPlayed[] = array('DisplayName' => $display_name, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played);
+					$timestampLastPlayedArr[] = $last_played;
+				}
 			}
 		}
 	}
 
-	$stats_arr = array('LastPlayed' => $statsLastPlayed, 'HighScores' => $statsHighScores);
+	$timestampLastPlayed = max($timestampLastPlayedArr);
+	$stats_arr = array('LastPlayed' => $statsLastPlayed, 'HighScores' => $statsHighScores, 'timestampLastPlayed' => $timestampLastPlayed);
 	return $stats_arr; 
 }
 
@@ -267,9 +268,10 @@ function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
 	global $offlineMode;
+	$versionClient = get_version();
 	//add the security_key to the array
 	$jsMicro = microtime(true);
-	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'offline' => $offlineMode, 'data' => $array);
+	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'version' => $versionClient, 'offline' => $offlineMode, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
 	wh_log ("Creating JSON took: " . round(microtime(true) - $jsMicro,3) . " secs.");
@@ -318,10 +320,10 @@ for (;;){
 			wh_log("Starting scrape of profile ".$file['id']);
 			//parse stats.xml file to an array
 			$statsMicro = microtime(true);
-			$stats_arr = statsXMLtoArray ($file['file']);
+			$stats_arr = statsXMLtoArray ($file['file'], $file['timestampLastPlayed']);
+			//save the last played timestamp in the $file array
+			$file['timestampLastPlayed'] = $stats_arr['timestampLastPlayed'];
 			wh_log ("Stats.XML parse of " . $file['id'] . " took: " . round(microtime(true) - $statsMicro,3) . " secs.");
-			//prune stats array
-			//$stats_arr = prune_stats_array($stats_arr);
 			//LastPlayed
 			$lpMicro = microtime(true);
 			curlPost("lastplayed", $stats_arr['LastPlayed']);

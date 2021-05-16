@@ -10,9 +10,7 @@ if (php_sapi_name() == "cli") {
 
 include ('config.php');
 
-$banners_copied = 0;
-$notFoundBanners = 0;
-$cPacks = 0;
+$banners_copied = $notFoundBanners = $cPacks = 0;
 $fileSizeMax = 5242880; //5MB
 
 function wh_log($log_msg){
@@ -82,6 +80,26 @@ function isIgnoredPack($pack){
 	return $return;
 }
 
+function get_banner($img_path){
+	//$imgNames = array_map(function($e){
+	//	return pathinfo($e, PATHINFO_FILENAME);
+	//},$img_path);
+	
+	foreach($img_path as $img){
+		if(stripos(pathinfo($img,PATHINFO_FILENAME),'banner') !== FALSE){
+			$return = $img;
+			break;
+		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'ban') !== FALSE){
+			$return = $img;
+			break;
+		}else{
+			$return = $img;
+		}
+	}
+	
+	return $return;
+}
+
 function curl_upload($file,$pack_name){
 	global $target_url;
 	global $security_key;
@@ -93,7 +111,6 @@ function curl_upload($file,$pack_name){
 	$post = array('security_key' => $security_key,'file_contents'=> $cFile);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
-	//curl_setopt($ch, CURLOPT_VERBOSE, 1);
 	curl_setopt($ch, CURLOPT_URL,$target_url."/banners.php");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
@@ -126,8 +143,7 @@ $img_arr = array();
 
 foreach ($pack_dir as $path){
 	
-	$pack_name = "";
-	$img_path = "";
+	$pack_name = $img_path = "";
 	//get pack name from folder
 	$pack_name = substr($path,strrpos($path,"/")+1);
 	//check if pack is to be ignored and skip if it is
@@ -139,13 +155,19 @@ foreach ($pack_dir as $path){
 		$img_path = glob("{$path}/*{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,bmp,BMP}",GLOB_BRACE);
 		
 		if (isset($img_path) && !empty($img_path)){
-			//use the first result as the pack banner and add to array
+			if(count($img_path > 1)){
+				//more than 1 imagine found, let's search file names for which one is the banner
+				$img_path = get_banner($img_path);
+			}else{
+				//use the first result as the pack banner
+				$img_path = $img_path[0];
+			}
 			//check for filesize
-			if (filesize($img_path[0]) > $fileSizeMax){
+			if (filesize($img_path) > $fileSizeMax){
 				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!" . PHP_EOL;
 				wh_log($pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!");
 			}else{
-				$img_arr[] = array('img_path' => $img_path[0],'pack_name' => $pack_name);
+				$img_arr[] = array('img_path' => $img_path,'pack_name' => $pack_name);
 			}
 		}else{
 			echo "No banner image for ".$pack_name. PHP_EOL;

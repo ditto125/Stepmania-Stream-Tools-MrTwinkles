@@ -13,6 +13,7 @@
 //--------Configuration--------//
 
 include ("config.php");
+include ("misc_functions.php");
 
 //--------Accept the POSTed json string, validate, and check security--------//
 	
@@ -45,10 +46,26 @@ if (!isset($jsonDecoded['security_key']) || $jsonDecoded['security_key'] != $sec
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);   
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 
-function clean($string) {
-	$string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-	return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
- }
+function check_version($versionClient){
+	//check the verion of the incoming scripts to the server version
+	$versionFilename = __DIR__."/VERSION";
+
+	if(file_exists($versionFilename)){
+		$versionServer = file_get_contents($versionFilename);
+		$versionServer = json_decode($versionServer);
+		$versionServer = $versionServer['version'];
+
+		if($versionServer > $versionClient){
+			//wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
+			die("WARNING! Your client scripts are out of date! Update your scripts to the latest version! Exiting..." . PHP_EOL);
+		}
+	}else{
+		$versionServer = 0;
+		die();
+		//wh_log("Server version not found or unexpected value. Check VERSION file in server root directory.");
+	}
+	return FALSE;
+}
 
 function splitSongDir($song_dir){
 	//This function splits the "song_dir" string into title and pack
@@ -121,26 +138,21 @@ function scrapeSongStart(){
 function scrapeSongEnd($cFiles){
 	global $conn;
 	// After scraping all songs, update the existing and new songs as "installed"
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=2";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$newSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=2";
+		$newSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=3";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$updatedSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=3";
+		$updatedSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=1";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$totalSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=1";
+		$totalSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 		$totalSongs = $totalSongs + $updatedSongs + $newSongs;
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=0";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$addNotInstalledSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=0";
+		$addNotInstalledSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=0 AND scraper=0";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$notInstalledSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=0 AND scraper=0";
+		$notInstalledSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
 	//mark songs not found during scraping as "not installed"
 		$sql_getstats = "UPDATE sm_songs SET installed=0 WHERE scraper=0";
@@ -161,25 +173,14 @@ function scrapeSong($songCache_array){
 	//This function processes the song cache arrays and inserts/updates song records into the sm_songs table
 	global $conn;
 	
-	$metadata = array();
-	$notedata_array = array();
-	$song_dir = "";
-	$title = "";
-	$subtitle = "";
-	$artist = "";
-	$pack = "";
-	$display_bpm = "";
-	$music_length = "";
-	$bga = 0;
-	$stepstype = "";
-	$difficulty = "";
-	$stored_hash = "";
-	$file_hash = "";
+	$metadata = $notedata_array = array();
+	$song_dir = $title = $subtitle = $artist = $pack = $display_bpm = $song_credit = $stepstype = $difficulty = $stored_hash = $file_hash = "";
+	$music_length = $bga = 0;
 
 	$metadata = $songCache_array['metadata'];
 	$file_hash = $metadata['file_hash'];
 	$file = $metadata['file'];
-	$notedata_array = $songCache_array['notedata'];
+	$notedata_array = array_map('addslashes',$songCache_array['notedata']);
 
 	//echo "Starting inspection of file $file\n";
 
@@ -289,6 +290,7 @@ function scrapeSong($songCache_array){
 			}
 
 		if( strpos($display_bpm,':') > 0){
+			//bpm is a range
 			$display_bpmSplit = array();
 			$display_bpmSplit = preg_split("/:/",$display_bpm);
 			//get the average bpm
@@ -302,7 +304,7 @@ function scrapeSong($songCache_array){
 
 	// Get music length in seconds
 
-		if( isset($metadata['#MUSICLENGTH'])){
+		if( isset($metadata['#MUSICLENGTH']) && !empty($metadata['#MUSICLENGTH'])){
 			//song has a music length listed
 			$music_length = $metadata['#MUSICLENGTH'];
 		}
@@ -327,8 +329,6 @@ function scrapeSong($songCache_array){
 		//song has a credit
 		$song_credit = $metadata['#CREDIT'];
 		$song_credit = addslashes($song_credit);
-	}else{
-		$song_credit = "";
 	}
 		
 	//
@@ -338,8 +338,6 @@ function scrapeSong($songCache_array){
 		$retval = mysqli_query( $conn, $sql );
 		
 		$sql_notedata_values = "";
-		//$installed = "";
-		//$scraper = "";
 		
 		if(mysqli_num_rows($retval) == 0){
 		//This song doesn't yet exist in the db, let's add it!
@@ -591,6 +589,14 @@ function addHighScoretoDB ($highscore_array){
 
 //--------Process the JSON and run specific functions based on source type--------// 
 
+if(isset($jsonDecoded['version'])){
+	$versionClient = $jsonDecoded['version'];
+}else{
+	$versionClient = 0;
+}
+
+check_version($versionClient);
+
 if(isset($jsonDecoded['offline'])){
 	$offlineMode = $jsonDecoded['offline'];
 }else{
@@ -633,5 +639,6 @@ switch ($jsonDecoded['source']){
 }
 
 mysqli_close($conn);
+die();
 
 ?>
