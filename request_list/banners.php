@@ -38,6 +38,7 @@ if(!file_exists($uploadfile)){
 		if(count($files) > 0){
 			//an image exists for this pack name, but is a different file, remove it
 			array_map('unlink',$files);
+			echo "Removed previous banner image for ".$_FILES['file_contents']['name'].PHP_EOL;
 		}
 		//update banner image with the newly updated file
 		if(move_uploaded_file($_FILES['file_contents']['tmp_name'], $uploadfile)) {

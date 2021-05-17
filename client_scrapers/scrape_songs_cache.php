@@ -47,7 +47,7 @@ function get_version(){
 
 	if(file_exists($versionFilename)){
 		$versionClient = file_get_contents($versionFilename);
-		$versionClient = json_decode($versionClient);
+		$versionClient = json_decode($versionClient,TRUE);
 		$versionClient = $versionClient['version'];
 
 //		if($versionServer > $versionClient){
@@ -171,10 +171,10 @@ function parseNotedata($file) {
 					//build array of notedata chart information
 					
 				//Not all chart files have these descriptors, so let's check if they exist to avoid notices/errors	
-					array_key_exists('#CHARTNAME',$lines) 	? $lines['#CHARTNAME'] 	: $lines['#CHARTNAME']   = "";
-					array_key_exists('#DESCRIPTION',$lines) ? $lines['#DESCRIPTION']: $lines['#DESCRIPTION'] = "";
-					array_key_exists('#CHARTSTYLE',$lines)  ? $lines['#CHARTSTYLE'] : $lines['#CHARTSTYLE']  = "";
-					array_key_exists('#CREDIT',$lines)      ? $lines['#CREDIT'] 	: $lines['#CREDIT']      = "";
+					array_key_exists('#CHARTNAME',$lines) 	? str_replace("\"","",$lines['#CHARTNAME']) 	: $lines['#CHARTNAME']   = "";
+					array_key_exists('#DESCRIPTION',$lines) ? str_replace("\"","",$lines['#DESCRIPTION'])	: $lines['#DESCRIPTION'] = "";
+					array_key_exists('#CHARTSTYLE',$lines)  ? str_replace("\"","",$lines['#CHARTSTYLE']) 	: $lines['#CHARTSTYLE']  = "";
+					array_key_exists('#CREDIT',$lines)      ? str_replace("\"","",$lines['#CREDIT']) 		: $lines['#CREDIT']      = "";
 					
 					if( array_key_exists('#DISPLAYBPM',$lines)){
 						if( strpos($lines['#DISPLAYBPM'],':') > 0){

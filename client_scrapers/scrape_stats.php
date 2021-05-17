@@ -90,7 +90,7 @@ function get_version(){
 
 	if(file_exists($versionFilename)){
 		$versionClient = file_get_contents($versionFilename);
-		$versionClient = json_decode($versionClient);
+		$versionClient = json_decode($versionClient,TRUE);
 		$versionClient = $versionClient['version'];
 
 //		if($versionServer > $versionClient){

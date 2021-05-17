@@ -52,7 +52,7 @@ function check_version($versionClient){
 
 	if(file_exists($versionFilename)){
 		$versionServer = file_get_contents($versionFilename);
-		$versionServer = json_decode($versionServer);
+		$versionServer = json_decode($versionServer,TRUE);
 		$versionServer = $versionServer['version'];
 
 		if($versionServer > $versionClient){
@@ -180,7 +180,7 @@ function scrapeSong($songCache_array){
 	$metadata = $songCache_array['metadata'];
 	$file_hash = $metadata['file_hash'];
 	$file = $metadata['file'];
-	$notedata_array = array_map('addslashes',$songCache_array['notedata']);
+	$notedata_array = $songCache_array['notedata'];
 
 	//echo "Starting inspection of file $file\n";
 

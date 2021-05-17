@@ -92,11 +92,18 @@ function get_banner($img_path){
 		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'ban') !== FALSE){
 			$return = $img;
 			break;
+		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'bn') !== FALSE){
+			$return = $img;
+			break;
+		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'jacket') !== FALSE){
+			continue;
+		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'cdtitle') !== FALSE){
+			continue;
 		}else{
 			$return = $img;
 		}
 	}
-	
+	//echo $return.PHP_EOL;
 	return $return;
 }
 
@@ -155,13 +162,14 @@ foreach ($pack_dir as $path){
 		$img_path = glob("{$path}/*{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,bmp,BMP}",GLOB_BRACE);
 		
 		if (isset($img_path) && !empty($img_path)){
-			if(count($img_path > 1)){
-				//more than 1 imagine found, let's search file names for which one is the banner
+			if(count($img_path) > 1){
+				//more than 1 image found, let's search file names for which one is the banner
 				$img_path = get_banner($img_path);
 			}else{
 				//use the first result as the pack banner
 				$img_path = $img_path[0];
 			}
+			//echo $img_path.PHP_EOL;
 			//check for filesize
 			if (filesize($img_path) > $fileSizeMax){
 				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!" . PHP_EOL;
