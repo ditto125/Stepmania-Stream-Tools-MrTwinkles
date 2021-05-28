@@ -26,6 +26,26 @@ function wh_log($log_msg){
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
 }
 
+function get_version(){
+	//check the version of this script against the server
+	$versionFilename = __DIR__."/VERSION";
+
+	if(file_exists($versionFilename)){
+		$versionClient = file_get_contents($versionFilename);
+		$versionClient = json_decode($versionClient,TRUE);
+		$versionClient = $versionClient['version'];
+
+//		if($versionServer > $versionClient){
+//			wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
+//			die("WARNING! Your client scripts are out of date! Update your scripts to the latest version! Exiting..." . PHP_EOL);
+//		}
+	}else{
+		$versionClient = 0;
+		wh_log("Client version not found or unexpected value. Check VERSION file in client scrapers folder.");
+	}
+	return $versionClient;
+}
+
 function additionalSongsFolders($saveDir){
 	global $offlineMode;
 	
@@ -107,15 +127,32 @@ function get_banner($img_path){
 	return $return;
 }
 
+function does_banner_exist($file,$pack_name){
+	//quick check to see if the banner is on the server
+	global $target_url;
+	$return = FALSE;
+	unset($ch);
+
+	$imgName = urlencode($pack_name.'.'.strtolower(pathinfo($file,PATHINFO_EXTENSION)));
+	$ch = curl_init($target_url."/images/packs/".$imgName);
+	curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+	curl_exec($ch);
+	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	curl_close($ch);
+	if($retcode == 200){$return = TRUE;}
+	return $return;
+}
+
 function curl_upload($file,$pack_name){
 	global $target_url;
 	global $security_key;
 	unset($ch,$post,$cFile);
+	$versionClient = get_version();
 	//special curl function to create the information needed to upload files
 	//renaming the banner images to be consistent with the pack name
 	$cFile = curl_file_create($file,'',$pack_name.'.'.strtolower(pathinfo($file,PATHINFO_EXTENSION)));
 	//add the security_key to the array
-	$post = array('security_key' => $security_key,'file_contents'=> $cFile);
+	$post = array('security_key' => $security_key, 'version' => $versionClient,'file_contents'=> $cFile);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL,$target_url."/banners.php");
@@ -139,9 +176,17 @@ function curl_upload($file,$pack_name){
 // find all the pack/group folders
 $pack_dir = findFiles($songsDir);
 //add any additional songs folder(s)
-foreach (additionalSongsFolders($saveDir) as $addPack){
-	$pack_dir[] = $addPack;
+//foreach (additionalSongsFolders($saveDir) as $addPack){
+//	$pack_dir[] = $addPack;
+//}
+if(is_array($addSongsDir) && !empty($addSongsDir)){
+	foreach($addSongsDir as $directory){
+		$pack_dir[] = findFiles($directory);
+	}
+}elseif(!empty($addSongsDir)){
+	$pack_dir[] = findFiles($addSongsDir);
 }
+
 $cPacks = count($pack_dir);
 
 if ($cPacks == 0){wh_log("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\""); die ("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\"" . PHP_EOL);}
@@ -186,15 +231,20 @@ foreach ($pack_dir as $path){
 }
 
 foreach ($img_arr as $img){
-	//upload banner images
-	$cError = curl_upload($img['img_path'],$img['pack_name']);
-	//output any errors from the curl upload
-	if ($cError != "No error"){
-		echo "CURL Error: ".$cError."\n";
-		wh_log("CURL Error: ".$cError);
-	}else{
-		$banners_copied++;
-	}
+	//check if banner already on server
+	//if(does_banner_exist($img['img_path'],$img['pack_name'])){
+	//	echo "Banner for ". $img['pack_name'] . " already exists. Skipping...".PHP_EOL;
+	//}else{
+		//upload banner images
+		$cError = curl_upload($img['img_path'],$img['pack_name']);
+		//output any errors from the curl upload
+		if ($cError != "No error"){
+			echo "CURL Error: ".$cError."\n";
+			wh_log("CURL Error: ".$cError);
+		}else{
+			$banners_copied++;
+		}
+	//}
 }
 
 $cPacks = $cPacks - $notFoundBanners;

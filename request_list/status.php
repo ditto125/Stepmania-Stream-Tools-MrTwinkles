@@ -46,27 +46,6 @@ if (!isset($jsonDecoded['security_key']) || $jsonDecoded['security_key'] != $sec
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);   
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 
-function check_version($versionClient){
-	//check the verion of the incoming scripts to the server version
-	$versionFilename = __DIR__."/VERSION";
-
-	if(file_exists($versionFilename)){
-		$versionServer = file_get_contents($versionFilename);
-		$versionServer = json_decode($versionServer,TRUE);
-		$versionServer = $versionServer['version'];
-
-		if($versionServer > $versionClient){
-			//wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
-			die("WARNING! Your client scripts are out of date! Update your scripts to the latest version! Exiting..." . PHP_EOL);
-		}
-	}else{
-		$versionServer = 0;
-		die();
-		//wh_log("Server version not found or unexpected value. Check VERSION file in server root directory.");
-	}
-	return FALSE;
-}
-
 function splitSongDir($song_dir){
 	//This function splits the "song_dir" string into title and pack
 	

@@ -235,7 +235,7 @@ function isIgnoredPack($songFilename){
 function doesFileExist($songFilename){
 	global $songsDir;
 	global $offlineMode;
-	global $addSongDirs;
+	global $addSongsDir;
 
 	//if offline mode is set, always return TRUE
 	if($offlineMode){
@@ -260,9 +260,12 @@ function doesFileExist($songFilename){
 			//echo "File: ".$songFilename."\n";
 			wh_log("File Not Found: ".$songFilename);
 		}
-	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/"){
+	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/" && !empty($addSongsDir)){
 		//file is in one of the "AdditionalSongs" folder(s)
-		foreach($addSongDirs as $songsDir){
+		if(!is_array($addSongsDir)){
+			$addSongsDir = array($addSongsDir);
+		}
+		foreach($addSongsDir as $songsDir){
 			//loop through the "AdditionalSongsFolders"
 			$songFilename = str_replace("/AdditionalSongs/",$songsDir."/",$songFilename);
 			if(file_exists($songFilename)){
@@ -272,8 +275,13 @@ function doesFileExist($songFilename){
 				wh_log("File Not Found: ".$songFilename);
 			}
 		}
+	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/" && empty($addSongsDir)){
+		die("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.".PHP_EOL);
+		wh_log("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.");
 	}
+
 	return $return;
+
 }
 
 function additionalSongsFolders($saveDir){
@@ -402,9 +410,8 @@ if ($firstRun != TRUE){
 }
 
 //read preferences.ini file for AddtionalSongsFolder(s)
-$addSongDirs = additionalSongsFolders($saveDir);
+//$addSongDirs = additionalSongsFolders($saveDir);
 
-//print_r($files);
 $files = array_chunk($files,$chunk,true);
 foreach ($files as $filesChunk){
 	unset($cache_array,$cache_file,$metadata,$notedata_array);

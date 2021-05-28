@@ -1,6 +1,7 @@
 <?php
 
 include ('config.php');
+include ("misc_functions.php");
 
 $fileSizeMax = 5242880; //5MB
 	
@@ -13,6 +14,15 @@ if(strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0){
 if(!isset($_POST["security_key"]) || $_POST["security_key"] != $security_key || empty($_POST["security_key"])){
     die("Fuck off");
 }
+
+//get version of client
+if(isset($_POST['version'])){
+	$versionClient = $_POST['version'];
+}else{
+	$versionClient = 0;
+}
+//is the client script up to date?
+check_version($versionClient);
 
 if($_FILES['file_contents']['size'] > $fileSizeMax){
 	die($_FILES['file_contents']['name']."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!".PHP_EOL);

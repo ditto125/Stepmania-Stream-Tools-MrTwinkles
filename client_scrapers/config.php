@@ -16,6 +16,8 @@ $profileDir = $saveDir."/LocalProfiles";
 //location of StepMania songs folder. This could be the "/Songs" directory in your SM5 installation directory
 //or in your [AppData] directory.
 $songsDir = "D:/StepMania 5.1/Songs";
+//location of your AdditionalSongsFolder(s). If you are using any AdditionalSongs folders in your Preferences.ini, add the folder(s) in relation to where you are running the PHP scripts (This may not be the same path in your Preferences.ini). If there is more than one directory, use an array.
+$addSongsDir = "";
 
 //list of song packs/groups to ignore while scraping. These packs will not show up on the songlist and will not be request-able.
 //Example: "~WIP","Secret Folder","MyDog's")

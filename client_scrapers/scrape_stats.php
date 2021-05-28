@@ -251,7 +251,7 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 						}
 					}
 				}
-				if(strtotime($last_played) > strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
+				if(strtotime($last_played) >= strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
 					$statsLastPlayed[] = array('DisplayName' => $display_name, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played);
 					$timestampLastPlayedArr[] = $last_played;
 				}
