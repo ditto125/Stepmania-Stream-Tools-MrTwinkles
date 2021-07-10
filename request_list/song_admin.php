@@ -98,12 +98,12 @@ die();
 }
 //no one match
 if (mysqli_num_rows($retval) > 0) {
-	echo "No exact match (!bansongid [id]):\n";
+	echo "$user => No exact match (!bansongid [id]):";
 	$i=1;
     while($row = mysqli_fetch_assoc($retval)) {
         if($i>4){die();}
-	echo " [ ".$row["id"]. " > " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
-	$i++;
+		echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
+		$i++;
     }
 }
 

@@ -64,12 +64,34 @@ if (php_sapi_name() == "cli") {
 	}
 }
 
-include ('config.php');
+require ('config.php');
 
 //
 
 //check for offline mode in the config
 if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!");}
+
+function check_environment(){
+	//check for a php.ini file
+	$iniPath = php_ini_loaded_file();
+
+	if(!$iniPath){
+		//no config found
+		wh_log("ERROR: A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests.");
+		die("A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests." . PHP_EOL);
+	}else{
+		//config found. check for enabled extensions
+		$expectedExts = array('curl','json','mbstring','SimpleXML');
+		$loadedPhpExt = get_loaded_extensions();
+
+		foreach ($expectedExts as $ext){
+			if(!in_array($ext,$loadedPhpExt)){
+				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
+				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
+			}
+		}
+	}
+}
 
 function wh_log($log_msg){
     $log_filename = __DIR__."/log";
@@ -79,7 +101,7 @@ function wh_log($log_msg){
         mkdir($log_filename, 0777, true);
     }
     $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
-	$log_msg = str_replace(array("\r", "\n"), '', $log_msg); //remove line endings
+	$log_msg = rtrim($log_msg); //remove line endings
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
 }
@@ -301,6 +323,10 @@ function curlPost($postSource, $array){
 	unset($ch,$result,$post,$jsonArray);
 }
 
+//check php environment
+check_environment();
+
+//find stats.xml files
 $file_arr = find_statsxml ($profileDir,$profileIDs);
 
 if (!$autoRun){
@@ -326,10 +352,12 @@ for (;;){
 			wh_log ("Stats.XML parse of " . $file['id'] . " took: " . round(microtime(true) - $statsMicro,3) . " secs.");
 			//LastPlayed
 			$lpMicro = microtime(true);
+			wh_log("Uploading " . count($stats_arr['LastPlayed']) . " lastplayed records.");
 			curlPost("lastplayed", $stats_arr['LastPlayed']);
 			wh_log ("POST and processing of LastPlayed of " . $file['id'] . " took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			//HighScores
 			$hsMicro = microtime(true);
+			wh_log("Uploading " . count($stats_arr['HighScores']) . " highscores records.");
 			curlPost("highscores", $stats_arr['HighScores']);
 			wh_log ("POST and processing of HighScores of " . $file['id'] . " took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			echo "Done \n";

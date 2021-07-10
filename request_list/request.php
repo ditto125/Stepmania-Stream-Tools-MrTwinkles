@@ -254,7 +254,7 @@ if(isset($_GET["song"]) && !empty($_GET["song"])){
 	}
 	//no one match
 	if (mysqli_num_rows($retval) > 0) {
-		echo "$user => Top matches (request with !requestid [song id]):\n";
+		echo "$user => Top matches (request with !requestid [song id]):";
 		$i=1;
     	while($row = mysqli_fetch_assoc($retval)) {
         	if($i>4){die();}

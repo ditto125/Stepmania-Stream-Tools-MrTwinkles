@@ -413,4 +413,5 @@ function check_version($versionClient){
 }
 
 mysqli_close($conn);
+exit();
 ?>

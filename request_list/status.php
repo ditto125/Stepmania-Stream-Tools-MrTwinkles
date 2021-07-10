@@ -89,7 +89,7 @@ function lookupSongID ($song_dir){
 		echo "Multiple possible IDs found for {$song_title} in {$song_pack}: {$song_ids}" . PHP_EOL;
 	}elseif(mysqli_num_rows($id_result) == 0){
 		//no results found - set array from split song_dir and id=0
-		$song_id = "0";
+		$song_id = 0;
 		$song_title = splitSongDir($song_dir)['title'];
 		$song_pack = splitSongDir($song_dir)['pack'];
 		$songInfo = array('id' => $song_id, 'title' => $song_title, 'pack' => $song_pack);
@@ -409,30 +409,79 @@ function addLastPlayedtoDB ($lastplayed_array){
 		if (mysqli_num_rows($retval) == 0){
 			//existing record is not found - let's either update or insert a record
 			$id = "";
-			$songInfo = array();
+			$songInfo = lookupSongID($lastplayed['SongDir']);
 			//check if the number of times played has increased and update db
-			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND numplayed < \"{$lastplayed['NumTimesPlayed']}\" AND lastplayed <= \"{$lastplayed['LastPlayed']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
+			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
 			if (!$retval = mysqli_query($conn, $sql0)){
 				echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 			}
-			if (mysqli_num_rows($retval) > 0){
+			if(mysqli_num_rows($retval) == 1){
 				//there are updates - update the db record for song_dir
 				//first let's also grab the song_id just in case the entry here is 0
-				while($row = mysqli_fetch_assoc($retval)){
-					$song_id = $row['song_id'];
-					if($song_id === 0){
-						$songInfo = lookupSongID($row['song_dir']);
-						$song_id = $songInfo['id'];
-					}
-					$id = $row['id'];
-					$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
-					if (!mysqli_query($conn, $sql0)){
-						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
-					}
+				//echo "Debug: Update db record. Query: $sql0" . PHP_EOL;
+
+				$row = mysqli_fetch_assoc($retval);
+				//echo "Dump of results:";
+				//print_r($retval);
+				//echo PHP_EOL;
+				$song_id = $row['song_id'];
+				if($song_id === 0 && $songInfo['id'] !== 0){
+					//$songInfo = lookupSongID($row['song_dir']);
+					$song_id = $songInfo['id'];
 				}
+				$id = $row['id'];
+				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+				}
+			}elseif(mysqli_num_rows($retval) > 1){
+				//there are duplicate entries for this song.
+				//This is not an expected result, so let's fix it. (Hopefully, this only has to be fixed once!)
+				//echo "Debug: Duplicate DB records. Query: $sql0" . PHP_EOL;
+				//echo "Dump of results:";
+				//print_r($retval);
+				//echo PHP_EOL;
+
+				//get list of all ids
+				$duplicateIDs = array();
+				while($row = mysqli_fetch_assoc($retval)){
+					$duplicateIDs[] = $row['id'];
+				}	
+				//sort the array, remove the smallest id, and convert to a comma separated string
+				asort($duplicateIDs,SORT_NUMERIC);
+
+				//echo "DuplicateIDs: ";
+				//print_r($duplicateIDs);
+				//echo PHP_EOL;
+
+				$id = array_shift($duplicateIDs);
+				$duplicateIDs = implode(',',$duplicateIDs);
+
+				//delete all records, not the first
+				//echo "Deleting record IDs: $duplicateIDs" . PHP_EOL;
+				$sql0 = "DELETE FROM sm_songsplayed WHERE id IN($duplicateIDs)";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+				}
+				
+				//update the first record
+				$song_id = 0;
+				if($song_id === 0 && $songInfo['id'] !== 0){
+					//$songInfo = lookupSongID($row['song_dir']);
+					$song_id = $songInfo['id'];
+				}
+				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+				}
+			
 			}elseif(mysqli_num_rows($retval) == 0){
 				//record does not exist - insert a new row
-				$songInfo = lookupSongID($lastplayed['SongDir']);
+				//echo "Debug: Insert new record. Query: $sql0" . PHP_EOL;
+				//echo "Dump of results: ";
+				//print_r($retval);
+				//echo PHP_EOL;
+				//$songInfo = lookupSongID($lastplayed['SongDir']);
 				$song_id = $songInfo['id'];
 				$sql0 = "INSERT INTO sm_songsplayed (song_id,song_dir,stepstype,difficulty,username,numplayed,lastplayed,datetime) VALUES (\"{$song_id}\",\"{$lastplayed['SongDir']}\",\"{$lastplayed['StepsType']}\",\"{$lastplayed['Difficulty']}\",\"{$lastplayed['DisplayName']}\",\"{$lastplayed['NumTimesPlayed']}\",\"{$lastplayed['LastPlayed']}\",NOW())";
 				if (!mysqli_query($conn, $sql0)){

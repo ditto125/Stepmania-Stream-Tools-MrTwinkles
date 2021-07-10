@@ -133,7 +133,7 @@ CREATE TABLE `sm_requests` (
   `twitch_tier` varchar(255) DEFAULT NULL,
   `broadcaster` tinytext DEFAULT NULL,
   `state` enum('requested','canceled','completed','skipped') DEFAULT 'requested',
-  `request_type` enum('normal','random','top','portal','gitgud','theusual','itg','ddr','ben','bgs','gimmick','hkc') DEFAULT NULL,
+  `request_type` enum('normal','random','top','portal','gitgud','theusual','itg','ddr','ben','bgs','gimmick','hkc','weeb','miku') DEFAULT NULL,
   `stepstype` tinytext DEFAULT NULL,
   `difficulty` tinytext DEFAULT NULL,
   `timestamp` datetime DEFAULT NULL ON UPDATE current_timestamp()

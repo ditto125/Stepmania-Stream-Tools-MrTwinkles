@@ -8,10 +8,32 @@ if (php_sapi_name() == "cli") {
 	$security_key = $GET['security_key'];
 }
 
-include ('config.php');
+require ('config.php');
 
 $banners_copied = $notFoundBanners = $cPacks = 0;
 $fileSizeMax = 5242880; //5MB
+
+function check_environment(){
+	//check for a php.ini file
+	$iniPath = php_ini_loaded_file();
+
+	if(!$iniPath){
+		//no config found
+		wh_log("ERROR: A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests.");
+		die("A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests." . PHP_EOL);
+	}else{
+		//config found. check for enabled extensions
+		$expectedExts = array('curl','json','mbstring','SimpleXML');
+		$loadedPhpExt = get_loaded_extensions();
+
+		foreach ($expectedExts as $ext){
+			if(!in_array($ext,$loadedPhpExt)){
+				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
+				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
+			}
+		}
+	}
+}
 
 function wh_log($log_msg){
     $log_filename = __DIR__."/log";
@@ -21,7 +43,7 @@ function wh_log($log_msg){
         mkdir($log_filename, 0777, true);
     }
     $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
-	$log_msg = str_replace(array("\r", "\n"), '', $log_msg); //remove line endings
+	$log_msg = rtrim($log_msg); //remove line endings
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
 }
@@ -172,6 +194,9 @@ function curl_upload($file,$pack_name){
 
 	return $error;
 }
+
+//check php environment
+check_environment();
 
 // find all the pack/group folders
 $pack_dir = findFiles($songsDir);

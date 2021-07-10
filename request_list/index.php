@@ -4,4 +4,5 @@
 
 header("Location: songlist.php");
 
+exit();
 ?>
