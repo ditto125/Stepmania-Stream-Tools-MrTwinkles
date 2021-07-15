@@ -8,7 +8,12 @@ if (php_sapi_name() == "cli") {
 	$security_key = $GET['security_key'];
 }
 
-require ('config.php');
+if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
+	require ('config.php');
+}else{
+	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
+	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
+}
 
 $banners_copied = $notFoundBanners = $cPacks = 0;
 $fileSizeMax = 5242880; //5MB
@@ -186,13 +191,19 @@ function curl_upload($file,$pack_name){
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
-	$error = curl_strerror(curl_errno($ch));
-	//print_r(curl_getinfo($ch));
+	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);wh_log("Curl error: ".curl_error($ch));}
+	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
+		echo $result; //echo from the server-side script
+		wh_log($result);
+		$return = 0;
+	}else{
+		echo "There was an error communicating with $target_url.".PHP_EOL;
+		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
+		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$return = 1;
+	}
 	curl_close ($ch);
-	echo $result; //echo from the server-side script
-	wh_log($result);
-
-	return $error;
+	return $return;
 }
 
 //check php environment
@@ -261,12 +272,7 @@ foreach ($img_arr as $img){
 	//	echo "Banner for ". $img['pack_name'] . " already exists. Skipping...".PHP_EOL;
 	//}else{
 		//upload banner images
-		$cError = curl_upload($img['img_path'],$img['pack_name']);
-		//output any errors from the curl upload
-		if ($cError != "No error"){
-			echo "CURL Error: ".$cError."\n";
-			wh_log("CURL Error: ".$cError);
-		}else{
+		if(curl_upload($img['img_path'],$img['pack_name']) === 0){
 			$banners_copied++;
 		}
 	//}

@@ -20,7 +20,7 @@ if($domain == 'smrequests.com' || $domain == 'smrequests.dev'){
 	
 	  gtag('config', 'G-R45DT9VTL6');
 	</script>";
-	$hostingFooter = "Hosting provided by <a href=\"https://$domain\" target=\"_blank\">SMrequests</a>.";
+	$hostingFooter = "Hosting provided by <a href=\"https://$domain\" target=\"_blank\">SMRequests</a>.";
 }else{
 	$pageTitle = "SM5 Songlist";
 	$googleTag = "";
@@ -712,7 +712,7 @@ mysqli_close($conn);
 </div>
 
 <div class="w3-padding-small w3-container w3-theme w3-center">
-SMrequests is a song request and hosted songlist tool for live streaming StepMania 5. Check out the current project on <a href="https://github.com/MrTwinkles47/Stepmania-Stream-Tools-MrTwinkles" target="_blank">Github</a>. Thanks to <a href="https://twitch.tv/ddrdave" target="_blank">ddrDave</a> for the original project and concept.
+SMRequests is a song request and hosted songlist tool for live streaming StepMania 5. Check out the current project on <a href="https://github.com/MrTwinkles47/Stepmania-Stream-Tools-MrTwinkles" target="_blank">Github</a>. Thanks to <a href="https://twitch.tv/ddrdave" target="_blank">ddrDave</a> for the original project and concept.
 <?php echo $hostingFooter.PHP_EOL; ?>
 </div>
 

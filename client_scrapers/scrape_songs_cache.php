@@ -24,7 +24,12 @@ if (php_sapi_name() == "cli") {
 	$security_key = $GET['security_key'];
 }
 
-require ('config.php');
+if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
+	require ('config.php');
+}else{
+	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
+	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
+}
 
 // Code
 
@@ -400,10 +405,16 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
 	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);wh_log("Curl error: ".curl_error($ch));}
-	echo $result; //echo from the server-side script
-	wh_log($result);
-	echo (round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs." . PHP_EOL);
-	wh_log(round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs");
+	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
+		echo $result; //echo from the server-side script
+		wh_log($result);
+		echo (curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs." . PHP_EOL);
+		wh_log(curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs");
+	}else{
+		echo "There was an error communicating with $target_url.".PHP_EOL;
+		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
+		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	}
 	curl_close ($ch);
 	//print_r($result);
 	return $result;
