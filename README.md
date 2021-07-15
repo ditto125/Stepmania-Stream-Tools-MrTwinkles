@@ -80,7 +80,7 @@ You can use your existing chat bot or roll your own custom bot. Whichever bot yo
   * Twitch user -- required for request commands
   * Twitch user id -- lookup by user id is also available
   * Broadcaster -- required for broadcast commands and multiple stream accounts
-  * Game/Category -- Useful if your bot goes not have game specific commands (SE)
+  * Game/Category -- Useful if your bot does not have game specific commands (SE)
   * Twitch tier -- Useful for limiting requests to certain user levels (subscriber, moderator, etc.)
 # Usage
 ## Operation Mode
