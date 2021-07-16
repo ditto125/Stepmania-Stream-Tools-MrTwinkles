@@ -1,6 +1,6 @@
 <?php
 
-include("config.php");
+include('config.php');
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");
@@ -57,7 +57,7 @@ function toggle_requests($broadcaster,$message){
                     $message = "";
                     $response = "Requests are disabled.";
                 }else{
-                    $response = "Requests are disabled: ".$message;
+                    $response = "Requests are disabled: ". stripslashes($message);
                 }
             }else{
                 $value = "ON";

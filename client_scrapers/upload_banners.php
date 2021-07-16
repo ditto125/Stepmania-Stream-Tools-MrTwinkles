@@ -34,7 +34,7 @@ function check_environment(){
 		foreach ($expectedExts as $ext){
 			if(!in_array($ext,$loadedPhpExt)){
 				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
-				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
+				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"" . PHP_EOL);
 			}
 		}
 	}
@@ -208,6 +208,8 @@ function curl_upload($file,$pack_name){
 
 //check php environment
 check_environment();
+
+echo "Finding and uploading pack banner images..." . PHP_EOL;
 
 // find all the pack/group folders
 $pack_dir = findFiles($songsDir);

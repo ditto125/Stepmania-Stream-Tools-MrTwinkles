@@ -394,6 +394,7 @@ function wh_log($log_msg){
 function check_version($versionClient){
 	//check the verion of the incoming scripts to the server version
 	$versionFilename = __DIR__."/VERSION";
+    $githubUrl = "https://github.com/MrTwinkles47/Stepmania-Stream-Tools-MrTwinkles/releases/latest";
 
 	if(file_exists($versionFilename)){
 		$versionServer = file_get_contents($versionFilename);
@@ -402,16 +403,16 @@ function check_version($versionClient){
 
 		if($versionServer > $versionClient){
 			//wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
-			die("WARNING! Your client scripts are out of date! Update your scripts to the latest version! Exiting..." . PHP_EOL);
+			echo("WARNING! Your client scripts are out of date! Download the latest release at " . PHP_EOL);
+            echo("$githubUrl   Exiting... " . PHP_EOL);
 		}
 	}else{
 		$versionServer = 0;
-		die();
+		die("Version check error!");
 		//wh_log("Server version not found or unexpected value. Check VERSION file in server root directory.");
 	}
 	return FALSE;
 }
 
 mysqli_close($conn);
-exit();
 ?>

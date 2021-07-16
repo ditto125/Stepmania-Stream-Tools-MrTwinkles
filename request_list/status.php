@@ -12,8 +12,8 @@
 
 //--------Configuration--------//
 
-include ("config.php");
-include ("misc_functions.php");
+include ('config.php');
+include ('misc_functions.php');
 
 //--------Accept the POSTed json string, validate, and check security--------//
 	

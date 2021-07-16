@@ -55,7 +55,7 @@
    <body onload = "JavaScript:AutoRefresh(5000);">
 <?php
 
-include("config.php");
+include('config.php');
 
 if(!isset($_GET["data"])){die("No data set");}
 

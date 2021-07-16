@@ -92,7 +92,7 @@ function check_environment(){
 		foreach ($expectedExts as $ext){
 			if(!in_array($ext,$loadedPhpExt)){
 				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
-				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
+				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"" . PHP_EOL);
 			}
 		}
 	}

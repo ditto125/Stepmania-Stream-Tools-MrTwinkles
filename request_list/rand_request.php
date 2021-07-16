@@ -1,7 +1,7 @@
 <?php
    
-include("config.php");
-include("misc_functions.php");
+include('config.php');
+include('misc_functions.php');
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");

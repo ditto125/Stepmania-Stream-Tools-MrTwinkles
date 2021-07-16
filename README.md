@@ -118,7 +118,7 @@ Once all setup is complete it's time to populate the database tables and upload 
 ---
 ---
 
-# Stepmania-Stream-Tools (From ddrDave's original fork. Sone information beblow might be out-of-date.)
+# Stepmania-Stream-Tools (From ddrDave's original fork. Sone information below might be out-of-date.)
 Tools and utilities for interacting with Stepmania 5 to provide added features for live streaming.
 
 ## New Stuff
