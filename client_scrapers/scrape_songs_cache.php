@@ -252,6 +252,9 @@ function isIgnoredPack($songFilename){
 		$pack = substr($song_dir, 0, strripos($song_dir, "/"));
 		$pack = substr($pack, strripos($pack, "/")+1);
 		//if the pack is on ignore list, skip it
+		if(!is_array($packsIgnore)){
+			$packsIgnore = array($packsIgnore);
+		}
 		if (in_array($pack,$packsIgnore)){
 			$return = TRUE;
 		}elseif(!empty($packsIgnoreRegex)){
@@ -404,7 +407,10 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
-	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);wh_log("Curl error: ".curl_error($ch));}
+	if(curl_exec($ch) === FALSE){
+		echo 'Curl error: '.curl_error($ch) . PHP_EOL;
+		wh_log("Curl error: ".curl_error($ch));
+	}
 	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
 		echo $result; //echo from the server-side script
 		wh_log($result);
@@ -413,7 +419,7 @@ function curlPost($postSource, $array){
 	}else{
 		echo "There was an error communicating with $target_url.".PHP_EOL;
 		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
-		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 	}
 	curl_close ($ch);
 	//print_r($result);

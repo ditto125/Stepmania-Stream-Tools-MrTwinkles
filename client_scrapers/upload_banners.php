@@ -117,6 +117,9 @@ function isIgnoredPack($pack){
 	global $packsIgnoreRegex;
 
 	$return = FALSE;
+	if(!is_array($packsIgnore)){
+		$packsIgnore = array($packsIgnore);
+	}
 	if (in_array($pack,$packsIgnore)){
 		$return = TRUE;
 	}elseif(!empty($packsIgnoreRegex)){
@@ -128,9 +131,6 @@ function isIgnoredPack($pack){
 }
 
 function get_banner($img_path){
-	//$imgNames = array_map(function($e){
-	//	return pathinfo($e, PATHINFO_FILENAME);
-	//},$img_path);
 	
 	foreach($img_path as $img){
 		if(stripos(pathinfo($img,PATHINFO_FILENAME),'banner') !== FALSE){
@@ -150,7 +150,6 @@ function get_banner($img_path){
 			$return = $img;
 		}
 	}
-	//echo $return.PHP_EOL;
 	return $return;
 }
 
@@ -191,15 +190,20 @@ function curl_upload($file,$pack_name){
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
-	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);wh_log("Curl error: ".curl_error($ch));}
+	if(curl_exec($ch) === FALSE){
+		echo 'Curl error: '. curl_error($ch) . PHP_EOL;
+		wh_log("Curl error: ".curl_error($ch));
+	}
 	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
+		//good response from the server
 		echo $result; //echo from the server-side script
 		wh_log($result);
 		$return = 0;
 	}else{
-		echo "There was an error communicating with $target_url.".PHP_EOL;
+		//some kind of error
+		echo "There was an error communicating with $target_url." . PHP_EOL;
 		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
-		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 		$return = 1;
 	}
 	curl_close ($ch);

@@ -233,7 +233,7 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 	}
 
 	//die if too many errors
-	if(!$xml){wh_log("Too many errors with Stats.xml file."); die ("Too many errors with Stats.xml file.\n");}
+	if(!$xml){wh_log("Too many errors with Stats.xml file."); die ("Too many errors with Stats.xml file." . PHP_EOL);}
 
 	// Example xml structure of Stats.xml file:
 	// $xml->SongScores->Song[11]['Dir'];
@@ -320,7 +320,10 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	$result = curl_exec ($ch);
 	//$error = curl_strerror(curl_errno($ch));
-	if(curl_exec($ch) === FALSE){wh_log("Curl error: ".curl_error($ch)); echo 'Curl error: '.curl_error($ch);}
+	if(curl_exec($ch) === FALSE){
+		wh_log("Curl error: ".curl_error($ch));
+		echo 'Curl error: '.curl_error($ch) . PHP_EOL;
+	}
 	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
 		echo $result; //echo from the server-side script
 		wh_log($result);
@@ -328,7 +331,7 @@ function curlPost($postSource, $array){
 	}else{
 		echo "There was an error communicating with $target_url.".PHP_EOL;
 		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
-		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 	}
 	curl_close ($ch);
 	unset($ch,$result,$post,$jsonArray);
@@ -341,7 +344,7 @@ check_environment();
 $file_arr = find_statsxml ($profileDir,$profileIDs);
 
 if (!$autoRun){
-	echo "\\\\\\\\\\\\\\\\\\AUTO MODE ENABLED////////\n";
+	echo "\\\\\\\\\\\\\\\\\\AUTO MODE ENABLED////////" . PHP_EOL;
 	wh_log("AUTO MODE ENABLED");
 }
 
@@ -352,8 +355,9 @@ for (;;){
 
 		$file['mtime'] = filemtime($file['file']);
 		if ($file['ftime'] <> $file['mtime']) {
+			echo PHP_EOL;
 			$startMicro = microtime(true);
-			echo "Starting scrape of profile ".$file['id']."...\n";
+			echo "Starting scrape of profile ".$file['id']."..." . PHP_EOL;
 			wh_log("Starting scrape of profile ".$file['id']);
 			//parse stats.xml file to an array
 			$statsMicro = microtime(true);
@@ -371,7 +375,7 @@ for (;;){
 			wh_log("Uploading " . count($stats_arr['HighScores']) . " highscores records.");
 			curlPost("highscores", $stats_arr['HighScores']);
 			wh_log ("POST and processing of HighScores of " . $file['id'] . " took: " . round(microtime(true) - $hsMicro,3) . " secs.");
-			echo "Done \n";
+			echo "Done " . PHP_EOL;
 			wh_log ("Done. Scrape of " . $file['id'] . " took: " . round(microtime(true) - $startMicro,3) . " secs.");
 			unset($stats_arr);
 		}
@@ -385,4 +389,5 @@ for (;;){
 	clearstatcache();
 	sleep($frequency);
 }
+exit();
 ?>
