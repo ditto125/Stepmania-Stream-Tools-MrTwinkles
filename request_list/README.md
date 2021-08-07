@@ -36,6 +36,8 @@
     * '!banuser @user' : Ban a user’s ability to request songs
     * '!bansong "song name"' : Ban a song by song name
     * '!bansongid "songID"' : Ban a song by song id
+    * '!banrandom "song name"' : Ban a song from random commands by song name
+    * '!banrandomid "songID"' : Ban a song from random commands by song id
     * '!requesttoggle [custom message]' : Enable/Disable taking requests. A custom message can be appended when disabling requests
     * '!stepstype [singles/doubles/off]' : Set a stepstype limit (singles/doubles) for requests
     * '!meter [#/off]' : Set a max difficulty meter for requests
