@@ -106,7 +106,7 @@ if($_GET["random"] == "random"){
 		FROM sm_songs 
 		JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_songs.id 
 		JOIN sm_scores ON sm_scores.song_id=sm_songs.id 
-		WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned<>1 AND installed=1 AND sm_songsplayed.numplayed>1 AND percentdp>0 
+		WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned NOT IN(1,2) AND installed=1 AND sm_songsplayed.numplayed>1 AND percentdp>0 
 		GROUP BY sm_songs.id 
 		ORDER BY RAND()
 		LIMIT 100";
@@ -133,7 +133,7 @@ if($_GET["random"] == "random"){
             	GROUP BY sm_requests.song_id
              ) AS t2
         ON t2.id=sm_songs.id 
-		WHERE banned<>1 AND installed=1 AND numplayed>1 
+		WHERE banned NOT IN(1,2) AND installed=1 AND numplayed>1 
 		GROUP BY sm_songs.id 
 		ORDER BY RAND()
 		LIMIT 100";
@@ -166,7 +166,7 @@ if($_GET["random"] == "portal"){
 
 	$request_type = "portal";
 
-        $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned<>1 ORDER BY RAND() LIMIT 100";
+        $sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned NOT IN(1,2) ORDER BY RAND() LIMIT 100";
         $retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
@@ -202,7 +202,7 @@ if($_GET["random"] == "top"){
 					ORDER BY numplayed DESC
 					LIMIT 100) AS t2
 				ON t2.song_id=sm_songs.id 
-				WHERE banned<>1 AND installed=1 AND stepstype LIKE '{$stepstype}'  
+				WHERE banned NOT IN(1,2) AND installed=1 AND stepstype LIKE '{$stepstype}'  
 				ORDER BY RAND()";
         $retval = mysqli_query( $conn, $sql );
 
@@ -229,7 +229,7 @@ if($_GET["random"] == "top"){
 					ORDER BY numplayed DESC
 					LIMIT 100) AS t2
 				ON t2.song_id=sm_songs.id 
-				WHERE banned<>1 AND installed=1 AND numplayed>1
+				WHERE banned NOT IN(1,2) AND installed=1 AND numplayed>1
 				ORDER BY RAND()";
 		$retval = mysqli_query( $conn, $sql );
 		
@@ -294,7 +294,7 @@ if($_GET["random"] == "gitgud"){
 				ON t2.song_id = sm_songs.id 
 				JOIN sm_notedata
 				ON sm_songs.id = sm_notedata.song_id AND t2.difficulty = sm_notedata.difficulty AND t2.stepstype = sm_notedata.stepstype 
-				WHERE banned <> 1 AND installed = 1 
+				WHERE banned NOT IN(1,2) AND installed = 1 
 				ORDER BY RAND()";
         $retval = mysqli_query( $conn, $sql );
 
@@ -342,7 +342,7 @@ if($_GET["random"] == "roll"){
 		FROM sm_songs 
 		JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_songs.id 
 		JOIN sm_scores ON sm_scores.song_id=sm_songs.id 
-		WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned<>1 AND installed=1 AND  sm_songsplayed.numplayed>1 AND percentdp>0 
+		WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned NOT IN(1,2) AND installed=1 AND  sm_songsplayed.numplayed>1 AND percentdp>0 
 		GROUP BY sm_songs.id 
 		ORDER BY RAND()
 		LIMIT 100";
@@ -369,7 +369,7 @@ if($_GET["random"] == "roll"){
             	GROUP BY sm_requests.song_id
              ) AS t2
         ON t2.id=sm_songs.id 
-		WHERE banned<>1 AND installed=1 AND numplayed>1 
+		WHERE banned NOT IN(1,2) AND installed=1 AND numplayed>1 
 		GROUP BY sm_songs.id 
 		ORDER BY RAND()
 		LIMIT 100";
@@ -411,7 +411,7 @@ if($_GET["random"] == "theusual"){
 				ORDER BY idcount DESC  
 				LIMIT 20) AS t2 
 			ON t2.song_id=sm_songs.id  
-			WHERE banned<>1 AND installed=1 AND idcount>1 
+			WHERE banned NOT IN(1,2) AND installed=1 AND idcount>1 
 			ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
 
@@ -443,7 +443,7 @@ if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 		
         $sql = "SELECT sm_songs.id AS id,title,subtitle,pack FROM sm_songs 
 		JOIN sm_notedata ON sm_notedata.song_id = sm_songs.id 
-		WHERE installed=1 AND banned<>1 AND (pack REGEXP '{$random}' OR sm_songs.credit REGEXP '{$random}' OR sm_notedata.credit REGEXP '{$random}') 
+		WHERE installed=1 AND banned NOT IN(1,2) AND (pack REGEXP '{$random}' OR sm_songs.credit REGEXP '{$random}' OR sm_notedata.credit REGEXP '{$random}') 
 		GROUP BY sm_songs.id 
 		ORDER BY RAND()
 		LIMIT 100";

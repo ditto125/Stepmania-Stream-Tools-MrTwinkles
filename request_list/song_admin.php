@@ -7,14 +7,16 @@ if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || em
     die("Fuck off");
 }
 
-if(!isset($_GET["bansong"]) && !isset($_GET["bansongid"]) && !isset($_GET["user"])){
+if((!isset($_GET["bansong"]) || !isset($_GET["bansongid"]) || !isset($_GET["banrandom"]) || !isset($_GET["banrandomid"])) && !isset($_GET["user"])){
 	die();
 }
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 
-function toggle_ban_song($song){
+function toggle_ban_song($id,$type){
+	//1 = ban from all
+	//2 = ban from random
 
     global $conn;
 
@@ -26,12 +28,15 @@ function toggle_ban_song($song){
             $title = $row0["title"];
             $pack = $row0["pack"];
             $banned = $row0["banned"];
-		if($banned == "1"){
+		if($banned != "0"){
 			$value = "0";
 			$response = "Unbanned $title from $pack";
-		}else{
+		}elseif($type = "song"){
 			$value = "1";
 			$response = "Banned $title from $pack";
+		}elseif($type = "random"){
+			$value = "2";
+			$response = "Banned (random) $title from $pack";
 		}
 
 	        $sql = "UPDATE sm_songs SET banned={$value} WHERE id={$song} LIMIT 1";
@@ -52,20 +57,21 @@ function toggle_ban_song($song){
 
 if(isset($_GET["bansongid"])){
 	$song = $_GET["bansongid"];
+	$type = "song";
         //lookup by ID
 
-        $sql = "SELECT * FROM sm_songs WHERE id = '{$song}' ORDER BY title ASC";
-        $retval = mysqli_query( $conn, $sql );
+	$sql = "SELECT * FROM sm_songs WHERE id = '{$song}' ORDER BY title ASC";
+	$retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) == 1) {
-    		while($row = mysqli_fetch_assoc($retval)) {
-        		toggle_ban_song($song);
-        		die();
-    		}
-	} else {
-        	echo "Didn't find any songs matching that id!";
+    	while($row = mysqli_fetch_assoc($retval)) {
+        	toggle_ban_song($song,$type);
         	die();
-}
+    	}
+	} else {
+        echo "Didn't find any songs matching that id!";
+        die();
+	}
 
 die();
 }
@@ -73,39 +79,102 @@ die();
 if(isset($_GET["bansong"])){
 	$song = $_GET["bansong"];
 	$song = clean($song);
+	$type = "song";
 
 	//Determine if there's a song with this exact title. If someone requested "Tsugaru", this would match "TSUGARU" but would not match "TSUGARU (Apple Mix)"
-        $sql = "SELECT * FROM sm_songs WHERE strippedtitle='{$song}' ORDER BY title ASC";
-        $retval = mysqli_query( $conn, $sql );
+	$sql = "SELECT * FROM sm_songs WHERE strippedtitle='{$song}' ORDER BY title ASC";
+	$retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) == 1) {
 		while($row = mysqli_fetch_assoc($retval)) {
-        		toggle_ban_song($row["id"]);
-    		}
+        	toggle_ban_song($row["id"],$type);
+    	}
 	die();
 	//end exact match
 	}
 
-        $sql = "SELECT * FROM sm_songs WHERE strippedtitle LIKE '%{$song}%' ORDER BY title ASC, pack ASC";
-        $retval = mysqli_query( $conn, $sql );
+	$sql = "SELECT * FROM sm_songs WHERE strippedtitle LIKE '%{$song}%' ORDER BY title ASC, pack ASC";
+	$retval = mysqli_query( $conn, $sql );
 
-if (mysqli_num_rows($retval) == 1) {
-    while($row = mysqli_fetch_assoc($retval)) {
-	toggle_ban_song($row["id"]);
-    }
+	if (mysqli_num_rows($retval) == 1) {
+		while($row = mysqli_fetch_assoc($retval)) {
+			toggle_ban_song($row["id"],$type);
+		}
+	die();
+	//end one match
+	}
+	//no one match
+	if (mysqli_num_rows($retval) > 0) {
+		echo "$user => No exact match (!bansongid [id]):";
+		$i=1;
+		while($row = mysqli_fetch_assoc($retval)) {
+			if($i>4){die();}
+			echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
+			$i++;
+		}
+	}
+
 die();
-//end one match
 }
-//no one match
-if (mysqli_num_rows($retval) > 0) {
-	echo "$user => No exact match (!bansongid [id]):";
-	$i=1;
-    while($row = mysqli_fetch_assoc($retval)) {
-        if($i>4){die();}
-		echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
-		$i++;
-    }
+
+if(isset($_GET["banranomid"])){
+	$song = $_GET["banrandomid"];
+	$type = "random";
+        //lookup by ID
+
+	$sql = "SELECT * FROM sm_songs WHERE id = '{$song}' ORDER BY title ASC";
+	$retval = mysqli_query( $conn, $sql );
+
+	if (mysqli_num_rows($retval) == 1) {
+    	while($row = mysqli_fetch_assoc($retval)) {
+        	toggle_ban_song($song,$type);
+        	die();
+    	}
+	} else {
+        echo "Didn't find any songs matching that id!";
+        die();
+	}
+
+die();
 }
+
+if(isset($_GET["banrandom"])){
+	$song = $_GET["banrandom"];
+	$song = clean($song);
+	$type = "random";
+
+	//Determine if there's a song with this exact title. If someone requested "Tsugaru", this would match "TSUGARU" but would not match "TSUGARU (Apple Mix)"
+	$sql = "SELECT * FROM sm_songs WHERE strippedtitle='{$song}' ORDER BY title ASC";
+	$retval = mysqli_query( $conn, $sql );
+
+	if (mysqli_num_rows($retval) == 1) {
+		while($row = mysqli_fetch_assoc($retval)) {
+        	toggle_ban_song($row["id"],$type);
+    	}
+	die();
+	//end exact match
+	}
+
+	$sql = "SELECT * FROM sm_songs WHERE strippedtitle LIKE '%{$song}%' ORDER BY title ASC, pack ASC";
+	$retval = mysqli_query( $conn, $sql );
+
+	if (mysqli_num_rows($retval) == 1) {
+		while($row = mysqli_fetch_assoc($retval)) {
+			toggle_ban_song($row["id"],$type);
+		}
+	die();
+	//end one match
+	}
+	//no one match
+	if (mysqli_num_rows($retval) > 0) {
+		echo "$user => No exact match (!banrandomid [id]):";
+		$i=1;
+		while($row = mysqli_fetch_assoc($retval)) {
+			if($i>4){die();}
+			echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
+			$i++;
+		}
+	}
 
 die();
 }
