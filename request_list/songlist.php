@@ -1,6 +1,36 @@
+<?php
+//get domain and subdomain
+$fulldomain = $_SERVER['SERVER_NAME'];
+$domain = substr($fulldomain,strpos($fulldomain,'.')+1,strrpos($fulldomain,'.'));
+if($domain == 'smrequests.com' || $domain == 'smrequests.dev'){
+	$subdomain = substr($fulldomain,0,strpos($fulldomain,'.'));
+	if( substr(strrev($subdomain),0,1)=="s"){
+		$subdomain = ucfirst($subdomain.'\'');
+	}else{
+		$subdomain = ucfirst($subdomain.'\'s');
+	}
+	//setup dynamic strings for smrequests hosts
+	$pageTitle = $subdomain." Songlist";
+	$googleTag = "<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-R45DT9VTL6\"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+	
+	  gtag('config', 'G-R45DT9VTL6');
+	</script>";
+	$hostingFooter = "Hosting provided by <a href=\"https://$domain\" target=\"_blank\">SMRequests</a>.";
+}else{
+	$pageTitle = "SM5 Songlist";
+	$googleTag = "";
+	$hostingFooter = "";
+}
+?>
+
 <html>
 <head>
- <title>SM5 Songlist</title>
+<title><?php echo $pageTitle; ?></title>
 <link rel="stylesheet" 
 	href="w3.css">
 <link rel="stylesheet" 
@@ -27,12 +57,13 @@ $(document).ready(function(){
   });
 });
 </script>
+<?php echo $googleTag.PHP_EOL; ?>
 </head>
 
 <body>
 <div class="w3-container w3-theme-dark">
 
-<center><h1><a href="songlist.php"><img src="images/ddr_arrow.png" align="float:left" width="35px" style="margin:5px"></a><strong>SM5 Songlist</strong></h1>
+<center><h1><a href="songlist.php"><img src="images/ddr_arrow.png" align="float:left" width="35px" style="margin:5px"></a><strong><?php echo $pageTitle; ?></strong></h1>
 </center>
 
 <?php
@@ -43,7 +74,7 @@ $(document).ready(function(){
 
 //
 
-include("config.php");
+require('config.php');
 
 //create connection
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
@@ -681,7 +712,8 @@ mysqli_close($conn);
 </div>
 
 <div class="w3-padding-small w3-container w3-theme w3-center">
-StepMania song scraping code used to populate this table <strike>stolen</strike> borrowed from <a href="https://github.com/DaveLinger/Stepmania-Stream-Tools" target="_blank">Dave Linger</a> aka <a href="https://twitch.tv/ddrdave" target="_blank">(ddrDave)</a>.
+SMRequests is a song request and hosted songlist tool for live streaming StepMania 5. Check out the current project on <a href="https://github.com/MrTwinkles47/Stepmania-Stream-Tools-MrTwinkles" target="_blank">Github</a>. Thanks to <a href="https://twitch.tv/ddrdave" target="_blank">ddrDave</a> for the original project and concept.
+<?php echo $hostingFooter.PHP_EOL; ?>
 </div>
 
 </html>

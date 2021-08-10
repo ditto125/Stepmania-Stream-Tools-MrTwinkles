@@ -1,19 +1,10 @@
 <?php
    
-include("config.php");
-include("misc_functions.php");
+include('config.php');
+include('misc_functions.php');
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");
-}
-//limit to how many random songs can be requested at once
-$max_num = 3;
-
-function clean($string) {
-   global $conn;
-   $string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-   return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
-   $string = mysqli_real_escape_string($conn, $string); // Removes sql injection atempts.
 }
 
 if(!isset($_GET["user"])){
@@ -126,7 +117,8 @@ if($_GET["random"] == "random"){
 		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 				request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-				echo ("{$user} randomly requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+				$displayArtist = get_duplicate_song_artist ($row["id"]);
+				echo ("{$user} randomly requested " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . " ");
 				$i++;
 			}
 		}
@@ -153,7 +145,8 @@ if($_GET["random"] == "random"){
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-					echo ("{$user} randomly requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					echo ("{$user} randomly requested " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . " ");
 					$i++;
 				}
 			}
@@ -181,7 +174,8 @@ if($_GET["random"] == "portal"){
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-					echo ("$user opened a portal to " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					echo ("$user opened a portal to " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . " ");
 					$i++;
 				}
 			}
@@ -218,7 +212,8 @@ if($_GET["random"] == "top"){
 			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 				request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $row['stepstype'], $difficulty);
 				$displayModeDiff = display_ModeDiff(array('stepstype' => $row['stepstype'],'difficulty' => $difficulty));
-				echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . $displayModeDiff . " ");
+				$displayArtist = get_duplicate_song_artist ($row["id"]);
+				echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . $displayModeDiff . " ");
 				$i++;
 			}
 		}
@@ -244,7 +239,8 @@ if($_GET["random"] == "top"){
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-					echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					echo ("$user picked a top request " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . " ");
 					$i++;
 				}
 			}
@@ -278,10 +274,10 @@ if($_GET["random"] == "gitgud"){
 			$score_tier = "itg_tier";
 	}
 
-        $sql = "SELECT id,title,subtitle,artist,pack,t2.percentdp,score,stepstype,difficulty 
+        $sql = "SELECT sm_songs.id,title,subtitle,artist,pack,t2.percentdp,score,t2.stepstype,t2.difficulty,date,scores 
 				FROM sm_songs 
 				JOIN 
-				(SELECT song_id,MAX(percentdp) AS percentdp,MAX(score) AS score,stepstype,difficulty 
+				(SELECT song_id,MAX(percentdp) AS percentdp,MAX(score) AS score,COUNT(song_id) as scores,stepstype,difficulty,DATE_FORMAT(MAX(datetime),'%Y/%c/%e') AS date  
 					FROM sm_scores 
 					WHERE EXISTS 
 						(SELECT song_id,SUM(numplayed) AS numplayed   
@@ -290,11 +286,14 @@ if($_GET["random"] == "gitgud"){
 						GROUP BY song_id 
 						ORDER BY numplayed DESC 
 						LIMIT 100) 
-					AND grade <> 'Failed' AND percentdp > 0 AND percentdp < 1 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
-					GROUP BY song_id,stepstype,difficulty 
+					AND grade <> 'Failed' AND percentdp BETWEEN 0.50 AND 1.0 AND username LIKE '{$profileName}' AND stepstype LIKE '{$stepstype}' 
+					GROUP BY song_id,stepstype,difficulty
+					HAVING scores > 1  
 					ORDER BY percentdp ASC, score ASC 
 					LIMIT 25) AS t2 
 				ON t2.song_id = sm_songs.id 
+				JOIN sm_notedata
+				ON sm_songs.id = sm_notedata.song_id AND t2.difficulty = sm_notedata.difficulty AND t2.stepstype = sm_notedata.stepstype 
 				WHERE banned <> 1 AND installed = 1 
 				ORDER BY RAND()";
         $retval = mysqli_query( $conn, $sql );
@@ -324,7 +323,8 @@ if($_GET["random"] == "gitgud"){
 							$displayScore = number_format($row['percentdp']*100,2)."%";
 					}
 					$displayModeDiff = display_ModeDiff(array('stepstype' => $row['stepstype'],'difficulty' => $row['difficulty']));
-					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . $displayModeDiff . " ");
+					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . $displayModeDiff . " ");
 					$i++;
 				}
 			}
@@ -353,8 +353,9 @@ if($_GET["random"] == "roll"){
 		$i=1;
 		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-			echo " [ ".$row["id"]. " => " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
-			$i++;
+				$displayArtist = get_duplicate_song_artist ($row["id"]);
+				echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"]).$displayArtist." from ".$row["pack"]." ]";
+				$i++;
 			}
 		}
 	} elseif (mysqli_num_rows($retval) == 0) {
@@ -380,8 +381,9 @@ if($_GET["random"] == "roll"){
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
-				echo " [ ".$row["id"]. " => " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ]";
-				$i++;
+					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"]).$displayArtist." from ".$row["pack"]." ]";
+					$i++;
 				}
 			}
 		}else{
@@ -413,12 +415,13 @@ if($_GET["random"] == "theusual"){
 			ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
 
-	if (mysqli_num_rows($retval) >= 10) {
+	if (mysqli_num_rows($retval) >= 5) {
 		$i=1;
 		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 			if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 				request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-				echo ("Of course {$user} would request " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . ". HoW oRiGiNaL! ");
+				$displayArtist = get_duplicate_song_artist ($row["id"]);
+				echo ("Of course {$user} would request " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . ". HoW oRiGiNaL! ");
 				$i++;
 			}
 		}
@@ -451,7 +454,8 @@ if(!empty($_GET["random"]) && $_GET["random"] != "random"){
     		while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
 					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
-					echo ("$user randomly requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"] . " ");
+					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					echo ("$user randomly requested " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . " ");
 					$i++;
 				}
 			}

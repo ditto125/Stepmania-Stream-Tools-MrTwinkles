@@ -44,6 +44,10 @@
 		td {
 			padding: 0.5vw;
 		}
+		.statusOFF { background-color: rgba(0, 0, 0, 0); color: White;} /* This is applied to the message before the status text when Off */
+		.statusON { background-color: rgba(0, 0, 0, 0); color: White;} /* This is applied to the message before the status text when On */
+		.outputOFF { color: Red; } /* This is applied only to the actual status text when Off */
+		.outputON { color: Green; } /* This is applied only to the actual status text when On */
 	  </style>
 
    </head>
@@ -51,7 +55,7 @@
    <body onload = "JavaScript:AutoRefresh(5000);">
 <?php
 
-include("config.php");
+include('config.php');
 
 if(!isset($_GET["data"])){die("No data set");}
 
@@ -80,7 +84,7 @@ function format_pack($pack){
 	return $pack;
 }   
 
-switch($_GET["data"]){
+switch(strtolower($_GET["data"])){
 ////////REQUESTS/////////
 	case "requests":	
 		$timestamp = getLastRequest()['request_time'];
@@ -254,6 +258,24 @@ switch($_GET["data"]){
 		}
 		echo "</body>";
 	break;
+	////////Request Status/////////
+    case "requeststatus":    
+        if(!isset($_GET["broadcaster"])){die("No broadcaster set");}
+
+        $broadcaster = $_GET["broadcaster"];
+        
+        $sql = "SELECT request_toggle from sm_broadcaster where broadcaster = \"{$broadcaster}\"";
+        $retval = mysqli_query( $conn, $sql );
+
+        $row = mysqli_fetch_assoc($retval);
+        $requestStatus = $row["request_toggle"];
+
+		if(isset($_GET["onlystate"])){
+			echo "<span id=\"requestStatus\" class=\"status{$requestStatus}\" style=\"text-align: right;\"><span class=\"output{$requestStatus}\"> $requestStatus </span></span>";
+		}else{
+			echo "<span id=\"requestStatus\" class=\"status{$requestStatus}\" style=\"text-align: right;\">Current Request Status is: <span class=\"output{$requestStatus}\"> $requestStatus </span></span>";
+		}
+    break;
 }
 
 //close everything out

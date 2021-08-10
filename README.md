@@ -1,4 +1,4 @@
-# Stepmania-Stream-Tools-SMrequests Fork
+# Stepmania-Stream-Tools-SMRequests Fork
 This is my fork of the project for the MrTwinkles and Danizom813 Twitch channels. The main differences in this fork are mostly methodology and optimizations of certain existing features. 
 
 A quick summary:
@@ -58,7 +58,7 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 1. If no php.ini exists in the php directory, rename the php.ini-production file to php.ini
     * Remove semicolon in front of `;extension=curl` to enable the cURL extension.
     * Remove semicolon in front of `;extension=mbstring` to enable multi-byte string functions
-2. Configure php scripts (edit config.php) with your StepMania directories, security key, and URL.
+2. Configure php scripts. Rename `config.example.php` to `config.php` and input your StepMania directories, security key, and URL.
 3. Highly Recommended: Delete all contents of your SM5 Cache/Songs directory, start SM5, and have it rebuild new cache files.
 4. Edit "scrape stats.bat" to add your LocalProfile ID number(s) you want to scrape and whether the script should run in “auto” mode.
     * Run this script in "auto" mode to continuously scrape the Stats.xml file as you play/stream.
@@ -72,6 +72,7 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
     * [?] = "scores&judgement=[itg/ddr]" : table of top scores for the session, specify itg *or* ddr scoring
     * [?] = "recent&judgement=[itg/ddr]" : most recently played songs and their scores
     * [?] = "requestors" : list of top 5 requestors for the session
+    * [?] = "requeststatus" : current status of the requests (on/off)
 ## Twitch Chat Bot
 You can use your existing chat bot or roll your own custom bot. Whichever bot you choose must be capable of custom commands with variables and GET urlfetch capability. I recommend using StreamElements.
 * Command variables that are supported across end-points. Refer to your bot’s documentation to determine how to use variables.
@@ -79,11 +80,11 @@ You can use your existing chat bot or roll your own custom bot. Whichever bot yo
   * Twitch user -- required for request commands
   * Twitch user id -- lookup by user id is also available
   * Broadcaster -- required for broadcast commands and multiple stream accounts
-  * Game/Category -- Useful if your bot goes not have game specific commands (SE)
+  * Game/Category -- Useful if your bot does not have game specific commands (SE)
   * Twitch tier -- Useful for limiting requests to certain user levels (subscriber, moderator, etc.)
 # Usage
 ## Operation Mode
-SMrequests can operate in two modes:
+SMRequests can operate in two modes:
   1. Normal Mode -- Real-time access to the SM5 machine/cabinet for automated request completions and continuous Stats.XML scraping.
       * This is the default operation mode. No additional configuration required.
   2. Offline Mode -- No real-time access to the SM5 machine/cabinet. Requests need to be manually completed and Stats.XML scraping isn't possible or cannot be continuous.
@@ -117,7 +118,7 @@ Once all setup is complete it's time to populate the database tables and upload 
 ---
 ---
 
-# Stepmania-Stream-Tools (From ddrDave's original fork. Sone information beblow might be out-of-date.)
+# Stepmania-Stream-Tools (From ddrDave's original fork. Sone information below might be out-of-date.)
 Tools and utilities for interacting with Stepmania 5 to provide added features for live streaming.
 
 ## New Stuff

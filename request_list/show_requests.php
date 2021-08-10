@@ -1,6 +1,6 @@
 <?php
 
-require ("config.php");
+require ('config.php');
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");
@@ -104,6 +104,12 @@ echo '<html>
 			break;
 		case "hkc":
 			$request_type = '<img src="images/hkc.png" class="type">';
+			break;
+        case "weeb":
+            $request_type = '<img src="images/weeb.png" class="type">';
+            break;
+        case "miku":
+            $request_type = '<img src="images/miku.png" class="type">';
 			break;
 		default:
 			$request_type = '<img src="images/d205.png" class="type">';;
