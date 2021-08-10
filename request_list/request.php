@@ -1,17 +1,10 @@
 <?php
 
-include("config.php");
-include("misc_functions.php");
+include('config.php');
+include('misc_functions.php');
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");
-}
-
-function clean($string) {
-	global $conn;
-   $string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-   return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
-   $string = mysqli_real_escape_string($conn, $string); // Removes sql injection atempts.
 }
 
 if(!isset($_GET["song"]) && !isset($_GET["songid"]) && !isset($_GET["cancel"]) && !isset($_GET["skip"]) && !isset($_GET["complete"])){
@@ -208,7 +201,8 @@ if(isset($_GET["songid"]) && !empty($_GET["songid"])){
     		while($row = mysqli_fetch_assoc($retval)) {
         		request_song($song, $user, $tier, $twitchid, $broadcaster, $commandArgs);
 				$displayModeDiff = display_ModeDiff($commandArgs);
-        		echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"].$displayModeDiff;
+				$displayArtist = get_duplicate_song_artist ($row["id"]);
+        		echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). $displayArtist . " from " . $row["pack"].$displayModeDiff;
         		die();
     		}
 	} else {
@@ -260,11 +254,12 @@ if(isset($_GET["song"]) && !empty($_GET["song"])){
 	}
 	//no one match
 	if (mysqli_num_rows($retval) > 0) {
-		echo "$user => Top matches (request with !requestid [song id]):\n";
+		echo "$user => Top matches (request with !requestid [song id]):";
 		$i=1;
     	while($row = mysqli_fetch_assoc($retval)) {
         	if($i>4){die();}
-			echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"])." from ".$row["pack"]." ] ";
+			$displayArtist = get_duplicate_song_artist ($row["id"]);
+			echo " [ ".$row["id"]. " -> " .trim($row["title"]." ".$row["subtitle"]).$displayArtist." from ".$row["pack"]." ] ";
 			$i++;
     	}
 	} elseif (is_numeric($song)) {

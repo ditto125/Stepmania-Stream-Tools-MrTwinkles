@@ -1,6 +1,6 @@
 <?php
 
-require("config.php");
+require('config.php');
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
     die("Fuck off");

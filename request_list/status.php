@@ -12,7 +12,8 @@
 
 //--------Configuration--------//
 
-include ("config.php");
+include ('config.php');
+include ('misc_functions.php');
 
 //--------Accept the POSTed json string, validate, and check security--------//
 	
@@ -44,11 +45,6 @@ if (!isset($jsonDecoded['security_key']) || $jsonDecoded['security_key'] != $sec
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);   
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
-
-function clean($string) {
-	$string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-	return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
- }
 
 function splitSongDir($song_dir){
 	//This function splits the "song_dir" string into title and pack
@@ -93,7 +89,7 @@ function lookupSongID ($song_dir){
 		echo "Multiple possible IDs found for {$song_title} in {$song_pack}: {$song_ids}" . PHP_EOL;
 	}elseif(mysqli_num_rows($id_result) == 0){
 		//no results found - set array from split song_dir and id=0
-		$song_id = "0";
+		$song_id = 0;
 		$song_title = splitSongDir($song_dir)['title'];
 		$song_pack = splitSongDir($song_dir)['pack'];
 		$songInfo = array('id' => $song_id, 'title' => $song_title, 'pack' => $song_pack);
@@ -121,26 +117,21 @@ function scrapeSongStart(){
 function scrapeSongEnd($cFiles){
 	global $conn;
 	// After scraping all songs, update the existing and new songs as "installed"
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=2";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$newSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=2";
+		$newSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=3";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$updatedSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=3";
+		$updatedSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=1";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$totalSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=1";
+		$totalSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 		$totalSongs = $totalSongs + $updatedSongs + $newSongs;
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=1 AND scraper=0";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$addNotInstalledSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=1 AND scraper=0";
+		$addNotInstalledSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
-		$sql_getstats = "SELECT COUNT(id) FROM sm_songs WHERE installed=0 AND scraper=0";
-		$retval = mysqli_query($conn,$sql_getstats);
-		$notInstalledSongs = mysqli_fetch_row($retval)[0];
+		$sql_getstats = "SELECT COUNT(id) AS total FROM sm_songs WHERE installed=0 AND scraper=0";
+		$notInstalledSongs = mysqli_fetch_assoc(mysqli_query($conn,$sql_getstats))['total'];
 
 	//mark songs not found during scraping as "not installed"
 		$sql_getstats = "UPDATE sm_songs SET installed=0 WHERE scraper=0";
@@ -161,20 +152,9 @@ function scrapeSong($songCache_array){
 	//This function processes the song cache arrays and inserts/updates song records into the sm_songs table
 	global $conn;
 	
-	$metadata = array();
-	$notedata_array = array();
-	$song_dir = "";
-	$title = "";
-	$subtitle = "";
-	$artist = "";
-	$pack = "";
-	$display_bpm = "";
-	$music_length = "";
-	$bga = 0;
-	$stepstype = "";
-	$difficulty = "";
-	$stored_hash = "";
-	$file_hash = "";
+	$metadata = $notedata_array = array();
+	$song_dir = $title = $subtitle = $artist = $pack = $display_bpm = $song_credit = $stepstype = $difficulty = $stored_hash = $file_hash = "";
+	$music_length = $bga = 0;
 
 	$metadata = $songCache_array['metadata'];
 	$file_hash = $metadata['file_hash'];
@@ -289,6 +269,7 @@ function scrapeSong($songCache_array){
 			}
 
 		if( strpos($display_bpm,':') > 0){
+			//bpm is a range
 			$display_bpmSplit = array();
 			$display_bpmSplit = preg_split("/:/",$display_bpm);
 			//get the average bpm
@@ -302,7 +283,7 @@ function scrapeSong($songCache_array){
 
 	// Get music length in seconds
 
-		if( isset($metadata['#MUSICLENGTH'])){
+		if( isset($metadata['#MUSICLENGTH']) && !empty($metadata['#MUSICLENGTH'])){
 			//song has a music length listed
 			$music_length = $metadata['#MUSICLENGTH'];
 		}
@@ -327,8 +308,6 @@ function scrapeSong($songCache_array){
 		//song has a credit
 		$song_credit = $metadata['#CREDIT'];
 		$song_credit = addslashes($song_credit);
-	}else{
-		$song_credit = "";
 	}
 		
 	//
@@ -338,8 +317,6 @@ function scrapeSong($songCache_array){
 		$retval = mysqli_query( $conn, $sql );
 		
 		$sql_notedata_values = "";
-		//$installed = "";
-		//$scraper = "";
 		
 		if(mysqli_num_rows($retval) == 0){
 		//This song doesn't yet exist in the db, let's add it!
@@ -432,30 +409,79 @@ function addLastPlayedtoDB ($lastplayed_array){
 		if (mysqli_num_rows($retval) == 0){
 			//existing record is not found - let's either update or insert a record
 			$id = "";
-			$songInfo = array();
+			$songInfo = lookupSongID($lastplayed['SongDir']);
 			//check if the number of times played has increased and update db
-			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND numplayed < \"{$lastplayed['NumTimesPlayed']}\" AND lastplayed <= \"{$lastplayed['LastPlayed']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
+			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
 			if (!$retval = mysqli_query($conn, $sql0)){
 				echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 			}
-			if (mysqli_num_rows($retval) > 0){
+			if(mysqli_num_rows($retval) == 1){
 				//there are updates - update the db record for song_dir
 				//first let's also grab the song_id just in case the entry here is 0
-				while($row = mysqli_fetch_assoc($retval)){
-					$song_id = $row['song_id'];
-					if($song_id === 0){
-						$songInfo = lookupSongID($row['song_dir']);
-						$song_id = $songInfo['id'];
-					}
-					$id = $row['id'];
-					$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
-					if (!mysqli_query($conn, $sql0)){
-						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
-					}
+				//echo "Debug: Update db record. Query: $sql0" . PHP_EOL;
+
+				$row = mysqli_fetch_assoc($retval);
+				//echo "Dump of results:";
+				//print_r($retval);
+				//echo PHP_EOL;
+				$song_id = $row['song_id'];
+				if($song_id === 0 && $songInfo['id'] !== 0){
+					//$songInfo = lookupSongID($row['song_dir']);
+					$song_id = $songInfo['id'];
 				}
+				$id = $row['id'];
+				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+				}
+			}elseif(mysqli_num_rows($retval) > 1){
+				//there are duplicate entries for this song.
+				//This is not an expected result, so let's fix it. (Hopefully, this only has to be fixed once!)
+				//echo "Debug: Duplicate DB records. Query: $sql0" . PHP_EOL;
+				//echo "Dump of results:";
+				//print_r($retval);
+				//echo PHP_EOL;
+
+				//get list of all ids
+				$duplicateIDs = array();
+				while($row = mysqli_fetch_assoc($retval)){
+					$duplicateIDs[] = $row['id'];
+				}	
+				//sort the array, remove the smallest id, and convert to a comma separated string
+				asort($duplicateIDs,SORT_NUMERIC);
+
+				//echo "DuplicateIDs: ";
+				//print_r($duplicateIDs);
+				//echo PHP_EOL;
+
+				$id = array_shift($duplicateIDs);
+				$duplicateIDs = implode(',',$duplicateIDs);
+
+				//delete all records, not the first
+				//echo "Deleting record IDs: $duplicateIDs" . PHP_EOL;
+				$sql0 = "DELETE FROM sm_songsplayed WHERE id IN($duplicateIDs)";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+				}
+				
+				//update the first record
+				$song_id = 0;
+				if($song_id === 0 && $songInfo['id'] !== 0){
+					//$songInfo = lookupSongID($row['song_dir']);
+					$song_id = $songInfo['id'];
+				}
+				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+				}
+			
 			}elseif(mysqli_num_rows($retval) == 0){
 				//record does not exist - insert a new row
-				$songInfo = lookupSongID($lastplayed['SongDir']);
+				//echo "Debug: Insert new record. Query: $sql0" . PHP_EOL;
+				//echo "Dump of results: ";
+				//print_r($retval);
+				//echo PHP_EOL;
+				//$songInfo = lookupSongID($lastplayed['SongDir']);
 				$song_id = $songInfo['id'];
 				$sql0 = "INSERT INTO sm_songsplayed (song_id,song_dir,stepstype,difficulty,username,numplayed,lastplayed,datetime) VALUES (\"{$song_id}\",\"{$lastplayed['SongDir']}\",\"{$lastplayed['StepsType']}\",\"{$lastplayed['Difficulty']}\",\"{$lastplayed['DisplayName']}\",\"{$lastplayed['NumTimesPlayed']}\",\"{$lastplayed['LastPlayed']}\",NOW())";
 				if (!mysqli_query($conn, $sql0)){
@@ -591,6 +617,14 @@ function addHighScoretoDB ($highscore_array){
 
 //--------Process the JSON and run specific functions based on source type--------// 
 
+if(isset($jsonDecoded['version'])){
+	$versionClient = $jsonDecoded['version'];
+}else{
+	$versionClient = 0;
+}
+
+check_version($versionClient);
+
 if(isset($jsonDecoded['offline'])){
 	$offlineMode = $jsonDecoded['offline'];
 }else{
@@ -633,5 +667,6 @@ switch ($jsonDecoded['source']){
 }
 
 mysqli_close($conn);
+die();
 
 ?>
