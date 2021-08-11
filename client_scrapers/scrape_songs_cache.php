@@ -136,7 +136,8 @@ function parseMetadata($file) {
 					$value = substr($line,strpos($line,$delimiter)+1);
 				}
 				$value = fixEncoding($value);
-				$lines[trim($key,'"')] = trim($value,'"');	
+				$value = stripslashes($value);
+				$lines[trim($key)] = trim($value);
 			}
 			
 	}
@@ -190,12 +191,13 @@ function parseNotedata($file) {
 								$value = trim(substr($line,strpos($line,$delimiter)+1));
 							}
 							$value = fixEncoding($value);
+							$value = stripslashes($value);
 							// trim any quotes (messes up later queries)
-							$key = str_replace('"','',$key);
-							$value = str_replace('"','',$value);
+							//$key = str_replace('"','',$key);
+							//$value = str_replace('"','',$value);
 
 							//add key/value pair to array
-							$lines[$key] = $value;	
+							$lines[trim($key)] = trim($value);
 						}	
 					}
 					
@@ -368,9 +370,8 @@ function parseJsonErrors($error,$jsonArray){
 			$songFilename = $cacheFile['metadata']['#SONGFILENAME'];
 			foreach($cacheFile['metadata'] as $metaDataLine){
 				if(!json_encode($metaDataLine)){
-					echo "json encoding error for song $songFilename at the following line:".PHP_EOL;
-					wh_log("json encoding error for song $songFilename at the following line:");
-					wh_log(print_r($metaDataLine));
+					echo("json encoding error for song $songFilename at the following line: $metaDataLine" . PHP_EOL);
+					wh_log("json encoding error for song $songFilename at the following line: $metaDataLine");
 				}
 			}
 		}
