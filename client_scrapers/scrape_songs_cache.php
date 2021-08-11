@@ -137,6 +137,9 @@ function parseMetadata($file) {
 				}
 				$value = fixEncoding($value);
 				$value = stripslashes($value);
+				$value = str_replace("\\","",$value);
+				
+				//add key/value pair to array
 				$lines[trim($key)] = trim($value);
 			}
 			
@@ -192,9 +195,7 @@ function parseNotedata($file) {
 							}
 							$value = fixEncoding($value);
 							$value = stripslashes($value);
-							// trim any quotes (messes up later queries)
-							//$key = str_replace('"','',$key);
-							//$value = str_replace('"','',$value);
+							$value = str_replace("\\","",$value);
 
 							//add key/value pair to array
 							$lines[trim($key)] = trim($value);

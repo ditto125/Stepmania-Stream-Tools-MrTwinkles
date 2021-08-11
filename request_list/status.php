@@ -334,10 +334,9 @@ function scrapeSong($songCache_array){
 			
 			//build notedata array into query ready values
 			foreach ($notedata_array as $key){
-				$key = mysqli_real_escape_string($conn,$key);
+				$key = array_map(function($str){global $conn; return mysqli_real_escape_string($conn,$str);},$key);
 				$sql_notedata_values = $sql_notedata_values.",(\"$song_id\",\"$song_dir/\",\"".implode("\",\"",$key)."\",NOW())";
 			}
-				
 			//remove beginning comma and concat to sql query string
 			$sql_notedata_query = "INSERT INTO sm_notedata (song_id, song_dir, chart_name, stepstype, description, chartstyle, difficulty, meter, radar_values, credit, display_bpm, stepfile_name, datetime) VALUES ".substr($sql_notedata_values,1);
 			
@@ -367,6 +366,7 @@ function scrapeSong($songCache_array){
 				
 					//whether song db updates or not, delete and insert notedata for song_id
 					foreach ($notedata_array as $key){
+						$key = array_map(function($str){global $conn; return mysqli_real_escape_string($conn,$str);},$key);
 						$sql_notedata_values = $sql_notedata_values.",(\"$song_id\",\"$song_dir/\",\"".implode("\",\"",$key)."\",NOW())";
 					}
 					
