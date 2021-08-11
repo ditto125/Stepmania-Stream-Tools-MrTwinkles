@@ -180,7 +180,7 @@ function scrapeSong($songCache_array){
 
 		$pack = substr($song_dir, 0, strripos($song_dir, "/"));
 		$pack = substr($pack, strripos($pack, "/")+1);
-		$pack = addslashes($pack);
+		$pack = mysqli_real_escape_string($conn,$pack);
 		
 	//
 	
@@ -214,7 +214,7 @@ function scrapeSong($songCache_array){
 		}
 		
 		$title = trim($title);
-		$title = addslashes($title);
+		$title = mysqli_real_escape_string($conn,$title);
 		$strippedtitle = clean($title);
 		
 	//
@@ -233,7 +233,7 @@ function scrapeSong($songCache_array){
 			}
 		
 		$subtitle = trim($subtitle);
-		$subtitle = addslashes($subtitle);
+		$subtitle = mysqli_real_escape_string($conn,$subtitle);
 		$strippedsubtitle = clean($subtitle);
 		
 	//
@@ -253,7 +253,7 @@ function scrapeSong($songCache_array){
 		
 		
 		$artist = trim($artist);
-		$artist = addslashes($artist);
+		$artist = mysqli_real_escape_string($conn,$artist);
 		$strippedartist = clean($artist);
 		
 	//
@@ -307,7 +307,7 @@ function scrapeSong($songCache_array){
 	if( isset($metadata['#CREDIT']) && !empty($metadata['#CREDIT'])){
 		//song has a credit
 		$song_credit = $metadata['#CREDIT'];
-		$song_credit = addslashes($song_credit);
+		$song_credit = mysqli_real_escape_string($conn,$song_credit);
 	}
 		
 	//
@@ -334,6 +334,7 @@ function scrapeSong($songCache_array){
 			
 			//build notedata array into query ready values
 			foreach ($notedata_array as $key){
+				$key = mysqli_real_escape_string($conn,$key);
 				$sql_notedata_values = $sql_notedata_values.",(\"$song_id\",\"$song_dir/\",\"".implode("\",\"",$key)."\",NOW())";
 			}
 				
