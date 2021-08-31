@@ -11,7 +11,7 @@ A quick summary:
   * Occasionally a purge of the Cache is needed if you delete a bunch of song packs.
   * Scraper will update songs if it detects that the cache file has changed, preserving the original song ID.
 * New scraper for StepMania's Stats.xml files in the LocalProfile directory.
-* Request lift mark-off method to use StepMania 5's built-in stats tracking files (Stats.xml) instead of the python/lua scripts.
+* Request list mark-off method to use StepMania 5's built-in stats tracking files (Stats.xml) instead of the python/lua scripts.
   * NOTE: This method uses an infinite-loop PHP script that runs on the local SM machine.
   * The python/lua scripts can still be used (and have been slightly improved) with minor modifications to some mysql queries.
 * Request list has some minor formatting and aesthetic changes.

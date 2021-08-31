@@ -20,7 +20,7 @@ $songsDir = "D:/StepMania 5.1/Songs";
 $addSongsDir = "";
 
 //list of song packs/groups to ignore while scraping. These packs will not show up on the songlist and will not be request-able.
-//Example: "~WIP","Secret Folder","MyDog's")
+//Example: array("~WIP","Secret Folder","MyDog's")
 //RegEx matching for dynamic ignoring of pack names
 $packsIgnore = array("~WIP");
 $packsIgnoreRegex = "";

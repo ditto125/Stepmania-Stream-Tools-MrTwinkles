@@ -408,6 +408,7 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 	$result = curl_exec ($ch);
 	if(curl_exec($ch) === FALSE){
 		echo 'Curl error: '.curl_error($ch) . PHP_EOL;

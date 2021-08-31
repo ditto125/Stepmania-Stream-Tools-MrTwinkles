@@ -587,6 +587,13 @@ function addHighScoretoDB ($highscore_array){
 				$peakComboAward = $highscore['HighScore']['PeakComboAward'];
 			}
 			
+			//catch a weird "-nan(ind)" error with radar values when jumps or freezes are zero
+			foreach($highscore['HighScore']['RadarValues'] as $radarValueName => $radarValue){
+				if(!is_numeric($radarValue)){
+					$highscore['HighScore']['RadarValues'][$radarValueName] = 0;
+				}
+			}
+
 			//Let's build the VALUES string!
 			$sql1_values = "(\"{$highscore['SongDir']}\",\"{$song_id}\",\"{$song_title}\",\"{$song_pack}\",\"{$highscore['Difficulty']}\",\"{$highscore['StepsType']}\",\"{$highscore['StepsHash']}\",\"{$highscore['DisplayName']}\",\"{$highscore['HighScore']['Grade']}\",\"{$highscore['HighScore']['Score']}\",\"{$highscore['HighScore']['PercentDP']}\",\"{$highscore['HighScore']['Modifiers']}\",\"{$highscore['HighScore']['DateTime']}\",\"{$highscore['HighScore']['SurviveSeconds']}\",\"{$highscore['HighScore']['LifeRemainingSeconds']}\",\"{$highscore['HighScore']['Disqualified']}\",\"{$highscore['HighScore']['MaxCombo']}\",\"{$stageAward}\",\"{$peakComboAward}\",\"{$highscore['HighScore']['PlayerGuid']}\",\"{$highscore['HighScore']['MachineGuid']}\",\"{$highscore['HighScore']['TapNoteScores']['HitMine']}\",\"{$highscore['HighScore']['TapNoteScores']['AvoidMine']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointMiss']}\",\"{$highscore['HighScore']['TapNoteScores']['Miss']}\",\"{$highscore['HighScore']['TapNoteScores']['W5']}\",\"{$highscore['HighScore']['TapNoteScores']['W4']}\",\"{$highscore['HighScore']['TapNoteScores']['W3']}\",\"{$highscore['HighScore']['TapNoteScores']['W2']}\",\"{$highscore['HighScore']['TapNoteScores']['W1']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointHit']}\",\"{$highscore['HighScore']['HoldNoteScores']['LetGo']}\",\"{$highscore['HighScore']['HoldNoteScores']['Held']}\",\"{$highscore['HighScore']['HoldNoteScores']['MissedHold']}\",\"{$highscore['HighScore']['RadarValues']['Stream']}\",\"{$highscore['HighScore']['RadarValues']['Voltage']}\",\"{$highscore['HighScore']['RadarValues']['Air']}\",\"{$highscore['HighScore']['RadarValues']['Freeze']}\",\"{$highscore['HighScore']['RadarValues']['Chaos']}\",\"{$highscore['HighScore']['RadarValues']['Notes']}\",\"{$highscore['HighScore']['RadarValues']['TapsAndHolds']}\",\"{$highscore['HighScore']['RadarValues']['Jumps']}\",\"{$highscore['HighScore']['RadarValues']['Holds']}\",\"{$highscore['HighScore']['RadarValues']['Mines']}\",\"{$highscore['HighScore']['RadarValues']['Hands']}\",\"{$highscore['HighScore']['RadarValues']['Rolls']}\",\"{$highscore['HighScore']['RadarValues']['Lifts']}\",\"{$highscore['HighScore']['RadarValues']['Fakes']}\")"; 
 				
