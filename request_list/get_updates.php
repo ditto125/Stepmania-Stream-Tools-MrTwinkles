@@ -67,8 +67,8 @@ function get_requests_since($id,$oldid,$broadcaster){
 					$request["request_type"] = $request_type;
 					$request["stepstype"] = $stepstype;
 					$request["difficulty"] = $difficulty;
-					$request["title"] = $row2["title"];
-					$request["subtitle"] = $row2["subtitle"];
+					$request["title"] = json_encode($row2["title"], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+					$request["subtitle"] = json_encode($row2["subtitle"], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 					$request["artist"] = $row2["artist"];
 					$request["pack"] = format_pack($row2["pack"]);
 					$pack_img = strtolower(preg_replace('/\s+/', '_', trim($row2["pack"])));
