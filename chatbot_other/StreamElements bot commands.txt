@@ -58,14 +58,6 @@ Command:    !bansongid
 User Level: moderator
 Response:  ${urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&game=${game}&bansongid=${queryescape ${1:}}}
 
-Command:    !banrandom
-User Level: moderator
-Response:  ${urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&game=${game}&banrandom=${queryescape ${1:}}}
- 
-Command:    !banrandomid
-User Level: moderator
-Response:  ${urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&game=${game}&banrandomid=${queryescape ${1:}}}
-
 Command:    !gitgud
 User Level: everyone
 Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=gitgud&num=${queryescape ${1|1}}}

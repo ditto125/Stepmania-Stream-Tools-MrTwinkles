@@ -34,10 +34,8 @@
     * '!complete #' : Complete the nth request (completes last request if no number is specified) [For use as a fallback, if a request is not auto-completing.]
     * '!whitelist @user' : Whitelist a user to remove all request cooldowns
     * '!banuser @user' : Ban a user’s ability to request songs
-    * '!bansong "song name"' : Ban a song by song name
-    * '!bansongid "songID"' : Ban a song by song id
-    * '!banrandom "song name"' : Ban a song from random commands by song name
-    * '!banrandomid "songID"' : Ban a song from random commands by song id
+    * '!bansong "song name" [#random]' : Ban a song by song name. Append `#random` to ban the song from random commands only.
+    * '!bansongid "songID" [#random]' : Ban a song by song id. Append `#random` to ban the song from random commands only.
     * '!requesttoggle [custom message]' : Enable/Disable taking requests. A custom message can be appended when disabling requests
     * '!stepstype [singles/doubles/off]' : Set a stepstype limit (singles/doubles) for requests
     * '!meter [#/off]' : Set a max difficulty meter for requests

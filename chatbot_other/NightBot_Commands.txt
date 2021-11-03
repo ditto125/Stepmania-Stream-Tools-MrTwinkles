@@ -58,14 +58,6 @@ Command:    !bansongid
 User Level: moderator
 Response:   $(urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&game=$(twitch $(channel) "{{game}}")&bansongid=$(querystring))
 
-Command:    !banrandom
-User Level: moderator
-Response:   $(urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&game=$(twitch $(channel) "{{game}}")&banrandom=$(querystring))
- 
-Command:    !banrandomid
-User Level: moderator
-Response:   $(urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&game=$(twitch $(channel) "{{game}}")&banrandomid=$(querystring))
-
 Command:    !gitgud
 User Level: everyone
 Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=gitgud&num=$(querystring))
