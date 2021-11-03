@@ -405,6 +405,7 @@ function check_version($versionClient){
 			//wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
 			echo("WARNING! Your client scripts are out of date! Download the latest release at " . PHP_EOL);
             echo("$githubUrl   Exiting... " . PHP_EOL);
+            die();
 		}
 	}else{
 		$versionServer = 0;
