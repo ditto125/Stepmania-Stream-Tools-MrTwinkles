@@ -6,8 +6,8 @@ function new_request(array){
 	request_type = array.request_type;
 	stepstype = array.stepstype;
 	difficulty = array.difficulty;
-	title = array.title.slice(1,-1);
-	subtitle = array.subtitle.slice(1,-1);
+	title = array.title;
+	subtitle = array.subtitle;
 	artist = array.artist;
 	pack = array.pack;
     img = array.img;
