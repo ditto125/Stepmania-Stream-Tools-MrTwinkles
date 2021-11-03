@@ -246,12 +246,27 @@ function get_duplicate_song_artist($song_id){
 function parseCommandArgs($argsStr,$user,$broadcaster){
     global $conn;
 
+    //build a blank array
     $result = array('song'=>'','stepstype'=>'','difficulty'=>'');
-    $args = explode("#",$argsStr,3);
+    //split string by '#', keeping the delimiter, and trimming
+    $args = preg_split('/(?=#)/', $argsStr,-1,PREG_SPLIT_NO_EMPTY);
     $args = array_map("trim",$args);
-    $result['song'] = $args[0];
-    if(count($args) == 2 && strlen($args[1]) == 3){
-        switch (strtoupper($args[1])){
+    //splice "song", keep arguments in the array
+    for($i=0; $i < count($args); $i++){
+        if(substr($args[$i],0,1) === "#"){
+            //$args[$i] = trim(str_replace("#","",$args[$i]));
+        }else{
+            $result['song'] = array_splice($args,$i,1);
+        }
+    }
+    if(is_array($result['song'])){
+        $result['song'] = implode("",$result['song']);
+    }
+    //remove '#' from the resulting array
+    $args = array_map(function($str) {return trim(str_replace("#","",$str));},$args);
+
+    if(count($args) == 1 && strlen($args[0]) == 3){
+        switch (strtoupper($args[0])){
             case "BSP":
                 $result['stepstype'] = "dance-single";
                 $result['difficulty'] = "Easy";
@@ -308,11 +323,12 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 die("$user gave an invalid 3-letter stepstype/difficulty.");
         }  
     }elseif(count($args) > 1){
-        $args = array_splice($args,1);
+        //$args = array_splice($args,1);
         foreach ($args as $arg){
             switch (strtolower($arg)){
                 case "single":
                 case "singles":
+                case "singlets":
                     $result['stepstype'] = "dance-single";
                 break;
                 case "double":

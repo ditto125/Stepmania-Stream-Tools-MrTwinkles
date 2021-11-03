@@ -16,31 +16,31 @@ Response:   $(urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=
 
 Command:    !random
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=random&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=random&song=$(querystring))
 
 Command:    !portal
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=portal&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=portal&song=$(querystring))
 
 Command:    !top
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=top&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=top&song=$(querystring))
 
 Command:    !randomben
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=ben&random=Ben+Speirs%7CBen+Fears&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=ben&random=Ben+Speirs%7CBen+Fears&song=$(querystring))
 
 Command:    !randomddr
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=ddr&random=Dance+Dance+Revolution%7CDancing+Stage&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=ddr&random=Dance+Dance+Revolution%7CDancing+Stage&song=$(querystring))
 
 Command:    !randomitg
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=itg&random=ITG%7CIn+The+Groove&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=itg&random=ITG%7CIn+The+Groove&song=$(querystring))
 
 Command:    !randomfearmix
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=fearmix&random=FEARMIX&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&type=fearmix&random=FEARMIX&song=$(querystring))
 
 Command:    !banuser
 User Level: moderator
@@ -60,7 +60,7 @@ Response:   $(urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcast
 
 Command:    !gitgud
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=gitgud&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=gitgud&song=$(querystring))
 
 Command:    !songlist
 User Level: everyone
@@ -72,7 +72,7 @@ Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadca
 
 Command:    !theusual
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=theusual&num=$(querystring))
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=theusual&song=$(querystring))
 
 Command:    !requesttoggle
 User Level: moderator

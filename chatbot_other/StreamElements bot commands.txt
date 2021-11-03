@@ -16,31 +16,31 @@ Response:  ${urlfetch https://[URL]/request.php?security_key=[KEY]&broadcaster=$
 
 Command:    !random
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=random&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=random&song=${queryescape ${1:}}}
 
 Command:    !portal
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=portal&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=portal&song=${queryescape ${1:}}}
 
 Command:    !top
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=top&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=top&song=${queryescape ${1:}}}
 
 Command:    !randomben
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=ben&random=Ben+Speirs%7CBen+Fears&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=ben&random=Ben+Speirs%7CBen+Fears&song=${queryescape ${1:}}}
 
 Command:    !randomddr
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=ddr&random=Dance+Dance+Revolution%7CDancing+Stage&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=ddr&random=Dance+Dance+Revolution%7CDancing+Stage&song=${queryescape ${1:}}}
 
 Command:    !randomitg
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=itg&random=ITG%7CIn+The+Groove&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=itg&random=ITG%7CIn+The+Groove&song=${queryescape ${1:}}}
 
 Command:    !randomfearmix
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=fearmix&random=FEARMIX&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=fearmix&random=FEARMIX&song=${queryescape ${1:}}}
 
 Command:    !banuser
 User Level: moderator
@@ -60,7 +60,7 @@ Response:  ${urlfetch https://[URL]/song_admin.php?security_key=[KEY]&broadcaste
 
 Command:    !gitgud
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=gitgud&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=gitgud&song=${queryescape ${1:}}}
 
 Command:    !songlist
 User Level: everyone
@@ -72,7 +72,7 @@ Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcas
 
 Command:    !theusual
 User Level: everyone
-Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=theusual&num=${queryescape ${1|1}}}
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=theusual&song=${queryescape ${1:}}}
 
 Command:    !requesttoggle
 User Level: moderator

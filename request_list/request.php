@@ -191,6 +191,12 @@ die();
 
 if(isset($_GET["songid"]) && !empty($_GET["songid"])){
 	$commandArgs = parseCommandArgs($_GET["songid"],$user,$broadcaster);
+
+	if(empty($commandArgs["song"])){
+		echo "$user didn't specify a song ID!";
+		die();
+	}
+
 	$song = clean($commandArgs["song"]);
         //lookup by ID and request it
 
@@ -215,6 +221,12 @@ die();
 
 if(isset($_GET["song"]) && !empty($_GET["song"])){
 	$commandArgs = parseCommandArgs($_GET["song"],$user,$broadcaster);
+
+	if(empty($commandArgs["song"])){
+		echo "$user didn't specify a song name!";
+		die();
+	}
+
 	$song = $commandArgs["song"];
 
 	//easter egg requests
