@@ -73,7 +73,7 @@ echo '<html>
 			$request_type = '';
 			break;
 		case "random":
-			$request_type = '<img src="images/d205.png" class="type">';
+			$request_type = '<img src="images/random.png" class="type">';
 			break;
 		case "top":
 			$request_type = '<img src="images/top.png" class="type">';
@@ -111,8 +111,11 @@ echo '<html>
         case "miku":
             $request_type = '<img src="images/miku.png" class="type">';
 			break;
+		case "fearmix":
+			$request_type = '<img src="images/fearmix.png" class="type">';
+			break;
 		default:
-			$request_type = '<img src="images/d205.png" class="type">';;
+			$request_type = '<img src="images/random.png" class="type">';;
 			break;
 	}
 

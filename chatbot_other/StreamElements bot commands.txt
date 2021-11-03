@@ -38,6 +38,10 @@ Command:    !randomitg
 User Level: everyone
 Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=itg&random=ITG%7CIn+The+Groove&num=${queryescape ${1|1}}}
 
+Command:    !randomfearmix
+User Level: everyone
+Response:  ${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=fearmix&random=FEARMIX&num=${queryescape ${1|1}}}
+
 Command:    !banuser
 User Level: moderator
 Response:  ${urlfetch https://[URL]/requestor.php?security_key=[KEY]&broadcaster=${channel}&game=${game}&banuser=${queryescape ${1:}}}

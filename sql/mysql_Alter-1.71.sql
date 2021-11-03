@@ -4,3 +4,6 @@ ADD COLUMN player_guid text AFTER username DEFAULT NULL;
 
 ALTER TABLE sm_scores
 ADD COLUMN steps_hash VARCHAR(50) AFTER difficulty DEFAULT NULL;
+
+ALTER TABLE sm_requests
+CHANGE request_type request_type text DEFAULT NULL;
