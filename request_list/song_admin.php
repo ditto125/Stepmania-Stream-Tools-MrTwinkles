@@ -7,7 +7,7 @@ if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || em
     die("Fuck off");
 }
 
-if((!isset($_GET["bansong"]) || !isset($_GET["bansongid"]) || !isset($_GET["banrandom"]) || !isset($_GET["banrandomid"])) && !isset($_GET["user"])){
+if((!isset($_GET["bansong"]) || !isset($_GET["bansongid"])) && !isset($_GET["user"])){
 	die();
 }
 
