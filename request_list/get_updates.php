@@ -7,6 +7,7 @@ if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || em
 }
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
 
 function format_pack($pack){
 	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
