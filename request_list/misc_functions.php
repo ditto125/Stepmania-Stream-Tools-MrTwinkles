@@ -322,7 +322,7 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
             default:
                 die("$user gave an invalid 3-letter stepstype/difficulty.");
         }  
-    }elseif(count($args) > 1){
+    }elseif(count($args) >= 1){
         //$args = array_splice($args,1);
         foreach ($args as $arg){
             switch (strtolower($arg)){
@@ -340,6 +340,7 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                     $result['difficulty'] = "Beginner";
                 break;
                 case "easy":
+                case "basic":
                 case "light":
                     $result['difficulty'] = "Easy";
                 break;

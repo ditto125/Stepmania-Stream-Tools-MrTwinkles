@@ -44,10 +44,10 @@ function build_whereclause($stepstype,$difficulty,$table){
 	//build WHERE clause for stepstype/difficulty
 	$whereTypeDiffClause = "";
 	if(!empty($stepstype)){
-		$whereTypeDiffClause = "AND $table.stepstype LIKE \'$stepstype\' ";
+		$whereTypeDiffClause = "AND $table.stepstype LIKE '$stepstype' ";
 	}
 	if(!empty($difficulty)){
-		$whereTypeDiffClause = $whereTypeDiffClause . "AND $table.difficulty LIKE \'$difficulty\' ";
+		$whereTypeDiffClause = $whereTypeDiffClause . "AND $table.difficulty LIKE '$difficulty' ";
 	}
 
 	return $whereTypeDiffClause;
@@ -123,16 +123,18 @@ if($_GET["random"] == "random"){
 
 	$request_type = "random";
 
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songs");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 
-	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,SUM(sm_songsplayed.numplayed) AS numplayed 
+	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
 	FROM sm_songs 
 	JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_songs.id 
-	JOIN sm_scores ON sm_scores.song_id=sm_songs.id 
+	JOIN sm_scores ON sm_scores.song_id=sm_songs.id
+	JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
 	WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned NOT IN(1,2) AND installed=1 AND sm_songsplayed.numplayed>1 AND percentdp>0 $whereTypeDiffClause 
 	GROUP BY sm_songs.id 
 	ORDER BY RAND()
 	LIMIT 100";
+
 	$retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
@@ -190,9 +192,13 @@ if($_GET["random"] == "portal"){
 
 	$request_type = "portal";
 
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songs");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 
-	$sql = "SELECT * FROM sm_songs WHERE installed=1 AND banned NOT IN(1,2) $whereTypeDiffClause ORDER BY RAND() LIMIT 100";
+	$sql = "SELECT * 
+	FROM sm_songs 
+	JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
+	WHERE installed=1 AND banned NOT IN(1,2) $whereTypeDiffClause 
+	ORDER BY RAND() LIMIT 100";
 	$retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {
@@ -218,10 +224,10 @@ if($_GET["random"] == "top"){
 
 	$request_type = "top";
 	//if(empty($stepstype)){$stepstype = '%';}
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songs");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 	$whereTypeDiffClauseSP = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
 
-	$sql = "SELECT id,title,subtitle,artist,pack,numplayed,stepstype 
+	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,numplayed,t2.stepstype AS stepstype  
 			FROM sm_songs 
 			JOIN 
 				(SELECT song_id,SUM(numplayed) AS numplayed,stepstype 
@@ -231,6 +237,7 @@ if($_GET["random"] == "top"){
 				ORDER BY numplayed DESC
 				LIMIT 100) AS t2
 			ON t2.song_id=sm_songs.id 
+			JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
 			WHERE banned NOT IN(1,2) AND installed=1 $whereTypeDiffClause 
 			ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
@@ -369,7 +376,7 @@ die();
 //roll command responds with 3 random songs that the user can then request with "requestid"
 if($_GET["random"] == "roll"){
 
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songs");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
 	
 	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,SUM(sm_songsplayed.numplayed) AS numplayed 
 	FROM sm_songs 
@@ -434,9 +441,9 @@ if($_GET["random"] == "theusual"){
 	$userLC = strtolower($user);
 	$request_type = "theusual";
 
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songs");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 	
-	$sql = "SELECT id,title,subtitle,artist,pack,idcount    
+	$sql = "SELECT sm_songs.id AS id,title,subtitle,artist,pack,idcount    
 			FROM sm_songs  
 			JOIN 
 				(SELECT song_id, COUNT(song_id) AS idcount 
@@ -446,6 +453,7 @@ if($_GET["random"] == "theusual"){
 				ORDER BY idcount DESC  
 				LIMIT 20) AS t2 
 			ON t2.song_id=sm_songs.id  
+			JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
 			WHERE banned NOT IN(1,2) AND installed=1 AND idcount>1 $whereTypeDiffClause 
 			ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
@@ -475,14 +483,16 @@ if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 		if(isset($_GET["type"])){$request_type = mysqli_real_escape_string($conn,$_GET["type"]);}
 		$random = htmlspecialchars($random);
 
-		$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songs");
+		$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 		
-        $sql = "SELECT sm_songs.id AS id,title,subtitle,pack FROM sm_songs 
+        $sql = "SELECT sm_songs.id AS id,title,subtitle,pack 
+		FROM sm_songs 
 		JOIN sm_notedata ON sm_notedata.song_id = sm_songs.id 
 		WHERE installed=1 AND banned NOT IN(1,2) AND (pack REGEXP '{$random}' OR sm_songs.credit REGEXP '{$random}' OR sm_notedata.credit REGEXP '{$random}') $whereTypeDiffClause 
 		GROUP BY sm_songs.id 
 		ORDER BY RAND()
 		LIMIT 100";
+
 		$retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) > 0) {

@@ -20,26 +20,27 @@ function toggle_ban_song($id,$type){
 
     global $conn;
 
-	$sql0 = "SELECT * FROM sm_songs WHERE id = \"$song\"";
+	$sql0 = "SELECT * FROM sm_songs WHERE id = \"$id\"";
         $retval0 = mysqli_query( $conn, $sql0 );
 
         if(mysqli_num_rows($retval0) == 1){
             $row0 = mysqli_fetch_assoc($retval0);
             $title = $row0["title"];
+			$subtitle = $row0["subtitle"];
             $pack = $row0["pack"];
             $banned = $row0["banned"];
 		if($banned != "0"){
 			$value = "0";
-			$response = "Unbanned $title from $pack";
-		}elseif($type = "song"){
+			$response = "Unbanned $title $subtitle from $pack";
+		}elseif($type == "song"){
 			$value = "1";
-			$response = "Banned $title from $pack";
-		}elseif($type = "random"){
+			$response = "Banned $title $subtitle from $pack";
+		}elseif($type == "random"){
 			$value = "2";
-			$response = "Banned (random) $title from $pack";
+			$response = "Banned (random) $title $subtitle from $pack";
 		}
 
-	        $sql = "UPDATE sm_songs SET banned={$value} WHERE id={$song} LIMIT 1";
+	        $sql = "UPDATE sm_songs SET banned=$value WHERE id=$id LIMIT 1";
         	$retval = mysqli_query( $conn, $sql );
 
 		echo "$response";
@@ -59,23 +60,21 @@ function parseBanType($argsStr){
 	//parse #args to determine if the ban type is for "random"
 
     $result = array('song'=>'','ban'=>'');
-    $args = explode("#",$argsStr,3);
+    $args = explode("#",$argsStr,2);
     $args = array_map("trim",$args);
     $result['song'] = $args[0];
-    if(count($args) > 1){
-        $args = array_splice($args,1);
-        foreach ($args as $arg){
-            switch (strtolower($arg)){
-                case "random":
-                case "randoms":
-				case "rand":
-                    $result['ban'] = "random";
-                break;
-                default:
-					$result['ban'] = "song";
-            }
-        }
-    }
+
+	foreach ($args as $arg){
+		switch (strtolower($arg)){
+			case "random":
+			case "randoms":
+			case "rand":
+				$result['ban'] = "random";
+			break;
+			default:
+				$result['ban'] = "song";
+		}
+	}
 
     return $result;
 }
@@ -84,8 +83,8 @@ if(isset($_GET["bansongid"])){
 	$commandArgs = parseBanType($_GET["bansongid"]);
 	$song = clean($commandArgs["song"]);
 	$type = $commandArgs["ban"];
-        //lookup by ID
 
+    //lookup by ID
 	$sql = "SELECT * FROM sm_songs WHERE id = '{$song}' ORDER BY title ASC";
 	$retval = mysqli_query( $conn, $sql );
 
