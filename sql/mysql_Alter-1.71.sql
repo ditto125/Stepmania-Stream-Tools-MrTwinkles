@@ -16,3 +16,10 @@ ADD INDEX `song_id` (`song_id`) USING BTREE;
 
 ALTER TABLE sm_songsplayed
 ADD INDEX `song_id` (`song_id`) USING BTREE;
+
+
+--Due to fixes for proper UTF-8 connection to the db,
+--we will need to do some utf-8 convertions of every table
+--TO DO:
+--UPDATE [tabe] SET [column] = CONVERT(cast(CONVERT(column USING latin1) AS BINARY) USING utf8mb4);
+--See mysql_Alter-1.71.php
