@@ -194,7 +194,7 @@ if($_GET["random"] == "portal"){
 
 	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 
-	$sql = "SELECT * 
+	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
 	FROM sm_songs 
 	JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
 	WHERE installed=1 AND banned NOT IN(1,2) $whereTypeDiffClause 
@@ -312,7 +312,7 @@ if($_GET["random"] == "gitgud"){
 			$score_tier = "itg_tier";
 	}
 
-        $sql = "SELECT sm_songs.id,title,subtitle,artist,pack,t2.percentdp,score,t2.stepstype,t2.difficulty,date,scores 
+        $sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,t2.percentdp,score,t2.stepstype,t2.difficulty,date,scores 
 				FROM sm_songs 
 				JOIN 
 				(SELECT song_id,MAX(percentdp) AS percentdp,MAX(score) AS score,COUNT(song_id) as scores,stepstype,difficulty,DATE_FORMAT(MAX(datetime),'%Y/%c/%e') AS date  
@@ -443,7 +443,7 @@ if($_GET["random"] == "theusual"){
 
 	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 	
-	$sql = "SELECT sm_songs.id AS id,title,subtitle,artist,pack,idcount    
+	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,idcount    
 			FROM sm_songs  
 			JOIN 
 				(SELECT song_id, COUNT(song_id) AS idcount 
@@ -485,7 +485,7 @@ if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 
 		$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 		
-        $sql = "SELECT sm_songs.id AS id,title,subtitle,pack 
+        $sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
 		FROM sm_songs 
 		JOIN sm_notedata ON sm_notedata.song_id = sm_songs.id 
 		WHERE installed=1 AND banned NOT IN(1,2) AND (pack REGEXP '{$random}' OR sm_songs.credit REGEXP '{$random}' OR sm_notedata.credit REGEXP '{$random}') $whereTypeDiffClause 
