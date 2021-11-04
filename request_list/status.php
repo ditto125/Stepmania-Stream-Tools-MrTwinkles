@@ -174,16 +174,12 @@ function scrapeSong($songCache_array){
 				echo $file . PHP_EOL . "There's something truly wrong with this song, like how?" . PHP_EOL;
 			}
 
-	//		
-	
 	//Get pack
 
 		$pack = substr($song_dir, 0, strripos($song_dir, "/"));
 		$pack = substr($pack, strripos($pack, "/")+1);
 		$pack = mysqli_real_escape_string($conn,$pack);
 		
-	//
-	
 	//Get title
 		if( !isset($metadata['#TITLETRANSLIT']) || empty($metadata['#TITLETRANSLIT'])){
 			//song does not have a transliterated title
@@ -216,8 +212,6 @@ function scrapeSong($songCache_array){
 		$title = trim($title);
 		$title = mysqli_real_escape_string($conn,$title);
 		$strippedtitle = clean($title);
-		
-	//
 
 	//Get subtitle
 		
@@ -235,8 +229,6 @@ function scrapeSong($songCache_array){
 		$subtitle = trim($subtitle);
 		$subtitle = mysqli_real_escape_string($conn,$subtitle);
 		$strippedsubtitle = clean($subtitle);
-		
-	//
 
 	//Get artist
 		
@@ -255,8 +247,6 @@ function scrapeSong($songCache_array){
 		$artist = trim($artist);
 		$artist = mysqli_real_escape_string($conn,$artist);
 		$strippedartist = clean($artist);
-		
-	//
 
 	// Get BPM
 
@@ -279,8 +269,6 @@ function scrapeSong($songCache_array){
 			$display_bpm = intval($display_bpm,0);
 		}
 
-	//
-
 	// Get music length in seconds
 
 		if( isset($metadata['#MUSICLENGTH']) && !empty($metadata['#MUSICLENGTH'])){
@@ -291,16 +279,12 @@ function scrapeSong($songCache_array){
 		$music_length = trim($music_length);
 		$music_length = intval($music_length,0);
 
-	//
-
 	//Get existence of background video
 		
 		if( isset($metadata['#BGCHANGES']) && !empty($metadata['#BGCHANGES'])){
 			//song has a background video
 			$bga = 1;
 		}
-			
-	//
 
 	//Get song credit
 		
@@ -309,8 +293,6 @@ function scrapeSong($songCache_array){
 		$song_credit = $metadata['#CREDIT'];
 		$song_credit = mysqli_real_escape_string($conn,$song_credit);
 	}
-		
-	//
 		
 		//check if this song exists in the db
 		$sql = "SELECT * FROM sm_songs WHERE song_dir=\"$song_dir/\"";
@@ -422,9 +404,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 				//echo "Debug: Update db record. Query: $sql0" . PHP_EOL;
 
 				$row = mysqli_fetch_assoc($retval);
-				//echo "Dump of results:";
-				//print_r($retval);
-				//echo PHP_EOL;
+
 				$song_id = $row['song_id'];
 				if($song_id === 0 && $songInfo['id'] !== 0){
 					//$songInfo = lookupSongID($row['song_dir']);
@@ -439,9 +419,6 @@ function addLastPlayedtoDB ($lastplayed_array){
 				//there are duplicate entries for this song.
 				//This is not an expected result, so let's fix it. (Hopefully, this only has to be fixed once!)
 				//echo "Debug: Duplicate DB records. Query: $sql0" . PHP_EOL;
-				//echo "Dump of results:";
-				//print_r($retval);
-				//echo PHP_EOL;
 
 				//get list of all ids
 				$duplicateIDs = array();
@@ -450,11 +427,6 @@ function addLastPlayedtoDB ($lastplayed_array){
 				}	
 				//sort the array, remove the smallest id, and convert to a comma separated string
 				asort($duplicateIDs,SORT_NUMERIC);
-
-				//echo "DuplicateIDs: ";
-				//print_r($duplicateIDs);
-				//echo PHP_EOL;
-
 				$id = array_shift($duplicateIDs);
 				$duplicateIDs = implode(',',$duplicateIDs);
 
@@ -479,10 +451,6 @@ function addLastPlayedtoDB ($lastplayed_array){
 			}elseif(mysqli_num_rows($retval) == 0){
 				//record does not exist - insert a new row
 				//echo "Debug: Insert new record. Query: $sql0" . PHP_EOL;
-				//echo "Dump of results: ";
-				//print_r($retval);
-				//echo PHP_EOL;
-				//$songInfo = lookupSongID($lastplayed['SongDir']);
 				$song_id = $songInfo['id'];
 				$sql0 = "INSERT INTO sm_songsplayed (song_id,song_dir,stepstype,difficulty,steps_hash,username,player_guid,numplayed,lastplayed,datetime) VALUES (\"{$song_id}\",\"{$lastplayed['SongDir']}\",\"{$lastplayed['StepsType']}\",\"{$lastplayed['Difficulty']}\",\"{$lastplayed['StepsHash']}\",\"{$lastplayed['DisplayName']}\",\"{$lastplayed['PlayerGuid']}\",\"{$lastplayed['NumTimesPlayed']}\",\"{$lastplayed['LastPlayed']}\",NOW())";
 				if (!mysqli_query($conn, $sql0)){
@@ -524,7 +492,7 @@ function markRequest ($idArray){
 		JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
 		SET state = 'completed'
 		WHERE sm_requests.state = 'requested' AND sm_songsplayed.id = {$id} AND sm_songsplayed.lastplayed > sm_requests.request_time AND sm_songsplayed.lastplayed > DATE(sm_songsplayed.lastplayed) 
-		ORDER BY lastplayed DESC, request_time DESC";
+		ORDER BY lastplayed DESC, request_time ASC LIMIT 1";
 		if (!$retval = mysqli_query($conn, $sql3)){echo "Error: " . $sql3 . PHP_EOL . mysqli_error($conn) . PHP_EOL;}
 		if (mysqli_affected_rows($conn) > 0){
 			echo "Marking request as complete." . PHP_EOL;
@@ -534,14 +502,14 @@ function markRequest ($idArray){
 			JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
 			SET state = 'completed'
 			WHERE sm_requests.state = 'requested' AND sm_songsplayed.id = {$id} AND (DATE(sm_songsplayed.lastplayed) = DATE(sm_requests.request_time) OR sm_songsplayed.lastplayed = DATE(sm_songsplayed.lastplayed))  
-			ORDER BY lastplayed DESC, request_time DESC";
+			ORDER BY lastplayed DESC, request_time ASC LIMIT 1";
 			if (!$retval = mysqli_query($conn, $sql3)){echo "Error: " . $sql3 . PHP_EOL . mysqli_error($conn) . PHP_EOL;}
 			if (mysqli_affected_rows($conn) > 0){
 				echo "Marking request as complete (fallback)." . PHP_EOL;
 			}
 			//add the time to the lastplayed timestamp, if it's obvious what time it should be
 			$sql3 = "SELECT * FROM sm_songsplayed WHERE id = {$id}";
-			//echo $sql3.PHP_EOL;
+
 			$retval3 = mysqli_fetch_assoc(mysqli_query($conn, $sql3));
 			$dateTime = strtotime($retval3['datetime']);
 			$lastplayedDate = strtotime($retval3['lastplayed']);
@@ -552,7 +520,6 @@ function markRequest ($idArray){
 				if (!$retval = mysqli_query($conn, $sql3)){echo "Error: " . $sql3 . PHP_EOL . mysqli_error($conn) . PHP_EOL;}
 				echo "Updated lastplayed timestamp from ".date("Y-m-j",$lastplayedDate)." to {$newDT}." . PHP_EOL;
 			}
-			
 		}
 	}
 }
@@ -588,6 +555,7 @@ function addHighScoretoDB ($highscore_array){
 			}
 			
 			//catch a weird "-nan(ind)" error with radar values when jumps or freezes are zero
+			//error discovered in Project Outfox Alpha 4.9.10, fixed in 4.10.0
 			foreach($highscore['HighScore']['RadarValues'] as $radarValueName => $radarValue){
 				if(!is_numeric($radarValue)){
 					$highscore['HighScore']['RadarValues'][$radarValueName] = 0;
