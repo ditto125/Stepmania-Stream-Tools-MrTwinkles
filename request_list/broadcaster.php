@@ -50,6 +50,8 @@ function toggle_requests($broadcaster,$message){
         if($numrows == 1){
             $row0 = mysqli_fetch_assoc($retval0);
 		    $id = $row0["id"];
+            $stepstype = $row0["stepstype"];
+            $meter = $row0["meter_max"];
             $toggle = $row0["request_toggle"];
             if($toggle == "ON"){
                 $value = "OFF";
@@ -62,6 +64,16 @@ function toggle_requests($broadcaster,$message){
             }else{
                 $value = "ON";
                 $response = "Requests are enabled. Go nuts!";
+                if(!empty($stepstype) || !empty($meter)){
+                    $response = $response . " Broadcaster limits set to: ";
+                    if(!empty($stepstype)){
+                        $response = $response . "$stepstype.";
+                    }elseif(!empty($smeter)){
+                        $response = $response . "a meter limit of $meter.";
+                    }elseif(!empty($stepstype) && !empty($smeter)){
+                        $response = $response . "$stepstype with a meter limit of $meter.";
+                    }
+                }
                 $message = "";
             }
 

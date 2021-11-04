@@ -68,7 +68,7 @@ Response:   The songlist for requesting songs can be found here: https://[URL]/s
 
 Command:    !randomroll
 User Level: everyone
-Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=roll&num=3)
+Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=roll&num=3&song=$(querystring))
 
 Command:    !theusual
 User Level: everyone
