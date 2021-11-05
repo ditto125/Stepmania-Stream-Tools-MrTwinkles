@@ -45,7 +45,7 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $com
 
 	if(!empty($commandArgs['stepstype']) || !empty($commandArgs['difficulty'])){
 		if(check_notedata($broadcaster,$song_id,$commandArgs['stepstype'],$commandArgs['difficulty'],$requestor) == FALSE){
-			die("Requested song does not have that stepstype or difficulty!");
+			die("Requested song does not have that steps-type or difficulty!");
 		}
 	}
 

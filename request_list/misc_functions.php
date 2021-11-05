@@ -301,9 +301,6 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 $result['difficulty'] = "Medium";
             break;
             case "EDP":
-                $result['stepstype'] = "dance-double";
-                $result['difficulty'] = "Expert";
-            break;
             case "HDP":
                 $result['stepstype'] = "dance-double";
                 $result['difficulty'] = "Hard";
@@ -317,7 +314,7 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 $result['difficulty'] = "Edit";
             break;
             default:
-                die("$user gave an invalid 3-letter stepstype/difficulty.");
+                die("$user gave an invalid 3-letter steps-type/difficulty.");
         }  
     }elseif(count($args) >= 1){
         //$args = array_splice($args,1);
@@ -358,28 +355,30 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                     $result['difficulty'] = "Edit";
                 break;
                 default:
-                    die("$user gave invalid stepstype or difficulty.");
+                    die("$user gave invalid steps-type or difficulty.");
             }
         }
     }
+
     //if stepstype is empty, check if sm_broadcast has one set globally
-    if(empty($result['stepstype'])){
+    if(empty($result['stepstype']) && !empty($result['difficulty'])){
         $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster = '$broadcaster'";
         $retval0 = mysqli_query( $conn, $sql0 );
         if(mysqli_num_rows($retval0) == 1){
             $row0 = mysqli_fetch_assoc($retval0);
             $result['stepstype'] = $row0["stepstype"];
-        }elseif(!empty($result['difficulty'])){
+        }
+        if(!empty($result['difficulty']) && empty($result['stepstype'])){
             //no stepstype in sm_broadcaster and only difficulty specified
-            die("$user didn't specify a stepstype!");
+            die("$user didn't specify a steps-type!");
         }
     }
-    
+
     return $result;
 }
 
 function display_ModeDiff($commandArgs){
-    //for now we are assuming the game is always StepMania
+    //for now we are assuming the game is always StepMania and dance-mode
     $displayModeDiff = "";
     if(!empty($commandArgs['stepstype'])){
         $stepstype = ucwords(str_ireplace("dance-","",$commandArgs['stepstype']));

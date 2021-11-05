@@ -110,16 +110,16 @@ function limit_stepstype($broadcaster,$stepstype){
             $response = "Stepstype currently limited to $stepstype_db";
         }elseif(!empty($stepstype)){
             if($stepstype == "-1"|| $stepstype == "disable" || $stepstype == "off" || $stepstype == "remove" || $stepstype == "stop"){
-                $response = "Removing stepstype limit.";
+                $response = "Removing steps-type limit.";
                 $sql = "UPDATE sm_broadcaster SET stepstype=\"\" WHERE id=\"$id\" LIMIT 1";
                 $retval = mysqli_query( $conn, $sql );
             }elseif($stepstype == "singles" || $stepstype == "doubles"){ 
-                $response = "Changing stepstype to $stepstype";
+                $response = "Changing steps-type to $stepstype";
                 $stepstype = "dance-".substr($stepstype,0,-1);
                 $sql = "UPDATE sm_broadcaster SET stepstype=\"$stepstype\" WHERE id=\"$id\" LIMIT 1";
                 $retval = mysqli_query( $conn, $sql );
             }else{
-                $response = "Invalid stepstype. Useage: \"singles\", \"doubles\", or \"off\".";
+                $response = "Invalid steps-type. Useage: \"singles\", \"doubles\", or \"off\".";
             }  
         }          
             echo "$response";
