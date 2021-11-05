@@ -53,7 +53,7 @@ function get_requests_since($id,$oldid,$broadcaster){
 		$requestor = $row["requestor"];
 		$song_id = $row["song_id"];
 		$request_time = $row["request_time"];
-		$request_type = $row["request_type"];
+		$request_type = strtolower($row["request_type"]);
 		$stepstype = $row["stepstype"];
 		$difficulty = $row["difficulty"];
 		
