@@ -54,16 +54,18 @@ function toggle_requests($broadcaster,$message){
             $meter = $row0["meter_max"];
             $toggle = $row0["request_toggle"];
             if($toggle == "ON"){
+                $requestsDisableResponses = array("Requests are off.","Requests are disabled.","Requests are deactivated.");
                 $value = "OFF";
-                if(empty($message)){
+                $response = $requestsDisableResponses[array_rand($requestsDisableResponses,1)];
+                if(!empty($message)){
+                    $response = $response ." ". stripslashes($message);
+                }elseif(empty($message)){
                     $message = "";
-                    $response = "Requests are disabled.";
-                }else{
-                    $response = "Requests are disabled: ". stripslashes($message);
                 }
             }else{
+                $requestsEnableResponses = array("Requests are enabled. Go nuts!","Requests are enabled. Put 'em in!","Requests are enabled. Request responsibly!");
                 $value = "ON";
-                $response = "Requests are enabled. Go nuts!";
+                $response = $requestsEnableResponses[array_rand($requestsEnableResponses,1)];
                 if(!empty($stepstype) || !empty($meter)){
                     $response = $response . " Broadcaster limits set to: ";
                     if(!empty($stepstype)){

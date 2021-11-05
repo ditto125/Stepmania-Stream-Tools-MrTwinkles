@@ -156,7 +156,9 @@ function check_request_toggle($broadcaster){
         $request_toggle = $row0["request_toggle"];
         $message = $row0["message"];
         if($request_toggle == "OFF"){
-            die("Requests are disabled. ".$message);
+            $requestsDisableResponses = array("Requests are off.","Requests are disabled.","Requests are deactivated.");
+            $response = $requestsDisableResponses[array_rand($requestsDisableResponses,1)];
+            die($response . " " . $message);
         }
     }
 }
