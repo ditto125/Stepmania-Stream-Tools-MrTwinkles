@@ -278,9 +278,6 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 $result['difficulty'] = "Medium";
             break;
             case "ESP":
-                $result['stepstype'] = "dance-single";
-                $result['difficulty'] = "Expert";
-            break;
             case "HSP":
                 $result['stepstype'] = "dance-single";
                 $result['difficulty'] = "Hard";
