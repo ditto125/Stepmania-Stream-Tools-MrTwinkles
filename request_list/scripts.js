@@ -58,6 +58,9 @@ function new_request(array){
         case "fearmix":
             request_type = '<img src="images/fearmix.png" class="type">';
             break;
+        case "unplayed":
+            request_type = '<img src="images/unplayed.png" class="type">';
+            break;
 		default:
 			request_type = '<img src="images/random.png" class="type">';;
 			break;

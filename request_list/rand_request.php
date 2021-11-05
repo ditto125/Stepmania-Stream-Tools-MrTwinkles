@@ -219,6 +219,41 @@ if($_GET["random"] == "portal"){
 die();
 }
 
+//standard unplayed request, any installed/unbanned and unplayed songs can be selected
+//credit: xancara
+if($_GET["random"] == "unplayed"){
+
+	$request_type = "unplayed";
+
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
+
+	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
+	FROM sm_songs   
+	WHERE installed=1 AND banned NOT IN(1,2) AND id NOT IN (
+		SELECT song_id 
+		FROM sm_songsplayed
+		WHERE song_id>0 AND username LIKE '{$profileName}' $whereTypeDiffClause) 
+	ORDER BY RAND() LIMIT 100";
+	$retval = mysqli_query( $conn, $sql );
+
+	if (mysqli_num_rows($retval) > 0) {
+			$i=1;
+			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
+				if(recently_played($row["id"])==FALSE && check_stepstype($broadcaster,$row["id"])==TRUE && check_meter($broadcaster,$row["id"])==TRUE){
+					request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty);
+					$displayModeDiff = display_ModeDiff(array('stepstype' => $stepstype,'difficulty' => $difficulty));
+					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					echo ("$user requested the unplayed song " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . $displayModeDiff . " ");
+					$i++;
+				}
+			}
+	} else {
+        	die("Didn't find any unplayed songs!");
+}
+
+die();
+}
+
 //standard top request of 1 random 100 most played songs
 if($_GET["random"] == "top"){
 
