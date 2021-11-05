@@ -23,12 +23,15 @@
     * '!top'* : Picks a random song from the top 100 most played songs
     * '!portal' : Picks any random song
     * '!gitgud'* : Picks a random song from the lowest scoring 25 of the top 100 most played songs
+    * '!unplayed'* : Picks a random song that has never been played
     * '!randomroll'* : Responds with 3 random songs, which then can be requested by ID
     * '!theusual' : Picks a random song from your top 10 most requested songs
 * Special Request Commands
     * '!random["something"]' : Queries the song list filtering by pack name and credit. Examples:
         * '!randomddr' : Picks a random official DDR song
+        * '!randomitg' : Picks a random official ITG song
         * '!randomben' : Picks a random song charted by Ben Speirs
+        * '!randomfearmix' : Picks a random song from the FEARMIX packs
 * Moderator/Broadcaster Commands
     * '!skip #' : Skip the nth request (skips last request if no number is specified)
     * '!complete #' : Complete the nth request (completes last request if no number is specified) [For use as a fallback, if a request is not auto-completing.]
