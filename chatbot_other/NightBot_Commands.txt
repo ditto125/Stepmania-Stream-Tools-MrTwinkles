@@ -62,6 +62,10 @@ Command:    !gitgud
 User Level: everyone
 Response:   $(urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=gitgud&song=$(querystring))
 
+Command:    !randomunplayed
+User Level: everyone
+Response:  ${urlfetch https://[URL].smrequests.com/rand_request.php?security_key=[KEY]&broadcaster=$(channel)&user=$(twitch $(user) "{{displayName}}")&userid=$(userid)&tier=$(userlevel)&game=$(twitch $(channel) "{{game}}")&random=unplayed&song=$(querystring))
+
 Command:    !songlist
 User Level: everyone
 Response:   The songlist for requesting songs can be found here: https://[URL]/songlist.php

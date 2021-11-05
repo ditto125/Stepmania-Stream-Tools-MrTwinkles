@@ -11,60 +11,6 @@ function new_request(array){
 	artist = array.artist;
 	pack = array.pack;
     img = array.img;
-    
-    switch (request_type){
-		case "normal":
-			request_type = '';
-			break;
-		case "random":
-			request_type = '<img src="images/random.png" class="type">';
-			break;
-		case "top":
-			request_type = '<img src="images/top.png" class="type">';
-			break;
-		case "portal":
-			request_type = '<img src="images/portal.png" class="type">';
-			break;
-		case "gitgud":
-			request_type = '<img src="images/gitgud.png" class="type">';
-            break;
-        case "theusual":
-			request_type = '<img src="images/theusual.png" class="type">';
-            break;
-        case "itg":
-            request_type = '<img src="images/itg.png" class="type">';
-            break;
-        case "ddr":
-            request_type = '<img src="images/ddr.png" class="type">';
-            break;
-        case "gimmick":
-            request_type = '<img src="images/gimmick.png" class="type">';
-            break;
-        case "ben":
-            request_type = '<img src="images/ben.png" class="type">';
-            break;
-        case "bgs":
-            request_type = '<img src="images/bgs.png" class="type">';
-            break;
-        case "hkc":
-            request_type = '<img src="images/hkc.png" class="type">';
-            break;
-        case "weeb":
-            request_type = '<img src="images/weeb.png" class="type">';
-            break;
-        case "miku":
-            request_type = '<img src="images/miku.png" class="type">';
-            break;
-        case "fearmix":
-            request_type = '<img src="images/fearmix.png" class="type">';
-            break;
-        case "unplayed":
-            request_type = '<img src="images/unplayed.png" class="type">';
-            break;
-		default:
-			request_type = '<img src="images/random.png" class="type">';;
-			break;
-	}
 
 	switch (stepstype){
 		case "dance-single":

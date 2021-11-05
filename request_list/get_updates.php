@@ -78,6 +78,16 @@ function get_requests_since($id,$oldid,$broadcaster){
 					}else{
 						$request["img"] = "images/packs/".urlencode(basename($pack_img[0]));
 					}
+					if($request_type != "normal"){
+						$request_img = glob("images/".$request_type.".{png,gif}", GLOB_BRACE);
+						if (!$request_img){
+							$request["request_type"] = '<img src="images/random.png" class="type">';
+						}else{
+							$request["request_type"] = '<img src="images/'.urlencode(basename($request_img[0])).'" class="type">';
+						}
+					}else{
+						$request["request_type"] = "";
+					}
 				}
 
                 array_push($requests, $request);
