@@ -61,6 +61,7 @@ if(!isset($_GET["data"])){die("No data set");}
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
 
 function getLastRequest(){
 	global $conn;
@@ -136,7 +137,7 @@ switch(strtolower($_GET["data"])){
 		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0 
 		GROUP BY sm_scores.grade 
 		ORDER BY sm_scores.grade ASC";
-		mysqli_set_charset($conn,"utf8mb4");
+		//mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 
 		if($score == "ddr"){
@@ -190,7 +191,7 @@ switch(strtolower($_GET["data"])){
 		ON sm_scores.song_id = h2.song_id AND sm_scores.stepstype = h2.stepstype AND sm_scores.difficulty = h2.difficulty AND sm_scores.username = h2.username AND sm_scores.percentdp = h2.maxpercentdp
 		ORDER BY `datetime` DESC
 		LIMIT 5";
-		mysqli_set_charset($conn,"utf8mb4");
+		//mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 		
 		echo '<table>';
