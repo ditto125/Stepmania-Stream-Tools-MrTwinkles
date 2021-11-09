@@ -45,6 +45,7 @@ if (!isset($jsonDecoded['security_key']) || $jsonDecoded['security_key'] != $sec
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);   
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
 
 function splitSongDir($song_dir){
 	//This function splits the "song_dir" string into title and pack
