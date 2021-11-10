@@ -11,8 +11,9 @@ $conn->set_charset("utf8mb4");
 
 function clean($string) {
 	global $conn;
-    $string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
-    $string =  preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
+    $string = iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", $string); //tranliterate
+    $string = preg_replace('/ +/', '-', $string); // Replaces all spaces with hyphens.
+    $string = preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
     return $string;
 }
 
