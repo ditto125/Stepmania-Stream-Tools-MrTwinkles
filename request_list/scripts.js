@@ -12,40 +12,23 @@ function new_request(array){
 	pack = array.pack;
     img = array.img;
 
-	switch (stepstype){
-		case "dance-single":
-            stepstype = '<img src="images/singles.png" class="dance single">';
-			break;
-		case "dance-double":
-            stepstype = '<img src="images/doubles.png" class="dance double">';
-			break;
-		default:
-			stepstype = "";
-			break;
-	}
+    if(request_type){
+        request_type = `<img src="${request_type}" class="type">`;
+    }else{
+        request_type = "";
+    }
 
-    switch (difficulty){
-        case "Beginner":
-            difficulty = '<div class="difficulty beginner"></div>';
-            break;
-        case "Easy":
-            difficulty = '<div class="difficulty easy"></div>';
-            break;
-        case "Medium":
-            difficulty = '<div class="difficulty medium"></div>';
-            break;
-        case "Hard":
-            difficulty = '<div class="difficulty hard"></div>';
-            break;
-        case "Challenge":
-            difficulty = '<div class="difficulty challenge"></div>';
-            break;
-        case "Edit":
-            difficulty = '<div class="difficulty edit"></div>';
-            break;
-        default:
-            difficulty = '<div class="difficulty"></div>';
-        break;
+    if(stepstype){
+        stepstype_split = stepstype.split('-');
+        stepstype = `<img src="images/${stepstype_split[1]}s.png" class="${stepstype_split[0]} ${stepstype_split[1]}">`;
+    }else{
+        stepstype = "";
+    }
+
+    if(difficulty){
+        difficulty = `<div class="difficulty ${difficulty}"></div>`;
+    }else{
+        difficulty = `<div class="difficulty"></div>`;
     }
 
     if(!stepstype){difficulty = "";}

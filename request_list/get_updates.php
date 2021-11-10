@@ -44,57 +44,48 @@ function get_cancels_since($id,$oldid,$broadcaster){
 
 function get_requests_since($id,$oldid,$broadcaster){
 
-        global $conn;
-        $sql = "SELECT * FROM sm_requests WHERE id > $id AND state = \"requested\" AND broadcaster LIKE \"{$broadcaster}\" ORDER by id ASC";
-        $retval = mysqli_query( $conn, $sql ) or die(mysqli_error($conn));
-        $requests = Array();
-           while($row = mysqli_fetch_assoc($retval)) {
-                
-		$request_id = $row["id"];
-		$requestor = $row["requestor"];
-		$song_id = $row["song_id"];
-		$request_time = $row["request_time"];
-		$request_type = strtolower($row["request_type"]);
-		$stepstype = $row["stepstype"];
-		$difficulty = $row["difficulty"];
+	global $conn;
+	$requests = array();
+	$sql = "SELECT sm_requests.id AS id, sm_requests.song_id AS song_id, title, subtitle, artist, pack, requestor, request_time, request_type, stepstype, difficulty 
+			FROM sm_requests 
+			JOIN sm_songs ON sm_songs.id = sm_requests.song_id 
+			WHERE sm_requests.id > $id AND state = 'requested' AND broadcaster LIKE '$broadcaster' 
+			ORDER by id ASC";
+	$retval = mysqli_query( $conn, $sql ) or die(mysqli_error($conn));
+
+	while($request = mysqli_fetch_assoc($retval)) {
 		
-	        $sql2 = "SELECT * FROM sm_songs WHERE id = \"$song_id\"";
-        	$retval2 = mysqli_query( $conn, $sql2 ) or die(mysqli_error($conn2));
-           		while($row2 = mysqli_fetch_assoc($retval2)) {
-					$request["id"] = $request_id;
-					$request["song_id"] = $song_id;
-					$request["requestor"] = $requestor;
-					$request["request_time"] = $request_time;
-					$request["request_type"] = $request_type;
-					$request["stepstype"] = $stepstype;
-					$request["difficulty"] = $difficulty;
-					$request["title"] = $row2["title"];
-					$request["subtitle"] = $row2["subtitle"];
-					$request["artist"] = $row2["artist"];
-					$request["pack"] = format_pack($row2["pack"]);
-					$pack_img = strtolower(preg_replace('/\s+/', '_', trim($row2["pack"])));
-					$pack_img = glob("images/packs/".$pack_img.".{jpg,jpeg,png,gif}", GLOB_BRACE);
-					if (!$pack_img){
-						$request["img"] = "images/packs/unknown.png";
-					}else{
-						$request["img"] = "images/packs/".urlencode(basename($pack_img[0]));
-					}
-					if($request_type != "normal"){
-						$request_img = glob("images/".$request_type.".{png,gif}", GLOB_BRACE);
-						if (!$request_img){
-							$request["request_type"] = '<img src="images/random.png" class="type">';
-						}else{
-							$request["request_type"] = '<img src="images/'.urlencode(basename($request_img[0])).'" class="type">';
-						}
-					}else{
-						$request["request_type"] = "";
-					}
-				}
+		//format pack name and find pack banner
+		$pack_img = strtolower(preg_replace('/\s+/', '_', trim($request["pack"])));
+		$pack_img = glob("images/packs/".$pack_img.".{jpg,jpeg,png,gif,bmp}", GLOB_BRACE);
+		if (!$pack_img){
+			$request["img"] = "images/packs/unknown.png";
+		}else{
+			$request["img"] = "images/packs/".urlencode(basename($pack_img[0]));
+		}
+		$request["pack"] = format_pack($request["pack"]);
 
-                array_push($requests, $request);
-        }
+		//format request type and find image
+		if(strtolower($request["request_type"]) != "normal"){
+			$request_img = glob("images/".strtolower($request["request_type"]).".{png,gif}", GLOB_BRACE);
+			if (!$request_img){
+				$request["request_type"] = "images/random.png";
+			}else{
+				$request["request_type"] = "images/".urlencode(basename($request_img[0]));
+			}
+		}else{
+			$request["request_type"] = "";
+		}
 
-        return $requests;
+		//format stepstype & difficulty
+		$request["stepstype"] = strtolower($request["stepstype"]);
+		$request["difficulty"] = strtolower($request["difficulty"]);
+
+		array_push($requests, $request);
+
+	}
+
+	return $requests;
 
 }
 

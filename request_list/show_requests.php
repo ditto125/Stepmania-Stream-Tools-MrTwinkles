@@ -69,8 +69,8 @@ echo '<html>
 	$request_time = $row["request_time"];
 	$requestor = $row["requestor"];
 	$request_type = strtolower($row["request_type"]);
-	$stepstype = $row["stepstype"];
-	$difficulty = $row["difficulty"];
+	$stepstype = strtolower($row["stepstype"]);
+	$difficulty = strtolower($row["difficulty"]);
 
 	if($request_type != "normal"){
 		$request_img = glob("images/".$request_type.".{png,gif}", GLOB_BRACE);
@@ -83,40 +83,15 @@ echo '<html>
 		$request_type = "";
 	}
 
-	switch ($stepstype){
-		case "dance-single":
-			$stepstype = '<img src="images/singles.png" class="dance single">';
-			break;
-		case "dance-double":
-			$stepstype = '<img src="images/doubles.png" class="dance double">';
-			break;
-		default:
-			$stepstype = "";
-			break;
+	if(!empty($stepstype)){
+		$stepstype_split = explode("-",$stepstype);
+		$stepstype = "<img src=\"images/$stepstype_split[1]s.png\" class=\"$stepstype_split[0] $stepstype_split[1]\">";
 	}
 
-	switch ($difficulty){
-		case "Beginner":
-			$difficulty = '<div class="difficulty beginner"></div>';
-			break;
-		case "Easy":
-			$difficulty = '<div class="difficulty easy"></div>';
-			break;
-		case "Medium":
-			$difficulty = '<div class="difficulty medium"></div>';
-			break;
-		case "Hard":
-			$difficulty = '<div class="difficulty hard"></div>';
-			break;
-		case "Challenge":
-			$difficulty = '<div class="difficulty challenge"></div>';
-			break;
-		case "Edit":
-			$difficulty = '<div class="difficulty edit"></div>';
-			break;
-		default:
-			$difficulty = '<div class="difficulty"></div>';
-			break;
+	if(!empty($difficulty)){
+		$difficulty = "<div class=\"difficulty $difficulty\"></div>";
+	}else{
+		$difficulty = "<div class=\"difficulty\"></div>";
 	}
 
 	if(empty($stepstype)){$difficulty = "";}
