@@ -37,15 +37,15 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $com
 	check_banned($song_id, $requestor);
 
 	if(check_stepstype($broadcaster,$song_id) == FALSE){
-		die("Requested song does not have the appropriate chart!");
+		die("$requestor requested a song that does not have the appropriate chart!");
 	}
 	if(check_meter($broadcaster,$song_id) == FALSE){
-		die("Requested song appears to be too hard for $broadcaster!");
+		die("$requestor requested a song that appears to be too hard for $broadcaster!");
 	}
 
 	if(!empty($commandArgs['stepstype']) || !empty($commandArgs['difficulty'])){
 		if(check_notedata($broadcaster,$song_id,$commandArgs['stepstype'],$commandArgs['difficulty'],$requestor) == FALSE){
-			die("Requested song does not have that steps-type or difficulty!");
+			die("$requestor requested a song without that steps-type or difficulty!");
 		}
 	}
 

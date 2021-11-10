@@ -375,6 +375,15 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
             //no stepstype in sm_broadcaster and only difficulty specified
             die("$user didn't specify a steps-type!");
         }
+    }elseif(!empty($result['stepstype'])){
+        $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster = '$broadcaster'";
+        $retval0 = mysqli_query( $conn, $sql0 );
+        if(mysqli_num_rows($retval0) == 1){
+            $row0 = mysqli_fetch_assoc($retval0);
+            if($row0['stepstype'] != $result['stepstype'] && !empty($row0['stepstype'])){
+                die("$user The broadcaster has limited requests to \"".$row0['stepstype']."\".");
+            }
+        }
     }
 
     return $result;
