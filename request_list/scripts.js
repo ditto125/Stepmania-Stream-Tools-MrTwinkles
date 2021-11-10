@@ -43,6 +43,7 @@ function new_request(array){
     ${difficulty}\n
     ${stepstype}\n
     <img class="songrow-bg" src="${img}" />
+    <span id="request_${request_id}_time" style="display:none;">${request_time}</span>\n
     </div>
     `;
     if ($("#admin").html()){

@@ -128,6 +128,7 @@ echo $request_type."\n";
 echo $difficulty."\n";
 echo $stepstype."\n";
 echo "<img class=\"songrow-bg\" src=\"{$pack_img}\" />
+<span id=\"request_${request_id}_time\" style=\"display:none;\">$request_time</span>\n
 </div>\n";
 if(isset($_GET['admin'])){
 	echo "<div class=\"admindiv\" id=\"requestadmin_".$request_id."\">
