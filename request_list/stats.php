@@ -65,44 +65,74 @@
           overflow: hidden;
         }
 
-        #scroll-text {
-          height: 100%;
-          text-align: center;
-          
-          /* animation properties */
-          -moz-transform: translateY(-200%);
-          -webkit-transform: translateY(-200%);
-          transform: translateY(-200%);
-          
-          -moz-animation: my-animation 30s linear infinite;
-          -webkit-animation: my-animation 30s linear infinite;
-          animation: my-animation 30s linear infinite;
-        }
+		#scroll-text {
+			height: 100%;
+			text-align: center;
+			
+			/* animation properties */
+			/* Negative for top to bottom. Positive for bottom to top */
+			-moz-transform: translateY(-200%);
+			-webkit-transform: translateY(-200%);
+			transform: translateY(-200%);
+			
+			/* Modify the time to speed up or slow down the scroll speed */
+			/* Change animation between top-to-bottom-animation or bottom-to-top-animation */
+			-moz-animation: top-to-bottom-animation 30s linear infinite;
+			-webkit-animation: top-to-bottom-animation 30s linear infinite;
+			animation: top-to-bottom-animation 30s linear infinite;
+		}
 
-        /* for Firefox */
-        @-moz-keyframes my-animation {
-          from { -moz-transform: translateY(-200%); }
-          to { -moz-transform: translateY(100%); }
-        }
+		/* Top to bottom Section */
+		/* Top to Bottom for Firefox */
+		@-moz-keyframes top-to-bottom-animation {
+			from { -moz-transform: translateY(-150%); }
+			to { -moz-transform: translateY(100%); }
+		}
 
-        /* for Chrome */
-        @-webkit-keyframes my-animation {
-          from { -webkit-transform: translateY(-200%); }
-          to { -webkit-transform: translateY(100%); }
-        }
+		/* Top to Bottom for Chrome */
+		@-webkit-keyframes top-to-bottom-animation {
+			from { -webkit-transform: translateY(-150%); }
+			to { -webkit-transform: translateY(100%); }
+		}
 
-        @keyframes my-animation {
-          from {
-            -moz-transform: translateY(-200%);
-            -webkit-transform: translateY(-200%);
-            transform: translateY(-200%);
-          }
-          to {
-            -moz-transform: translateY(100%);
-            -webkit-transform: translateY(100%);
-            transform: translateY(100%);
-          }
-        }
+		@keyframes top-to-bottom-animation {
+		from {
+			-moz-transform: translateY(-150%);
+			-webkit-transform: translateY(-150%);
+			transform: translateY(-150%);
+		}
+		to {
+			-moz-transform: translateY(100%);
+			-webkit-transform: translateY(100%);
+			transform: translateY(100%);
+		}
+		}
+
+		/* Bottom to Top Section */
+		/* Bottom to Top for Firefox */
+		@-moz-keyframes bottom-to-top-animation {
+			from { -moz-transform: translateY(100%); }
+			to { -moz-transform: translateY(-150%); }
+		}
+
+		/* Bottom to Top for Chrome */
+		@-webkit-keyframes bottom-to-top-animation {
+			from { -webkit-transform: translateY(100%); }
+			to { -webkit-transform: translateY(-150%); }
+		}
+
+		@keyframes bottom-to-top-animation {
+			from {
+				-moz-transform: translateY(100%);
+				-webkit-transform: translateY(100%);
+				transform: translateY(100%);
+			}
+			to {
+				-moz-transform: translateY(-150%);
+				-webkit-transform: translateY(-150%);
+				transform: translateY(-150%);
+			}
+		}
 
 		.requestor { color: white; } /** The class for ONLY the tag requestor */
 		.requestor-data { color: white; } /** The class for ONLY the returned data for requestor */
