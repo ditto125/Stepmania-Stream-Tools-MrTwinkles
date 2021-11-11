@@ -106,12 +106,12 @@
 
 		.requestor { color: white; } /** The class for ONLY the tag requestor */
 		.requestor-data { color: white; } /** The class for ONLY the returned data for requestor */
-		.song { color: white; } /** The class for ONLY the tag requestor */
-		.song-data { color: white; } /** The class for ONLY the returned data for requestor */
-		.score { color: white; } /** The class for ONLY the tag requestor */
-		.score-data { color: white; } /** The class for ONLY the returned data for requestor */
-		.award { color: white; } /** The class for ONLY the tag requestor */
-		.award-data { color: white; } /** The class for ONLY the returned data for requestor */
+		.song { color: white; } /** The class for ONLY the tag song */
+		.song-data { color: white; } /** The class for ONLY the returned data for song */
+		.score { color: white; } /** The class for ONLY the tag score */
+		.score-data { color: white; } /** The class for ONLY the returned data for score */
+		.award { color: white; } /** The class for ONLY the tag award */
+		.award-data { color: white; } /** The class for ONLY the returned data for award */
 	  </style>
  </head>
  
