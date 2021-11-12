@@ -37,6 +37,17 @@
 			text-align: center;
 			padding-botton: 0vw;
 		}
+		
+		h4 {
+			font-family: 'Fundamental', normal;
+			letter-spacing:0.01em;
+			font-size:3vw;
+			font-weight:normal;
+			color: white;
+			overflow-wrap: break-word;
+			text-align: center;
+			line-height: 4vw;
+		}
 
 		table {
 			font-size:2vh;
@@ -48,20 +59,107 @@
 		.statusON { background-color: rgba(0, 0, 0, 0); color: White;} /* This is applied to the message before the status text when On */
 		.outputOFF { color: Red; } /* This is applied only to the actual status text when Off */
 		.outputON { color: Green; } /* This is applied only to the actual status text when On */
-	  </style>
+		
+	    #scroll-container {
+          height: 100%;
+          overflow: hidden;
+        }
 
-   </head>
-   
-   <body onload = "JavaScript:AutoRefresh(5000);">
+		#scroll-text {
+			height: 100%;
+			text-align: center;
+			
+			/* animation properties */
+			/* Negative for top to bottom. Positive for bottom to top */
+			-moz-transform: translateY(-200%);
+			-webkit-transform: translateY(-200%);
+			transform: translateY(-200%);
+			
+			/* Modify the time to speed up or slow down the scroll speed */
+			/* Change animation between top-to-bottom-animation or bottom-to-top-animation */
+			-moz-animation: top-to-bottom-animation 30s linear infinite;
+			-webkit-animation: top-to-bottom-animation 30s linear infinite;
+			animation: top-to-bottom-animation 30s linear infinite;
+		}
+
+		/* Top to bottom Section */
+		/* Top to Bottom for Firefox */
+		@-moz-keyframes top-to-bottom-animation {
+			from { -moz-transform: translateY(-150%); }
+			to { -moz-transform: translateY(100%); }
+		}
+
+		/* Top to Bottom for Chrome */
+		@-webkit-keyframes top-to-bottom-animation {
+			from { -webkit-transform: translateY(-150%); }
+			to { -webkit-transform: translateY(100%); }
+		}
+
+		@keyframes top-to-bottom-animation {
+		from {
+			-moz-transform: translateY(-150%);
+			-webkit-transform: translateY(-150%);
+			transform: translateY(-150%);
+		}
+		to {
+			-moz-transform: translateY(100%);
+			-webkit-transform: translateY(100%);
+			transform: translateY(100%);
+		}
+		}
+
+		/* Bottom to Top Section */
+		/* Bottom to Top for Firefox */
+		@-moz-keyframes bottom-to-top-animation {
+			from { -moz-transform: translateY(100%); }
+			to { -moz-transform: translateY(-150%); }
+		}
+
+		/* Bottom to Top for Chrome */
+		@-webkit-keyframes bottom-to-top-animation {
+			from { -webkit-transform: translateY(100%); }
+			to { -webkit-transform: translateY(-150%); }
+		}
+
+		@keyframes bottom-to-top-animation {
+			from {
+				-moz-transform: translateY(100%);
+				-webkit-transform: translateY(100%);
+				transform: translateY(100%);
+			}
+			to {
+				-moz-transform: translateY(-150%);
+				-webkit-transform: translateY(-150%);
+				transform: translateY(-150%);
+			}
+		}
+
+		.requestor { color: white; } /** The class for ONLY the tag requestor */
+		.requestor-data { color: white; } /** The class for ONLY the returned data for requestor */
+		.song { color: white; } /** The class for ONLY the tag song */
+		.song-data { color: white; } /** The class for ONLY the returned data for song */
+		.score { color: white; } /** The class for ONLY the tag score */
+		.score-data { color: white; } /** The class for ONLY the returned data for score */
+		.award { color: white; } /** The class for ONLY the tag award */
+		.award-data { color: white; } /** The class for ONLY the returned data for award */
+	  </style>
+ </head>
+ 
 <?php
 
 include('config.php');
+
+if(strtolower($_GET["data"])=="endscreenscroll"){ 
+   echo "<body>";
+   } else {
+	echo "<body onload = \"JavaScript:AutoRefresh(5000);\">";
+   }
+
 
 if(!isset($_GET["data"])){die("No data set");}
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
-$conn->set_charset("utf8mb4");
 
 function getLastRequest(){
 	global $conn;
@@ -137,7 +235,7 @@ switch(strtolower($_GET["data"])){
 		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0 
 		GROUP BY sm_scores.grade 
 		ORDER BY sm_scores.grade ASC";
-		//mysqli_set_charset($conn,"utf8mb4");
+		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 
 		if($score == "ddr"){
@@ -153,6 +251,96 @@ switch(strtolower($_GET["data"])){
 			echo '</tr>';
 		}
 		echo '</table>';
+	break;
+	case "endscreenscroll":
+////////EndScreenScroll/////////
+		if(isset($_GET["judgement"])){
+			$judgement = $_GET["judgement"];
+			switch ($judgement){
+				case "itg":
+					$tier = "itg_tier";
+					$grade = "itg_grade";
+				break;
+				case "ddr":
+					$tier = "ddr_tier";
+					$grade = "ddr_grade";
+				break;
+				default:
+				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
+			}
+		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
+
+		$sql = "SELECT
+				sm_scores.song_id,
+				sm_requests.requestor as requestor,
+				sm_requests.request_time,
+				sm_requests.request_type,
+				TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,
+				sm_songs.pack,
+				CONCAT(FORMAT(percentdp * 100, 2),'%') AS percentdp,
+				FORMAT(sm_scores.score, 0) AS score,
+				sm_scores.stage_award AS award,
+				sm_scores.datetime
+				FROM sm_requests
+				INNER JOIN sm_scores
+				ON sm_requests.song_id = sm_scores.song_id
+				INNER JOIN sm_songs
+				ON sm_requests.song_id = sm_songs.id
+				WHERE sm_scores.datetime BETWEEN sm_requests.request_time AND sm_requests.timestamp
+				AND sm_requests.request_time >= now() - INTERVAL 24 HOUR
+				ORDER BY sm_requests.request_time desc";
+		mysqli_set_charset($conn,"utf8mb4");
+		$retval = mysqli_query( $conn, $sql );
+	
+		if($score == "ddr"){
+			$score = "score";
+		}else{
+			$score = "percentdp";
+		}
+	
+		echo '<div id="scroll-container"><div id="scroll-text">';
+		while ($row = mysqli_fetch_assoc($retval)){
+			//translate SM5 scores and stage award to game-specific names
+			$award = $row['award'];
+			switch($judgement){
+				case "ddr":
+					$score = "score";
+					$stageAwards = array(
+						"FullComboW3" => "FC",
+						"SingleDigitW3" => "",
+						"OneW3" => "1G",
+						"FullComboW2" => "PFC",
+						"SingleDigitW2" => "",
+						"OneW2" => "1P",
+						"FullComboW1" => "MFC"
+					);
+					if(array_key_exists($award,$stageAwards)){
+						$award = $stageAwards[$award];
+					}
+				break;
+				case "itg":
+					$score = "percentdp";
+					$stageAwards = array(
+						"FullComboW3" => "FC",
+						"SingleDigitW3" => "",
+						"OneW3" => "1G",
+						"FullComboW2" => "Tri-Star",
+						"SingleDigitW2" => "",
+						"OneW2" => "1P",
+						"FullComboW1" => "Quad"
+					);
+					if(array_key_exists($award,$stageAwards)){
+						$award = $stageAwards[$award];
+					}
+				break;
+				default:
+					$score = "percentdp";
+					$award = "";
+			}
+			
+			echo "<h4><span class=\"requestor\">Requestor</span>: <span class=\"requestor-data\">".$row['requestor']."</span><br /><span class=\"song\">Song</span>: <span class=\"song-data\">".$row['title']."</span><br /><span class=\"score\">Score</span>: <span class=\"score-data\">".$row[$score]."</span><br /><span class=\"award\">Award</span>: <span class=\"award-data\">".$award."</span></h4>";
+		}
+		echo '<div></div>';
 	break;
 	case "recent":
 ////////RECENT HIGHSCORES/////////
@@ -191,7 +379,7 @@ switch(strtolower($_GET["data"])){
 		ON sm_scores.song_id = h2.song_id AND sm_scores.stepstype = h2.stepstype AND sm_scores.difficulty = h2.difficulty AND sm_scores.username = h2.username AND sm_scores.percentdp = h2.maxpercentdp
 		ORDER BY `datetime` DESC
 		LIMIT 5";
-		//mysqli_set_charset($conn,"utf8mb4");
+		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 		
 		echo '<table>';

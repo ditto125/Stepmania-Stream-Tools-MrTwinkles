@@ -44,3 +44,68 @@
     * '!meter [#/off]' : Set a max difficulty meter for requests
 
 *Requires use of the realtime Stats.xml scraping
+
+## Stats.php Usage
+
+##### Configuring Request Status Indicator
+
+Request status indicator is something that you can use to help your stream understand if you are accepting requests currently or not. It has some configuration options in CSS that allow you to place it anywhere and have it go with your stream.
+
+* Within OBS, create a new browser source with whatever size allocation you would like to alot for the indicator
+* Use the address https://[URL]/stats.php?data=requestStatus&broadcaster=[TwitchName]
+* Configure your desired display CSS in the Custom CSS window in OBS
+
+	CSS options are:
+```css
+.statusOFF { background-color: rgba(255, 0, 0, 255); color: Yellow;}
+.statusON { background-color: rgba(120, 255, 50, 255); color: Black;}
+.outputOFF { color: White; }
+.outputON { color: Blue; }
+```
+
+##### Configuring Scrolling End Screen Statistics
+
+Scrolling End Screen Statistics allows you to give a comprehensive list of the requested songs, requestor, score acheived, and any awards associated with the score obtained during the requested play.
+
+* Within OBS, create a new browser source with whatever size allocation you would like to alot for the scrolling list
+* Use the address https://[URL]/stats.php?data=EndScreenScroll&judgement=itg
+ **Note**: Judgement should be either ITG or DDR depending on your theme
+* Configure your desired display CSS in the Custom CSS window in OBS
+
+Custom CSS for behavior options:
+
+ **Note**: Default behavior is top-to-bottom-animation, below is an example of how to change that to scroll the opposite
+
+```css
+#scroll-text {
+  height: 100%;
+  text-align: center;
+  
+  /* animation properties */
+  /* Negative (-200%) for top to bottom. Positive (100%) for bottom to top */
+  -moz-transform: translateY(100%);
+  -webkit-transform: translateY(100%);
+  transform: translateY(100%);
+  
+  /* Modify the time to speed up or slow down the scroll speed */
+  /* Change animation between top-to-bottom-animation or bottom-to-top-animation */
+  -moz-animation: bottom-to-top-animation 30s linear infinite;
+  -webkit-animation: bottom-to-top-animation 30s linear infinite;
+  animation: bottom-to-top-animation 30s linear infinite;
+}
+```
+
+Custom CSS for display options:
+
+ **Note**: Default style is all text being white. Use any modifier in the below listing to change the colors or other attributes desired
+
+```css
+.requestor { color: white; } /* The class for ONLY the tag requestor */
+.requestor-data { color: white; } /* The class for ONLY the returned data for requestor */
+.song { color: white; } /* The class for ONLY the tag song */
+.song-data { color: white; } /* The class for ONLY the returned data for song */
+.score { color: white; } /* The class for ONLY the tag score */
+.score-data { color: white; } /* The class for ONLY the returned data for score */
+.award { color: white; } /* The class for ONLY the tag award */
+.award-data { color: white; } /* The class for ONLY the returned data for award */
+```
