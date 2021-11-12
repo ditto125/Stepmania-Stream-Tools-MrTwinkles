@@ -73,7 +73,7 @@ Request status indicator is something that you can use to help your stream under
 Scrolling End Screen Statistics allows you to give a comprehensive list of the requested songs, requestor, score acheived, and any awards associated with the score obtained during the requested play.
 
 * Within OBS, create a new browser source with whatever size allocation you would like to alot for the scrolling list
-* Use the address https://[URL]/stats.php?data=EndScreenScroll&judgement=itg
+* Use the address https://[URL]/stats.php?data=EndScreenScroll&judgement=itg&session=6
  **Note**: Judgement should be either ITG or DDR depending on your theme
 * Configure your desired display CSS in the Custom CSS window in OBS
 
