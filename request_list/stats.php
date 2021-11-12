@@ -164,12 +164,38 @@ $conn->set_charset("utf8mb4");
 
 function getLastRequest(){
 	global $conn;
+
+	$return = array('timestamp' => '','broadcaster' => '','username' => '','player_guid' => '');
+
 	$lastRequest = array();
-	$sql = "SELECT * FROM sm_requests WHERE state <> 'canceled' AND state <> 'skipped' ORDER BY request_time DESC LIMIT 1";
+	$sql = "SELECT song_id,request_time,broadcaster,request_type 
+			FROM sm_requests 
+			WHERE state <> 'canceled' AND state <> 'skipped' 
+			ORDER BY request_time DESC 
+			LIMIT 1";
 	$retval = mysqli_query( $conn, $sql );
 	$lastRequest = mysqli_fetch_assoc($retval);
+	$return["timestamp"] = $lastRequest["request_time"];
+	$return["broadcaster"] = $lastRequest["broadcaster"];
+
+	//get lastplayed timestamp
+	$lastPlayed = array();
+	$sql = "SELECT username,player_guid,lastplayed,datetime  
+			FROM sm_songsplayed 
+			ORDER BY lastplayed DESC 
+			LIMIT 1 ";
+	$retval = mysqli_query( $conn, $sql );
+	$lastPlayed = mysqli_fetch_assoc($retval);
+
+	$return["username"] = $lastPlayed["username"];
+	$return["player_guid"] = $lastPlayed["player_guid"];
 	
-	return $lastRequest;
+	if($lastPlayed["datetime"] > $lastRequest["request_time"]){
+		//songsplayed datetime is later than the last request, use that timestamp
+		$return["timestamp"] = $lastPlayed["datetime"];
+	}
+
+	return $return;
 }
 
 function format_pack($pack){
@@ -193,7 +219,7 @@ if(isset($_GET["session"]) && is_numeric($_GET["session"])){
 switch(strtolower($_GET["data"])){
 ////////REQUESTS/////////
 	case "requests":	
-		$timestamp = getLastRequest()['request_time'];
+		$timestamp = getLastRequest()['timestamp'];
 
 		$sql = "SELECT COUNT(*) AS requestsToday FROM sm_requests WHERE state <> 'canceled' AND state <> 'skipped' AND request_time > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)";
 		$retval = mysqli_query( $conn, $sql );
@@ -205,7 +231,7 @@ switch(strtolower($_GET["data"])){
 	break;
 ////////SONGS/////////
 	case "songs":
-		$timestamp = getLastRequest()['request_time'];
+		$timestamp = getLastRequest()['timestamp'];
 
 		$sql = "SELECT COUNT(DISTINCT datetime) AS playedToday FROM sm_scores WHERE datetime > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR), interval 3 hour)";
 		$retval = mysqli_query( $conn, $sql );
@@ -234,7 +260,7 @@ switch(strtolower($_GET["data"])){
 			}
 		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
 		
-		$timestamp = getLastRequest()['request_time'];
+		$timestamp = getLastRequest()['timestamp'];
 		
 		$sql = "SELECT sm_grade_tiers.$grade,FORMAT(MAX(sm_scores.percentdp*100),2) AS percentdp,FORMAT(MAX(score),0) AS score,COUNT(sm_scores.grade) AS gradeCount 
 		FROM sm_scores 
@@ -260,8 +286,7 @@ switch(strtolower($_GET["data"])){
 	break;
 	case "endscreenscroll":
 ////////EndScreenScroll/////////
-		$broadcasters = getLastRequest()['broadcaster'];
-		$timestamp = getLastRequest()['request_time'];
+		$timestamp = getLastRequest()['timestamp'];
 
 		if(isset($_GET["judgement"])){
 			$judgement = $_GET["judgement"];
@@ -368,7 +393,7 @@ switch(strtolower($_GET["data"])){
 			}
 		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
 
-		$timestamp = getLastRequest()['request_time'];
+		$timestamp = getLastRequest()['timestamp'];
 
 		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.$grade,CONCAT(FORMAT(maxpercentdp * 100, 2),'%') AS percentdp,FORMAT(score, 0) AS score,sm_scores.stage_award AS award,sm_scores.stepstype,sm_scores.difficulty,sm_scores.username,datetime
 		FROM
@@ -437,12 +462,12 @@ switch(strtolower($_GET["data"])){
 	break;
 	case "requestors":
 ////////REQUESTORS/////////
-		$broadcasters = getLastRequest()['broadcaster'];
-		$timestamp = getLastRequest()['request_time'];
+		$broadcaster = getLastRequest()['broadcaster'];
+		$timestamp = getLastRequest()['timestamp'];
 
 		$sql = "SELECT requestor,COUNT(id) AS count 
 		FROM sm_requests 
-		WHERE state <> 'canceled' AND state <> 'skipped' AND LOWER(requestor) NOT IN(\"{$broadcasters}\") AND request_time > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR) 
+		WHERE state <> 'canceled' AND state <> 'skipped' AND LOWER(requestor) NOT IN(\"{$broadcaster}\") AND request_time > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR) 
 		GROUP BY requestor 
 		ORDER BY count DESC,requestor DESC 
 		LIMIT 5";
