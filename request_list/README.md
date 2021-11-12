@@ -47,6 +47,11 @@
 
 ## Stats.php Usage
 
+##### General Configuration
+
+Use the URL parameter: `session` to set the (maximum) length of a StepMania play session in hours.
+Example: https://[URL]/stats.php?data=[data]&session=6
+
 ##### Configuring Request Status Indicator
 
 Request status indicator is something that you can use to help your stream understand if you are accepting requests currently or not. It has some configuration options in CSS that allow you to place it anywhere and have it go with your stream.

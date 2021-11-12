@@ -160,6 +160,7 @@ if(!isset($_GET["data"])){die("No data set");}
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
 
 function getLastRequest(){
 	global $conn;
@@ -183,12 +184,18 @@ function format_pack($pack){
 	return $pack;
 }   
 
+if(isset($_GET["session"]) && is_numeric($_GET["session"])){
+	$StreamSessionLength = mysqli_real_escape_string($conn,$_GET["session"]);
+}else{
+	$StreamSessionLength = 6; //stream session length in hours (default: 6)
+}
+
 switch(strtolower($_GET["data"])){
 ////////REQUESTS/////////
 	case "requests":	
 		$timestamp = getLastRequest()['request_time'];
 
-		$sql = "SELECT COUNT(*) AS requestsToday FROM sm_requests WHERE state <> 'canceled' AND state <> 'skipped' AND request_time > date_sub(\"{$timestamp}\", interval 3 hour)";
+		$sql = "SELECT COUNT(*) AS requestsToday FROM sm_requests WHERE state <> 'canceled' AND state <> 'skipped' AND request_time > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)";
 		$retval = mysqli_query( $conn, $sql );
 
 		$row = mysqli_fetch_assoc($retval);
@@ -200,7 +207,7 @@ switch(strtolower($_GET["data"])){
 	case "songs":
 		$timestamp = getLastRequest()['request_time'];
 
-		$sql = "SELECT COUNT(DISTINCT datetime) AS playedToday FROM sm_scores WHERE datetime > date_sub(\"{$timestamp}\", interval 3 hour)";
+		$sql = "SELECT COUNT(DISTINCT datetime) AS playedToday FROM sm_scores WHERE datetime > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR), interval 3 hour)";
 		$retval = mysqli_query( $conn, $sql );
 
 		$row = mysqli_fetch_assoc($retval);
@@ -232,10 +239,9 @@ switch(strtolower($_GET["data"])){
 		$sql = "SELECT sm_grade_tiers.$grade,FORMAT(MAX(sm_scores.percentdp*100),2) AS percentdp,FORMAT(MAX(score),0) AS score,COUNT(sm_scores.grade) AS gradeCount 
 		FROM sm_scores 
 		LEFT JOIN sm_grade_tiers ON sm_grade_tiers.$tier = sm_scores.grade
-		WHERE sm_scores.datetime > date_sub(\"{$timestamp}\", interval 3 hour) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0 
+		WHERE sm_scores.datetime > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR) AND sm_scores.grade <> 'Failed' AND sm_scores.percentdp > 0 
 		GROUP BY sm_scores.grade 
 		ORDER BY sm_scores.grade ASC";
-		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 
 		if($score == "ddr"){
@@ -254,6 +260,9 @@ switch(strtolower($_GET["data"])){
 	break;
 	case "endscreenscroll":
 ////////EndScreenScroll/////////
+		$broadcasters = getLastRequest()['broadcaster'];
+		$timestamp = getLastRequest()['request_time'];
+
 		if(isset($_GET["judgement"])){
 			$judgement = $_GET["judgement"];
 			switch ($judgement){
@@ -287,9 +296,8 @@ switch(strtolower($_GET["data"])){
 				INNER JOIN sm_songs
 				ON sm_requests.song_id = sm_songs.id
 				WHERE sm_scores.datetime BETWEEN sm_requests.request_time AND sm_requests.timestamp
-				AND sm_requests.request_time >= now() - INTERVAL 24 HOUR
+				AND sm_requests.request_time >= DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)
 				ORDER BY sm_requests.request_time desc";
-		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 	
 		if($score == "ddr"){
@@ -326,7 +334,7 @@ switch(strtolower($_GET["data"])){
 						"OneW3" => "1G",
 						"FullComboW2" => "Tri-Star",
 						"SingleDigitW2" => "",
-						"OneW2" => "1P",
+						"OneW2" => "1EX",
 						"FullComboW1" => "Quad"
 					);
 					if(array_key_exists($award,$stageAwards)){
@@ -379,7 +387,6 @@ switch(strtolower($_GET["data"])){
 		ON sm_scores.song_id = h2.song_id AND sm_scores.stepstype = h2.stepstype AND sm_scores.difficulty = h2.difficulty AND sm_scores.username = h2.username AND sm_scores.percentdp = h2.maxpercentdp
 		ORDER BY `datetime` DESC
 		LIMIT 5";
-		mysqli_set_charset($conn,"utf8mb4");
 		$retval = mysqli_query( $conn, $sql );
 		
 		echo '<table>';
@@ -410,7 +417,7 @@ switch(strtolower($_GET["data"])){
 						"OneW3" => "1G",
 						"FullComboW2" => "Tri-Star",
 						"SingleDigitW2" => "",
-						"OneW2" => "1P",
+						"OneW2" => "1EX",
 						"FullComboW1" => "Quad"
 					);
 					if(array_key_exists($award,$stageAwards)){
@@ -435,7 +442,7 @@ switch(strtolower($_GET["data"])){
 
 		$sql = "SELECT requestor,COUNT(id) AS count 
 		FROM sm_requests 
-		WHERE state <> 'canceled' AND state <> 'skipped' AND LOWER(requestor) NOT IN(\"{$broadcasters}\") AND request_time > date_sub(\"{$timestamp}\", interval 3 hour) 
+		WHERE state <> 'canceled' AND state <> 'skipped' AND LOWER(requestor) NOT IN(\"{$broadcasters}\") AND request_time > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR) 
 		GROUP BY requestor 
 		ORDER BY count DESC,requestor DESC 
 		LIMIT 5";
@@ -467,10 +474,8 @@ switch(strtolower($_GET["data"])){
     break;
 }
 
+echo "</body>\n</html>";
 //close everything out
 die();
 mysqli_close($conn);
 ?>
-</body>
-   
-</html>
