@@ -16,7 +16,8 @@ if(!isset($_GET["random"]) && ((!isset($_GET["num"]) && !is_numeric($_GET["num"]
 }
 
 function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty){
-
+	global $conn;
+	
 	$userobj = check_user($twitchid, $requestor);
 
 	if($userobj["banned"] == "true"){
@@ -28,15 +29,10 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $req
 
 	if(empty($request_type)){$request_type = "random";}
 
-	global $conn;
+	requested_recently($song_id,$requestor,$userobj["whitelisted"],1);
 
-	$sql0 = "SELECT COUNT(*) AS total FROM sm_requests WHERE song_id = '$song_id' AND state <> 'canceled' AND request_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
-	$retval0 = mysqli_query( $conn, $sql0 );
-	$row0 = mysqli_fetch_assoc($retval0);
-	if(($row0["total"] > 0) && ($userobj["whitelisted"] != "true")){die("That song has already been requested recently!");}
-
-        $sql = "INSERT INTO sm_requests (song_id, request_time, requestor, twitch_tier, broadcaster, request_type, stepstype, difficulty) VALUES ('{$song_id}', NOW(), '{$requestor}', '{$tier}', '{$broadcaster}', '{$request_type}', '{$stepstype}', '{$difficulty}')";
-        $retval = mysqli_query( $conn, $sql );
+    $sql = "INSERT INTO sm_requests (song_id, request_time, requestor, twitch_tier, broadcaster, request_type, stepstype, difficulty) VALUES ('{$song_id}', NOW(), '{$requestor}', '{$tier}', '{$broadcaster}', '{$request_type}', '{$stepstype}', '{$difficulty}')";
+    $retval = mysqli_query( $conn, $sql );
 
 }
 
@@ -516,7 +512,7 @@ if($_GET["random"] == "theusual"){
 if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 		
 		$random = mysqli_real_escape_string($conn,$_GET["random"]);
-		if(isset($_GET["type"])){$request_type = mysqli_real_escape_string($conn,$_GET["type"]);}
+		if(isset($_GET["type"])){$request_type = mysqli_real_escape_string($conn,strtolower($_GET["type"]));}
 		$random = htmlspecialchars($random);
 
 		$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");

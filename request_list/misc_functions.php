@@ -104,6 +104,25 @@ function check_cooldown($user){
     }
 }
 
+function requested_recently($song_id,$requestor,$whitelisted,$interval){
+    global $conn;
+    
+    if(!is_numeric($interval)){
+        $interval = 1;
+    }
+
+    $sql0 = "SELECT COUNT(*) AS total 
+            FROM sm_requests 
+            WHERE song_id = '$song_id' AND state <> 'canceled' AND request_time > DATE_SUB(NOW(), INTERVAL $interval HOUR)";
+	$retval0 = mysqli_query( $conn, $sql0 );
+	$row0 = mysqli_fetch_assoc($retval0);
+
+	if($row0["total"] > 0){
+    //if(($row0["total"] > 0) && ($whitelisted != "true")){
+        die("$requestor That song has already been requested recently!");
+    }
+}
+
 function recently_played($song_id){
 	global $conn;
 	$recently_played = FALSE;
