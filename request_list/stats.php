@@ -210,7 +210,7 @@ function format_pack($pack){
 	return $pack;
 }   
 
-if(isset($_GET["session"]) && is_numeric($_GET["session"])){
+if(isset($_GET["session"]) && !empty($_GET["session"]) && is_numeric($_GET["session"])){
 	$StreamSessionLength = mysqli_real_escape_string($conn,$_GET["session"]);
 }else{
 	$StreamSessionLength = 6; //stream session length in hours (default: 6)

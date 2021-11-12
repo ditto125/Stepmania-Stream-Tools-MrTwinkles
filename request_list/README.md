@@ -52,6 +52,8 @@
 Use the URL parameter: `session` to set the (maximum) length of a StepMania play session in hours.
 Example: https://[URL]/stats.php?data=[data]&session=6
 
+If `session` is not set, a default value of '6' hours is used.
+
 ##### Configuring Request Status Indicator
 
 Request status indicator is something that you can use to help your stream understand if you are accepting requests currently or not. It has some configuration options in CSS that allow you to place it anywhere and have it go with your stream.
@@ -73,7 +75,7 @@ Request status indicator is something that you can use to help your stream under
 Scrolling End Screen Statistics allows you to give a comprehensive list of the requested songs, requestor, score acheived, and any awards associated with the score obtained during the requested play.
 
 * Within OBS, create a new browser source with whatever size allocation you would like to alot for the scrolling list
-* Use the address https://[URL]/stats.php?data=EndScreenScroll&judgement=itg&session=6
+* Use the address https://[URL]/stats.php?data=EndScreenScroll&judgement=itg&session=[HOURS]
  **Note**: Judgement should be either ITG or DDR depending on your theme
 * Configure your desired display CSS in the Custom CSS window in OBS
 
