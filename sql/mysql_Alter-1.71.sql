@@ -22,6 +22,9 @@ ADD INDEX `song_id` (`song_id`) USING BTREE;
 ALTER TABLE sm_songsplayed
 ADD INDEX `song_id` (`song_id`) USING BTREE;
 --
+-- force a rebuild of the song cache
+UPDATE `sm_songs` SET `checksum` = NULL;
+
 --Due to fixes for proper UTF-8 connection to the db,
 --we will need to do some utf-8 convertions of every table, column that would contain malformed utf8 strings
 --UPDATE [tabe] SET [column] = CONVERT(cast(CONVERT([column] USING latin1) AS BINARY) USING utf8mb4);
