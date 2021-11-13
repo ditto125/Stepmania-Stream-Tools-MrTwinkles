@@ -243,22 +243,20 @@ switch(strtolower($_GET["data"])){
 	break;
 	case "scores":
 ////////SCORES/////////
-		if(isset($_GET["judgement"])){
-			switch ($_GET["judgement"]){
-				case "itg":
-					$tier = "itg_tier";
-					$grade = "itg_grade";
-					$score = "itg";
-				break;
+		if(isset($scoreType)){
+			switch ($scoreType){
 				case "ddr":
 					$tier = "ddr_tier";
 					$grade = "ddr_grade";
-					$score = "ddr";
+					$score = "score";
 				break;
+				case "itg":
 				default:
-				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
+					$tier = "itg_tier";
+					$grade = "itg_grade";
+					$score = "percentdp";
 			}
-		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
+		}else{die("Score type missing from config.php file!");}
 		
 		$timestamp = getLastRequest()['timestamp'];
 		
@@ -269,12 +267,6 @@ switch(strtolower($_GET["data"])){
 		GROUP BY sm_scores.grade 
 		ORDER BY sm_scores.grade ASC";
 		$retval = mysqli_query( $conn, $sql );
-
-		if($score == "ddr"){
-			$score = "score";
-		}else{
-			$score = "percentdp";
-		}
 		
 		echo '<table>';
 		while ($row = mysqli_fetch_assoc($retval)){
@@ -288,55 +280,11 @@ switch(strtolower($_GET["data"])){
 ////////EndScreenScroll/////////
 		$timestamp = getLastRequest()['timestamp'];
 
-		if(isset($_GET["judgement"])){
-			$judgement = $_GET["judgement"];
-			switch ($judgement){
-				case "itg":
-					$tier = "itg_tier";
-					$grade = "itg_grade";
-				break;
+		if(isset($scoreType)){
+			switch ($scoreType){
 				case "ddr":
 					$tier = "ddr_tier";
 					$grade = "ddr_grade";
-				break;
-				default:
-				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
-			}
-		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
-
-		$sql = "SELECT
-				sm_scores.song_id,
-				sm_requests.requestor as requestor,
-				sm_requests.request_time,
-				sm_requests.request_type,
-				TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,
-				sm_songs.pack,
-				CONCAT(FORMAT(percentdp * 100, 2),'%') AS percentdp,
-				FORMAT(sm_scores.score, 0) AS score,
-				sm_scores.stage_award AS award,
-				sm_scores.datetime
-				FROM sm_requests
-				INNER JOIN sm_scores
-				ON sm_requests.song_id = sm_scores.song_id
-				INNER JOIN sm_songs
-				ON sm_requests.song_id = sm_songs.id
-				WHERE sm_scores.datetime BETWEEN sm_requests.request_time AND sm_requests.timestamp
-				AND sm_requests.request_time >= DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)
-				ORDER BY sm_requests.request_time desc";
-		$retval = mysqli_query( $conn, $sql );
-	
-		if($score == "ddr"){
-			$score = "score";
-		}else{
-			$score = "percentdp";
-		}
-	
-		echo '<div id="scroll-container"><div id="scroll-text">';
-		while ($row = mysqli_fetch_assoc($retval)){
-			//translate SM5 scores and stage award to game-specific names
-			$award = $row['award'];
-			switch($judgement){
-				case "ddr":
 					$score = "score";
 					$stageAwards = array(
 						"FullComboW3" => "FC",
@@ -347,11 +295,11 @@ switch(strtolower($_GET["data"])){
 						"OneW2" => "1P",
 						"FullComboW1" => "MFC"
 					);
-					if(array_key_exists($award,$stageAwards)){
-						$award = $stageAwards[$award];
-					}
 				break;
 				case "itg":
+				default:
+					$tier = "itg_tier";
+					$grade = "itg_grade";
 					$score = "percentdp";
 					$stageAwards = array(
 						"FullComboW3" => "FC",
@@ -362,36 +310,83 @@ switch(strtolower($_GET["data"])){
 						"OneW2" => "1EX",
 						"FullComboW1" => "Quad"
 					);
-					if(array_key_exists($award,$stageAwards)){
-						$award = $stageAwards[$award];
-					}
-				break;
-				default:
-					$score = "percentdp";
-					$award = "";
 			}
-			
-			echo "<h4><span class=\"requestor\">Requestor</span>: <span class=\"requestor-data\">".$row['requestor']."</span><br /><span class=\"song\">Song</span>: <span class=\"song-data\">".$row['title']."</span><br /><span class=\"score\">Score</span>: <span class=\"score-data\">".$row[$score]."</span><br /><span class=\"award\">Award</span>: <span class=\"award-data\">".$award."</span></h4>";
+		}else{die("Score type missing from config.php file!");}
+
+		$sql = "SELECT
+				sm_scores.song_id,
+				sm_requests.requestor as requestor,
+				sm_requests.request_time,
+				sm_requests.request_type,
+				TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,
+				sm_songs.pack,
+				CONCAT(FORMAT(sm_scores.percentdp * 100, 2),'%') AS percentdp,
+				FORMAT(sm_scores.score, 0) AS score,
+				sm_grade_tiers.$grade AS grade,
+				sm_scores.stage_award AS award,
+				sm_scores.datetime
+				FROM sm_requests
+				INNER JOIN sm_scores
+					JOIN sm_grade_tiers 
+					ON sm_grade_tiers.$tier = sm_scores.grade
+				ON sm_requests.song_id = sm_scores.song_id
+				INNER JOIN sm_songs
+				ON sm_requests.song_id = sm_songs.id
+				WHERE sm_scores.datetime BETWEEN sm_requests.request_time AND sm_requests.timestamp
+				AND sm_requests.request_time >= DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)
+				ORDER BY sm_requests.request_time DESC";
+		$retval = mysqli_query( $conn, $sql );
+	
+		echo '<div id="scroll-container"><div id="scroll-text">';
+		while ($row = mysqli_fetch_assoc($retval)){
+			//translate SM5 scores and stage award to game-specific names
+			$award = $row['award'];
+			if(array_key_exists($award,$stageAwards)){
+				$award = $stageAwards[$award];
+			}
+			echo "<h4><span class=\"requestor\">Requestor</span>: <span class=\"requestor-data\">".$row['requestor']."</span><br /><span class=\"song\">Song</span>: <span class=\"song-data\">".$row['title']."</span><br /><span class=\"score\">Score</span>: <span class=\"score-data\">".$row[$score]." (".$row['grade'].")</span>";
+			if(!empty($award)){
+				//Don't show the award if there isn't one
+				echo "<br /><span class=\"award\">Award</span>: <span class=\"award-data\">".$award;
+			}
+			echo "</span></h4>";
 		}
 		echo '<div></div>';
 	break;
 	case "recent":
 ////////RECENT HIGHSCORES/////////
-		if(isset($_GET["judgement"])){
-			$judgement = $_GET["judgement"];
-			switch ($judgement){
-				case "itg":
-					$tier = "itg_tier";
-					$grade = "itg_grade";
-				break;
+		if(isset($scoreType)){
+			switch ($scoreType){
 				case "ddr":
 					$tier = "ddr_tier";
 					$grade = "ddr_grade";
+					$score = "score";
+					$stageAwards = array(
+						"FullComboW3" => "FC",
+						"SingleDigitW3" => "",
+						"OneW3" => "1G",
+						"FullComboW2" => "PFC",
+						"SingleDigitW2" => "",
+						"OneW2" => "1P",
+						"FullComboW1" => "MFC"
+					);
 				break;
+				case "itg":
 				default:
-				die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");
+					$tier = "itg_tier";
+					$grade = "itg_grade";
+					$score = "percentdp";
+					$stageAwards = array(
+						"FullComboW3" => "FC",
+						"SingleDigitW3" => "",
+						"OneW3" => "1G",
+						"FullComboW2" => "Tri-Star",
+						"SingleDigitW2" => "",
+						"OneW2" => "1EX",
+						"FullComboW1" => "Quad"
+					);
 			}
-		}else{die("No judgement specified. Usage: judgement=\"itg\" or \"ddr\".");}
+		}else{die("Score type missing from config.php file!");}
 
 		$timestamp = getLastRequest()['timestamp'];
 
@@ -418,40 +413,8 @@ switch(strtolower($_GET["data"])){
 		while ($row = mysqli_fetch_assoc($retval)){
 			//translate SM5 scores and stage award to game-specific names
 			$award = $row['award'];
-			switch($judgement){
-				case "ddr":
-					$score = "score";
-					$stageAwards = array(
-						"FullComboW3" => "FC",
-						"SingleDigitW3" => "",
-						"OneW3" => "1G",
-						"FullComboW2" => "PFC",
-						"SingleDigitW2" => "",
-						"OneW2" => "1P",
-						"FullComboW1" => "MFC"
-					);
-					if(array_key_exists($award,$stageAwards)){
-						$award = $stageAwards[$award];
-					}
-				break;
-				case "itg":
-					$score = "percentdp";
-					$stageAwards = array(
-						"FullComboW3" => "FC",
-						"SingleDigitW3" => "",
-						"OneW3" => "1G",
-						"FullComboW2" => "Tri-Star",
-						"SingleDigitW2" => "",
-						"OneW2" => "1EX",
-						"FullComboW1" => "Quad"
-					);
-					if(array_key_exists($award,$stageAwards)){
-						$award = $stageAwards[$award];
-					}
-				break;
-				default:
-					$score = "percentdp";
-					$award = "";
+			if(array_key_exists($award,$stageAwards)){
+				$award = $stageAwards[$award];
 			}
 		//build table of recent highscores
 			echo '<tr>';
