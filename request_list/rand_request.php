@@ -120,14 +120,15 @@ if($_GET["random"] == "random"){
 
 	$request_type = "random";
 
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
 
 	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
-	FROM sm_songs 
-	JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_songs.id 
-	JOIN sm_scores ON sm_scores.song_id=sm_songs.id
-	JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
-	WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned NOT IN(1,2) AND installed=1 AND sm_songsplayed.numplayed>1 AND percentdp>0 $whereTypeDiffClause 
+	FROM sm_songsplayed 
+	JOIN sm_songs ON sm_songsplayed.song_id=sm_songs.id  
+	WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned NOT IN(1,2) AND installed=1 AND sm_songsplayed.numplayed > 0 $whereTypeDiffClause AND sm_songsplayed.song_id IN (
+		SELECT song_id
+		FROM sm_scores
+		WHERE percentdp > 0)
 	GROUP BY sm_songs.id 
 	ORDER BY RAND()
 	LIMIT 100";
@@ -193,8 +194,10 @@ if($_GET["random"] == "portal"){
 
 	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
 	FROM sm_songs 
-	JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
-	WHERE installed=1 AND banned NOT IN(1,2) $whereTypeDiffClause 
+	WHERE installed=1 AND banned NOT IN(1,2) AND sm_songs.id IN (
+		SELECT song_id 
+		FROM sm_notedata 
+		WHERE song_id > 0 $whereTypeDiffClause) 
 	ORDER BY RAND() LIMIT 100";
 	$retval = mysqli_query( $conn, $sql );
 
@@ -222,14 +225,18 @@ if($_GET["random"] == "unplayed"){
 
 	$request_type = "unplayed";
 
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
 
 	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
-	FROM sm_songs   
-	WHERE installed=1 AND banned NOT IN(1,2) AND id NOT IN (
+	FROM sm_songs
+	WHERE installed=1 AND banned NOT IN(1,2) $whereTypeDiffClause AND id NOT IN (
 		SELECT song_id 
 		FROM sm_songsplayed
-		WHERE song_id>0 AND username LIKE '{$profileName}' $whereTypeDiffClause) 
+		WHERE song_id>0 AND username LIKE '{$profileName}') 
+		AND sm_songs.id IN (
+            SELECT song_id
+            FROM sm_notedata
+            WHERE song_id>0 $whereTypeDiffClause)
 	ORDER BY RAND() LIMIT 100";
 	$retval = mysqli_query( $conn, $sql );
 
@@ -256,21 +263,19 @@ if($_GET["random"] == "top"){
 
 	$request_type = "top";
 	//if(empty($stepstype)){$stepstype = '%';}
-	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
-	$whereTypeDiffClauseSP = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
+	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
 
 	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,numplayed,t2.stepstype AS stepstype  
 			FROM sm_songs 
 			JOIN 
 				(SELECT song_id,SUM(numplayed) AS numplayed,stepstype 
 				FROM sm_songsplayed
-				WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}' $whereTypeDiffClauseSP  
+				WHERE song_id>0 AND numplayed>1 AND username LIKE '{$profileName}' $whereTypeDiffClause  
 				GROUP BY song_id,stepstype 
-				ORDER BY numplayed DESC
-				LIMIT 100) AS t2
+				ORDER BY numplayed DESC 
+				LIMIT 100) AS t2 
 			ON t2.song_id=sm_songs.id 
-			JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
-			WHERE banned NOT IN(1,2) AND installed=1 $whereTypeDiffClause 
+			WHERE banned NOT IN(1,2) AND installed=1 
 			ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
 
@@ -362,8 +367,6 @@ if($_GET["random"] == "gitgud"){
 					ORDER BY percentdp ASC, score ASC 
 					LIMIT 25) AS t2 
 				ON t2.song_id = sm_songs.id 
-				JOIN sm_notedata
-				ON sm_songs.id = sm_notedata.song_id AND t2.difficulty = sm_notedata.difficulty AND t2.stepstype = sm_notedata.stepstype 
 				WHERE banned NOT IN(1,2) AND installed = 1 
 				ORDER BY RAND()";
         $retval = mysqli_query( $conn, $sql );
@@ -409,12 +412,14 @@ die();
 if($_GET["random"] == "roll"){
 
 	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_songsplayed");
-	
-	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack,SUM(sm_songsplayed.numplayed) AS numplayed 
-	FROM sm_songs 
-	JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_songs.id 
-	JOIN sm_scores ON sm_scores.song_id=sm_songs.id 
-	WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned NOT IN(1,2) AND installed=1 AND  sm_songsplayed.numplayed>1 AND percentdp>0 $whereTypeDiffClause 
+
+	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
+	FROM sm_songsplayed 
+	JOIN sm_songs ON sm_songsplayed.song_id=sm_songs.id  
+	WHERE sm_songsplayed.song_id > 0 AND sm_songsplayed.username LIKE '{$profileName}' AND banned NOT IN(1,2) AND installed=1 AND sm_songsplayed.numplayed > 0 $whereTypeDiffClause AND sm_songsplayed.song_id IN (
+		SELECT song_id
+		FROM sm_scores
+		WHERE percentdp > 0)
 	GROUP BY sm_songs.id 
 	ORDER BY RAND()
 	LIMIT 100";
@@ -470,7 +475,6 @@ if($_GET["random"] == "roll"){
 //special random for regulars: picks a random song from top 10 requested by requestor
 if($_GET["random"] == "theusual"){
 	
-	$userLC = strtolower($user);
 	$request_type = "theusual";
 
 	$whereTypeDiffClause = build_whereclause($stepstype,$difficulty,"sm_notedata");
@@ -480,13 +484,16 @@ if($_GET["random"] == "theusual"){
 			JOIN 
 				(SELECT song_id, COUNT(song_id) AS idcount 
 				FROM sm_requests 
-				WHERE song_id>0 AND LOWER(requestor) LIKE '{$userLC}' AND state <> 'canceled' AND state <> 'skipped' 
-				GROUP BY song_id 
+				WHERE song_id>0 AND LOWER(requestor) LIKE LOWER('$user') AND state <> 'canceled' AND state <> 'skipped' 
+				GROUP BY song_id
+				HAVING idcount > 1  
 				ORDER BY idcount DESC  
 				LIMIT 20) AS t2 
-			ON t2.song_id=sm_songs.id  
-			JOIN sm_notedata ON sm_notedata.song_id=sm_songs.id  
-			WHERE banned NOT IN(1,2) AND installed=1 AND idcount>1 $whereTypeDiffClause 
+			ON t2.song_id=sm_songs.id    
+			WHERE banned NOT IN(1,2) AND installed=1 AND sm_songs.id IN (
+				SELECT song_id 
+				FROM sm_notedata 
+				WHERE song_id > 0 $whereTypeDiffClause) 
 			ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
 
