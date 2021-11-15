@@ -69,15 +69,21 @@ function check_user($userid, $user){
 
 }
 
-function check_length(){
+function check_length($maxRequests){
     global $conn;
-    $sql0 = "SELECT state FROM sm_requests ORDER BY request_time DESC LIMIT 10";
+    if(!isset($maxRequests) || !is_numeric($maxRequests)){
+        $maxRequests = 10;
+    }
+    $sql0 = "SELECT state FROM sm_requests ORDER BY request_time DESC LIMIT $maxRequests";
     $retval0 = mysqli_query( $conn, $sql0 );
     $length = 0;
     foreach($retval0 as $row){
         if($row['state'] == 'requested'){
             $length++;
         }
+    }
+    if($length > $maxRequests){
+        die("Too many songs on the request list! Try again in a few minutes.");
     }
     return $length;
 }
@@ -87,11 +93,8 @@ function check_cooldown($user){
     global $maxRequests;
 
     //check total length of requests, if over maxRequests, stop
-    $length = check_length();
+    $length = check_length($maxRequests);
 
-    if($length > $maxRequests){
-        die("Too many songs on the request list! Try again in a few minutes.");
-    }
     $interval = $cooldownMultiplier * $length;
 
     //scale cooldown as a function of the number of requests. X minutes per open request.	
@@ -99,18 +102,17 @@ function check_cooldown($user){
     $sql0 = "SELECT * FROM sm_requests WHERE state <> 'canceled' AND requestor = '$user' AND request_time > DATE_SUB(NOW(), INTERVAL {$interval} MINUTE)";
     $retval0 = mysqli_query( $conn, $sql0 );
     $numrows = mysqli_num_rows($retval0);
-    if($numrows > 0){
+    if($numrows > 0 && floor($interval) > 1){
         die("Slow down there, part'ner! Try again in ".floor($interval)." minutes.");
+    }elseif($numrows > 0 && floor($interval) <= 1){
+        die("Slow down there, part'ner! Try again in 1 minute.");
     }
 }
 
 function requested_recently($song_id,$requestor,$whitelisted,$interval){
     global $conn;
     
-    if(!is_numeric($interval)){
-        $interval = 1;
-    }
-
+    if(!isset($interval) && !is_numeric($interval)){$interval = 1;}
     $sql0 = "SELECT COUNT(*) AS total 
             FROM sm_requests 
             WHERE song_id = '$song_id' AND state <> 'canceled' AND request_time > DATE_SUB(NOW(), INTERVAL $interval HOUR)";
@@ -123,10 +125,11 @@ function requested_recently($song_id,$requestor,$whitelisted,$interval){
     }
 }
 
-function recently_played($song_id){
+function recently_played($song_id,$interval){
 	global $conn;
 	$recently_played = FALSE;
-	$sql = "SELECT song_id FROM sm_songsplayed WHERE song_id={$song_id} AND lastplayed > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+    if(!isset($interval) && !is_numeric($interval)){$interval = 1;}
+	$sql = "SELECT song_id FROM sm_songsplayed WHERE song_id={$song_id} AND lastplayed > DATE_SUB(NOW(), INTERVAL $interval HOUR)";
 	$retval = mysqli_query($conn,$sql);
 	if(mysqli_num_rows($retval) > 0){
 		$recently_played = TRUE;
