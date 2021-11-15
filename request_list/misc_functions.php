@@ -112,7 +112,7 @@ function check_cooldown($user){
 function requested_recently($song_id,$requestor,$whitelisted,$interval){
     global $conn;
     
-    if(!isset($interval) && !is_numeric($interval)){$interval = 1;}
+    if(!isset($interval) || !is_numeric($interval)){$interval = 1;}
     $sql0 = "SELECT COUNT(*) AS total 
             FROM sm_requests 
             WHERE song_id = '$song_id' AND state <> 'canceled' AND request_time > DATE_SUB(NOW(), INTERVAL $interval HOUR)";
@@ -128,7 +128,7 @@ function requested_recently($song_id,$requestor,$whitelisted,$interval){
 function recently_played($song_id,$interval){
 	global $conn;
 	$recently_played = FALSE;
-    if(!isset($interval) && !is_numeric($interval)){$interval = 1;}
+    if(!isset($interval) || !is_numeric($interval)){$interval = 1;}
 	$sql = "SELECT song_id FROM sm_songsplayed WHERE song_id={$song_id} AND lastplayed > DATE_SUB(NOW(), INTERVAL $interval HOUR)";
 	$retval = mysqli_query($conn,$sql);
 	if(mysqli_num_rows($retval) > 0){
