@@ -9,21 +9,29 @@ $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
 $conn->set_charset("utf8mb4");
 
-function format_pack($pack){
-	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
+function format_pack($pack,$requestor){
+	$length = 40;
+	$length = $length - (strlen($requestor) * 0.8);
+
+ 	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
 	$pack = str_ireplace("DanceDanceRevolution","DDR",$pack);
 	$pack = str_ireplace("Dancing Stage","DS",$pack);
 	$pack = str_ireplace("DancingStage","DS",$pack);
 	$pack = str_ireplace("In The Groove","ITG",$pack);
 	$pack = str_ireplace("InTheGroove","ITG",$pack);
-	$pack = str_ireplace("Ben Speirs","BS",$pack);
-	$pack = str_ireplace("JBEAN Exclusives","JBEAN...",$pack);
+	//$pack = str_ireplace("Ben Speirs","BS",$pack);
+	//$pack = str_ireplace("JBEAN Exclusives","JBEAN...",$pack);
 	$pack = preg_replace("/(\(.*\).\(.*\))$/","",$pack,1);
-	if(strlen($pack) > 25)
-		{$pack = trim(substr($pack,0,18))."...".trim(substr($pack,strlen($pack)-7));
+	if(strlen($pack) > $length){
+		//$pack = trim(substr($pack,0,18))."...".trim(substr($pack,strlen($pack)-7));
+		$separator = "...";
+		$maxLength = $length - strlen($separator);
+		$startTrunc = $maxLength / 2;
+		$truncLength =  strlen($pack) - $maxLength; 
+		$pack = substr_replace($pack,$separator,$startTrunc,$truncLength);
 	}
 return $pack;
-}
+}   
 
 //Get new requests, cancels, and completions
 
@@ -63,7 +71,7 @@ function get_requests_since($id,$oldid,$broadcaster){
 		}else{
 			$request["img"] = "images/packs/".urlencode(basename($pack_img[0]));
 		}
-		$request["pack"] = format_pack($request["pack"]);
+		$request["pack"] = format_pack($request["pack"],$request["requestor"]);
 
 		//format request type and find image
 		if(strtolower($request["request_type"]) != "normal"){
@@ -236,7 +244,7 @@ if(isset($_GET["func"])){
 		$oldid = 0;
 	}
 
-	if(!empty($_GET["broadcaster"])){
+	if(isset($_GET["broadcaster"]) && !empty($_GET["broadcaster"])){
 		$broadcaster = $_GET["broadcaster"];
 	}else{
 		$broadcaster = "%";
