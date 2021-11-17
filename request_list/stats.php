@@ -199,16 +199,17 @@ function getLastRequest(){
 }
 
 function format_pack($pack){
-	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
+ 	$pack = str_ireplace("Dance Dance Revolution","DDR",$pack);
 	$pack = str_ireplace("DanceDanceRevolution","DDR",$pack);
 	$pack = str_ireplace("Dancing Stage","DS",$pack);
 	$pack = str_ireplace("DancingStage","DS",$pack);
 	$pack = str_ireplace("In The Groove","ITG",$pack);
 	$pack = str_ireplace("InTheGroove","ITG",$pack);
-	$pack = str_ireplace("Ben Speirs","BS",$pack);
-	$pack = str_ireplace("JBEAN Exclusives","JBEAN...",$pack);
-	return $pack;
-}   
+	//$pack = str_ireplace("Ben Speirs","BS",$pack);
+	//$pack = str_ireplace("JBEAN Exclusives","JBEAN...",$pack);
+	$pack = preg_replace("/(\(.*\).\(.*\))$/","",$pack,1);
+return $pack;
+}    
 
 if(isset($_GET["session"]) && !empty($_GET["session"]) && is_numeric($_GET["session"])){
 	$StreamSessionLength = mysqli_real_escape_string($conn,$_GET["session"]);
@@ -216,11 +217,11 @@ if(isset($_GET["session"]) && !empty($_GET["session"]) && is_numeric($_GET["sess
 	$StreamSessionLength = 6; //stream session length in hours (default: 6)
 }
 
+$timestamp = getLastRequest()['timestamp'];
+
 switch(strtolower($_GET["data"])){
 ////////REQUESTS/////////
 	case "requests":	
-		$timestamp = getLastRequest()['timestamp'];
-
 		$sql = "SELECT COUNT(*) AS requestsToday FROM sm_requests WHERE state <> 'canceled' AND state <> 'skipped' AND request_time > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)";
 		$retval = mysqli_query( $conn, $sql );
 
@@ -231,9 +232,7 @@ switch(strtolower($_GET["data"])){
 	break;
 ////////SONGS/////////
 	case "songs":
-		$timestamp = getLastRequest()['timestamp'];
-
-		$sql = "SELECT COUNT(DISTINCT datetime) AS playedToday FROM sm_scores WHERE datetime > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR), interval 3 hour)";
+		$sql = "SELECT COUNT(DISTINCT datetime) AS playedToday FROM sm_scores WHERE datetime > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)";
 		$retval = mysqli_query( $conn, $sql );
 
 		$row = mysqli_fetch_assoc($retval);
@@ -258,8 +257,6 @@ switch(strtolower($_GET["data"])){
 			}
 		}else{die("Score type missing from config.php file!");}
 		
-		$timestamp = getLastRequest()['timestamp'];
-		
 		$sql = "SELECT sm_grade_tiers.$grade,FORMAT(MAX(sm_scores.percentdp*100),2) AS percentdp,FORMAT(MAX(score),0) AS score,COUNT(sm_scores.grade) AS gradeCount 
 		FROM sm_scores 
 		LEFT JOIN sm_grade_tiers ON sm_grade_tiers.$tier = sm_scores.grade
@@ -278,8 +275,6 @@ switch(strtolower($_GET["data"])){
 	break;
 	case "endscreenscroll":
 ////////EndScreenScroll/////////
-		$timestamp = getLastRequest()['timestamp'];
-
 		if(isset($scoreType)){
 			switch ($scoreType){
 				case "ddr":
@@ -287,13 +282,13 @@ switch(strtolower($_GET["data"])){
 					$grade = "ddr_grade";
 					$score = "score";
 					$stageAwards = array(
-						"FullComboW3" => "FC",
+						"FullComboW3" => "Full Combo",
 						"SingleDigitW3" => "",
-						"OneW3" => "1G",
-						"FullComboW2" => "PFC",
+						"OneW3" => "1 Great",
+						"FullComboW2" => "Perfect Full Combo",
 						"SingleDigitW2" => "",
-						"OneW2" => "1P",
-						"FullComboW1" => "MFC"
+						"OneW2" => "1 Perfect",
+						"FullComboW1" => "Marvelous Full Combo"
 					);
 				break;
 				case "itg":
@@ -302,13 +297,13 @@ switch(strtolower($_GET["data"])){
 					$grade = "itg_grade";
 					$score = "percentdp";
 					$stageAwards = array(
-						"FullComboW3" => "FC",
+						"FullComboW3" => "Full Combo",
 						"SingleDigitW3" => "",
-						"OneW3" => "1G",
+						"OneW3" => "1 Great",
 						"FullComboW2" => "Tri-Star",
 						"SingleDigitW2" => "",
-						"OneW2" => "1EX",
-						"FullComboW1" => "Quad"
+						"OneW2" => "1 Excellent",
+						"FullComboW1" => "Quad-Star"
 					);
 			}
 		}else{die("Score type missing from config.php file!");}
@@ -388,8 +383,6 @@ switch(strtolower($_GET["data"])){
 			}
 		}else{die("Score type missing from config.php file!");}
 
-		$timestamp = getLastRequest()['timestamp'];
-
 		$sql = "SELECT TRIM(CONCAT(sm_songs.title,' ',sm_songs.subtitle)) AS title,sm_songs.pack AS pack,sm_grade_tiers.$grade,CONCAT(FORMAT(maxpercentdp * 100, 2),'%') AS percentdp,FORMAT(score, 0) AS score,sm_scores.stage_award AS award,sm_scores.stepstype,sm_scores.difficulty,sm_scores.username,datetime
 		FROM
 			sm_scores
@@ -426,7 +419,6 @@ switch(strtolower($_GET["data"])){
 	case "requestors":
 ////////REQUESTORS/////////
 		$broadcaster = getLastRequest()['broadcaster'];
-		$timestamp = getLastRequest()['timestamp'];
 
 		$sql = "SELECT requestor,COUNT(id) AS count 
 		FROM sm_requests 
@@ -460,6 +452,9 @@ switch(strtolower($_GET["data"])){
 			echo "<span id=\"requestStatus\" class=\"status{$requestStatus}\" style=\"text-align: right;\">Current Request Status is: <span class=\"output{$requestStatus}\"> $requestStatus </span></span>";
 		}
     break;
+	default:
+	echo("Error: No data set! Usage: [URL]/stats.php?data=[requests,songs,scores,recent,endscreenscroll,requestors,requeststatus]");
+	break;
 }
 
 echo "</body>\n</html>";
