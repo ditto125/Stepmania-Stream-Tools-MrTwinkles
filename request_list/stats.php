@@ -435,17 +435,30 @@ switch(strtolower($_GET["data"])){
 		echo "</body>";
 	break;
 	////////Request Status/////////
-    case "requeststatus":    
-        if(!isset($_GET["broadcaster"])){die("No broadcaster set");}
-
-        $broadcaster = $_GET["broadcaster"];
-        
-        $sql = "SELECT request_toggle from sm_broadcaster where broadcaster = \"{$broadcaster}\"";
+    case "requeststatus":
+		$sql = "SELECT request_toggle FROM sm_broadcaster";
         $retval = mysqli_query( $conn, $sql );
+		if(mysqli_num_rows($retval) == 1){
+			//only 1 broadcaster
+        	$row = mysqli_fetch_assoc($retval);
+        	$requestStatus = $row["request_toggle"];
+		}elseif(mysqli_num_rows($retval) > 1){
+			//more than 1 broadcaster
+			//user needs to specify which broadcaster
+			if(!isset($_GET["broadcaster"])){die("No broadcaster set! Usage: [URL]/stats.php?data=requeststatus&broadcaster=[BROADCASTER]");}
+			if(empty($_GET["broadcaster"]) || strlen($_GET["broadcaster"]) < 3){die("Invalid broadcaster set!");}
+			$broadcaster = mysqli_real_escape_string($conn,$_GET["broadcaster"]);
 
-        $row = mysqli_fetch_assoc($retval);
-        $requestStatus = $row["request_toggle"];
+			$sql = "SELECT request_toggle FROM sm_broadcaster WHERE broadcaster = \"{$broadcaster}\"";
+        	$retval = mysqli_query( $conn, $sql );
 
+			if(mysqli_num_rows($retval) == 0){die("Broadcaster not found!");}
+
+        	$row = mysqli_fetch_assoc($retval);
+        	$requestStatus = $row["request_toggle"];
+		}else{
+			$requestStatus = "Error";
+		}
 		if(isset($_GET["onlystate"])){
 			echo "<span id=\"requestStatus\" class=\"status{$requestStatus}\" style=\"text-align: right;\"><span class=\"output{$requestStatus}\"> $requestStatus </span></span>";
 		}else{
