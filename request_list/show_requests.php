@@ -94,8 +94,9 @@ echo '<html>
 			if (!$request_img){
 				$request_img = "images/random.png";
 			}else{
-				$request_type = '<img src="images/'.urlencode(basename($request_img[0])).'" class="type">';
+				$request_img = "images/".urlencode(basename($request_img[0]));
 			}
+			$request_type = "<img src=\"$request_img\" class=\"type\">";
 		}else{
 			$request_type = "";
 		}

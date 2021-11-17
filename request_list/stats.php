@@ -48,6 +48,14 @@
 			text-align: center;
 			line-height: 4vw;
 		}
+		.type{
+			height:8vw;
+			width:auto;
+			vertical-align:middle;
+			padding: .1vw;
+			-webkit-filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
+			filter: drop-shadow(0.25vw 0.25vw 0.25vw rgba(0,0,0,0.9));
+		}
 
 		table {
 			font-size:2vh;
@@ -434,6 +442,33 @@ switch(strtolower($_GET["data"])){
 		}
 		echo "</body>";
 	break;
+	case "requesttypes":
+		////////Request Types////////
+		$sql = "SELECT request_type,COUNT(request_type) as count
+		FROM sm_requests
+		WHERE request_type <> 'normal' AND request_time > DATE_SUB('$timestamp', INTERVAL $StreamSessionLength HOUR)
+		GROUP BY request_type
+		ORDER BY count DESC,request_type ASC";
+
+		$retval = mysqli_query( $conn, $sql );
+		while ($row = mysqli_fetch_assoc($retval)){
+			$request_type = $row['request_type'];
+			if($request_type != "normal"){
+				$request_img = glob("images/".$request_type.".{png,gif}", GLOB_BRACE);
+				if (!$request_img){
+					$request_img = "images/random.png";
+				}else{
+					$request_img = "images/".urlencode(basename($request_img[0]));
+				}
+				$request_type = "<img src=\"$request_img\" class=\"type\">";
+			}
+			
+			echo $request_type."\n";
+			echo "<body style=\"vertical-align: middle;\">".$row['count']."</br>";
+
+		}
+		echo "</body>";
+	break;
 	////////Request Status/////////
     case "requeststatus":
 		$sql = "SELECT request_toggle FROM sm_broadcaster";
@@ -466,7 +501,7 @@ switch(strtolower($_GET["data"])){
 		}
     break;
 	default:
-	echo("Error: No data set! Usage: [URL]/stats.php?data=[requests,songs,scores,recent,endscreenscroll,requestors,requeststatus]");
+	echo("Error: No data set! Usage: [URL]/stats.php?data=[requests,songs,scores,recent,endscreenscroll,requestors,requeststatus,requesttypes]");
 	break;
 }
 
