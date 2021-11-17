@@ -246,6 +246,7 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 	// $xml->SongScores->Song[11]->Steps->HighScoreList->HighScore->DateTime;
 
 	$display_name = (string)$xml->GeneralData->DisplayName;
+	$playerGuid = (string)$xml->GeneralData->Guid;
 
 	foreach ($xml->SongScores->Song as $song){
 		$song_dir = (string)$song['Dir'];
@@ -253,6 +254,8 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 		foreach ($song->Steps as $steps){		
 			$steps_type = (string)$steps['StepsType']; //dance-single, dance-double, etc.
 			$difficulty = (string)$steps['Difficulty']; //Beginner, Medium, Expert, etc.
+			$stepsHash = (string)$steps['Hash']; //OutFox chart hash
+			$stepsDescription = (string)$steps['Description']; //OutFox steps description
 			
 			foreach ($steps->HighScoreList as $high_score_lists){
 				$num_played = (string)$high_score_lists->NumTimesPlayed; //useful for getting popular songs
@@ -274,12 +277,12 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 				if (!empty($highScores)){
 					foreach ($highScores as $highScoreSingle){
 						if((string)strtotime($highScoreSingle->DateTime) > strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
-							$statsHighScores[] = array('DisplayName' => $display_name, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played, 'HighScore' => $highScoreSingle);
+							$statsHighScores[] = array('DisplayName' => $display_name, 'PlayerGuid' => $playerGuid, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'StepsHash' => $stepsHash, 'StepsDescription' => $stepsDescription, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played, 'HighScore' => $highScoreSingle);
 						}
 					}
 				}
 				if(strtotime($last_played) >= strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
-					$statsLastPlayed[] = array('DisplayName' => $display_name, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played);
+					$statsLastPlayed[] = array('DisplayName' => $display_name, 'PlayerGuid' => $playerGuid, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'StepsHash' => $stepsHash, 'StepsDescription' => $stepsDescription, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played);
 					$timestampLastPlayedArr[] = $last_played;
 				}
 			}
@@ -318,6 +321,7 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 	$result = curl_exec ($ch);
 	//$error = curl_strerror(curl_errno($ch));
 	if(curl_exec($ch) === FALSE){

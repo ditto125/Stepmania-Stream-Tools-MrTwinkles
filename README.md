@@ -11,7 +11,7 @@ A quick summary:
   * Occasionally a purge of the Cache is needed if you delete a bunch of song packs.
   * Scraper will update songs if it detects that the cache file has changed, preserving the original song ID.
 * New scraper for StepMania's Stats.xml files in the LocalProfile directory.
-* Request lift mark-off method to use StepMania 5's built-in stats tracking files (Stats.xml) instead of the python/lua scripts.
+* Request list mark-off method to use StepMania 5's built-in stats tracking files (Stats.xml) instead of the python/lua scripts.
   * NOTE: This method uses an infinite-loop PHP script that runs on the local SM machine.
   * The python/lua scripts can still be used (and have been slightly improved) with minor modifications to some mysql queries.
 * Request list has some minor formatting and aesthetic changes.
@@ -69,10 +69,11 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 2. To show stats on stream, add a new browser source for `[URL]/stats.php?data=[?]`
     * [?] = "songs" : ## songs played this session
     * [?] = "requests" : ## requests this session
-    * [?] = "scores&judgement=[itg/ddr]" : table of top scores for the session, specify itg *or* ddr scoring
-    * [?] = "recent&judgement=[itg/ddr]" : most recently played songs and their scores
+    * [?] = "scores" : table of top scores for the session
+    * [?] = "recent" : most recently played songs and their scores
     * [?] = "requestors" : list of top 5 requestors for the session
-    * [?] = "requeststatus" : current status of the requests (on/off)
+    * [?] = "requeststatus[&onlystate]" : current status of the requests (on/off)
+    * [?] = "endscreenscroll" : session requests, requestors, and scores in end-credits style
 ## Twitch Chat Bot
 You can use your existing chat bot or roll your own custom bot. Whichever bot you choose must be capable of custom commands with variables and GET urlfetch capability. I recommend using StreamElements.
 * Command variables that are supported across end-points. Refer to your bot’s documentation to determine how to use variables.

@@ -133,7 +133,7 @@ CREATE TABLE `sm_requests` (
   `twitch_tier` varchar(255) DEFAULT NULL,
   `broadcaster` tinytext DEFAULT NULL,
   `state` enum('requested','canceled','completed','skipped') DEFAULT 'requested',
-  `request_type` enum('normal','random','top','portal','gitgud','theusual','itg','ddr','ben','bgs','gimmick','hkc','weeb','miku') DEFAULT NULL,
+  `request_type` text DEFAULT NULL,
   `stepstype` tinytext DEFAULT NULL,
   `difficulty` tinytext DEFAULT NULL,
   `timestamp` datetime DEFAULT NULL ON UPDATE current_timestamp()
@@ -153,6 +153,7 @@ CREATE TABLE `sm_scores` (
   `pack` text DEFAULT NULL,
   `stepstype` mediumtext DEFAULT NULL,
   `difficulty` text DEFAULT NULL,
+  `steps_hash` VARCHAR(50) DEFAULT NULL,
   `username` tinytext DEFAULT NULL,
   `grade` tinytext DEFAULT NULL,
   `score` bigint(20) DEFAULT NULL,
@@ -236,7 +237,9 @@ CREATE TABLE `sm_songsplayed` (
   `request_id` int(11) DEFAULT NULL,
   `stepstype` text DEFAULT NULL,
   `difficulty` text DEFAULT NULL,
+  `steps_hash` VARCHAR(50) DEFAULT NULL,
   `username` varchar(50) DEFAULT NULL,
+  `player_guid` text DEFAULT NULL,
   `numplayed` int(11) DEFAULT NULL,
   `lastplayed` datetime DEFAULT NULL,
   `datetime` datetime DEFAULT NULL
@@ -250,33 +253,34 @@ CREATE TABLE `sm_songsplayed` (
 -- Indexes for table `sm_broadcaster`
 --
 ALTER TABLE `sm_broadcaster`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
 -- Indexes for table `sm_notedata`
 --
 ALTER TABLE `sm_notedata`
   ADD PRIMARY KEY (`id`) USING BTREE,
-  ADD KEY `song_id` (`song_id`);
+  ADD INDEX `song_id` (`song_id`) USING BTREE;
 
 --
 -- Indexes for table `sm_requestors`
 --
 ALTER TABLE `sm_requestors`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
 -- Indexes for table `sm_requests`
 --
 ALTER TABLE `sm_requests`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `song_id` (`song_id`);
+  ADD PRIMARY KEY (`id`) USING BTREE,
+  ADD INDEX `song_id` (`song_id`) USING BTREE;
 
 --
 -- Indexes for table `sm_scores`
 --
 ALTER TABLE `sm_scores`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`) USING BTREE,
+  ADD INDEX `song_id` (`song_id`) USING BTREE;
 
 --
 -- Indexes for table `sm_songs`
@@ -288,7 +292,8 @@ ALTER TABLE `sm_songs`
 -- Indexes for table `sm_songsplayed`
 --
 ALTER TABLE `sm_songsplayed`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`) USING BTREE,
+  ADD INDEX `song_id` (`song_id`) USING BTREE;
 
 --
 -- AUTO_INCREMENT for dumped tables

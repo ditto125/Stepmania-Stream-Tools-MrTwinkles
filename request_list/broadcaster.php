@@ -12,6 +12,7 @@ if(!isset($_GET["broadcaster"]) && (!isset($_GET["stepstyle"]) || !isset($_GET["
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
 
 function add_broadcaster($broadcaster){
     
@@ -50,18 +51,32 @@ function toggle_requests($broadcaster,$message){
         if($numrows == 1){
             $row0 = mysqli_fetch_assoc($retval0);
 		    $id = $row0["id"];
+            $stepstype = $row0["stepstype"];
+            $meter = $row0["meter_max"];
             $toggle = $row0["request_toggle"];
             if($toggle == "ON"){
+                $requestsDisableResponses = array("Requests are off.","Requests are disabled.","Requests are deactivated.");
                 $value = "OFF";
-                if(empty($message)){
+                $response = $requestsDisableResponses[array_rand($requestsDisableResponses,1)];
+                if(!empty($message)){
+                    $response = $response ." ". stripslashes($message);
+                }elseif(empty($message)){
                     $message = "";
-                    $response = "Requests are disabled.";
-                }else{
-                    $response = "Requests are disabled: ". stripslashes($message);
                 }
             }else{
+                $requestsEnableResponses = array("Requests are enabled. Go nuts!","Requests are enabled. Put 'em in!","Requests are enabled. Request responsibly!");
                 $value = "ON";
-                $response = "Requests are enabled. Go nuts!";
+                $response = $requestsEnableResponses[array_rand($requestsEnableResponses,1)];
+                if(!empty($stepstype) || !empty($meter)){
+                    $response = $response . " Broadcaster limits set to: ";
+                    if(!empty($stepstype)){
+                        $response = $response . "$stepstype.";
+                    }elseif(!empty($smeter)){
+                        $response = $response . "a meter limit of $meter.";
+                    }elseif(!empty($stepstype) && !empty($smeter)){
+                        $response = $response . "$stepstype with a meter limit of $meter.";
+                    }
+                }
                 $message = "";
             }
 
@@ -98,16 +113,16 @@ function limit_stepstype($broadcaster,$stepstype){
             $response = "Stepstype currently limited to $stepstype_db";
         }elseif(!empty($stepstype)){
             if($stepstype == "-1"|| $stepstype == "disable" || $stepstype == "off" || $stepstype == "remove" || $stepstype == "stop"){
-                $response = "Removing stepstype limit.";
+                $response = "Removing steps-type limit.";
                 $sql = "UPDATE sm_broadcaster SET stepstype=\"\" WHERE id=\"$id\" LIMIT 1";
                 $retval = mysqli_query( $conn, $sql );
             }elseif($stepstype == "singles" || $stepstype == "doubles"){ 
-                $response = "Changing stepstype to $stepstype";
+                $response = "Changing steps-type to $stepstype";
                 $stepstype = "dance-".substr($stepstype,0,-1);
                 $sql = "UPDATE sm_broadcaster SET stepstype=\"$stepstype\" WHERE id=\"$id\" LIMIT 1";
                 $retval = mysqli_query( $conn, $sql );
             }else{
-                $response = "Invalid stepstype. Useage: \"singles\", \"doubles\", or \"off\".";
+                $response = "Invalid steps-type. Useage: \"singles\", \"doubles\", or \"off\".";
             }  
         }          
             echo "$response";

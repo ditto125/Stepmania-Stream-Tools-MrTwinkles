@@ -22,6 +22,7 @@ function check_banned($song_id, $user){
 }
 
 function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $commandArgs){
+	global $conn;
 	
 	$userobj = check_user($twitchid, $requestor);
 
@@ -31,38 +32,34 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $com
 	if($userobj["whitelisted"] != "true"){
         check_cooldown($requestor);
 		}
-
-	global $conn;
 	
 	check_banned($song_id, $requestor);
 
 	if(check_stepstype($broadcaster,$song_id) == FALSE){
-		die("Requested song does not have the appropriate chart!");
+		die("$requestor requested a song that does not have the appropriate chart!");
 	}
 	if(check_meter($broadcaster,$song_id) == FALSE){
-		die("Requested song appears to be too hard for $broadcaster!");
+		die("$requestor requested a song that appears to be too hard for $broadcaster!");
 	}
 
 	if(!empty($commandArgs['stepstype']) || !empty($commandArgs['difficulty'])){
 		if(check_notedata($broadcaster,$song_id,$commandArgs['stepstype'],$commandArgs['difficulty'],$requestor) == FALSE){
-			die("Requested song does not have that stepstype or difficulty!");
+			die("$requestor requested a song without that steps-type or difficulty!");
 		}
 	}
 
 	$stepstype = $commandArgs['stepstype'];
 	$difficulty = $commandArgs['difficulty'];
 
-	$sql0 = "SELECT COUNT(*) AS total FROM sm_requests WHERE song_id = '{$song_id}' AND state <> 'canceled' AND request_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
-	$retval0 = mysqli_query( $conn, $sql0 );
-	$row0 = mysqli_fetch_assoc($retval0);
-	if(($row0["total"] > 0) && ($userobj["whitelisted"] != "true")){die("That song has already been requested recently!");}
+	requested_recently($song_id,$requestor,$userobj["whitelisted"],1);
 	
-        $sql = "INSERT INTO sm_requests (song_id, request_time, requestor, twitch_tier, broadcaster, request_type, stepstype, difficulty) VALUES ('{$song_id}', NOW(), '{$requestor}', '{$tier}', '{$broadcaster}', 'normal', '{$stepstype}', '{$difficulty}')";
-        $retval = mysqli_query( $conn, $sql );
+	$sql = "INSERT INTO sm_requests (song_id, request_time, requestor, twitch_tier, broadcaster, request_type, stepstype, difficulty) VALUES ('{$song_id}', NOW(), '{$requestor}', '{$tier}', '{$broadcaster}', 'normal', '{$stepstype}', '{$difficulty}')";
+	$retval = mysqli_query( $conn, $sql );
 }
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
 
 //check if the active channel category/game is StepMania, etc.
 if(isset($_GET["game"]) && !empty($_GET["game"])){
@@ -191,6 +188,12 @@ die();
 
 if(isset($_GET["songid"]) && !empty($_GET["songid"])){
 	$commandArgs = parseCommandArgs($_GET["songid"],$user,$broadcaster);
+
+	if(empty($commandArgs["song"])){
+		echo "$user didn't specify a song ID!";
+		die();
+	}
+
 	$song = clean($commandArgs["song"]);
         //lookup by ID and request it
 
@@ -215,6 +218,12 @@ die();
 
 if(isset($_GET["song"]) && !empty($_GET["song"])){
 	$commandArgs = parseCommandArgs($_GET["song"],$user,$broadcaster);
+
+	if(empty($commandArgs["song"])){
+		echo "$user didn't specify a song name!";
+		die();
+	}
+
 	$song = $commandArgs["song"];
 
 	//easter egg requests
