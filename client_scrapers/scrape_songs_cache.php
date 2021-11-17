@@ -196,7 +196,7 @@ function parseNotedata($file) {
 							$value = fixEncoding($value);
 							$value = stripslashes($value);
 							$value = str_replace("\\","",$value);
-				
+
 							//add key/value pair to array
 							$lines[trim($key)] = trim($value);
 						}	
