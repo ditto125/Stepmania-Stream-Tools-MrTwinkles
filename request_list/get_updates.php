@@ -78,11 +78,10 @@ function get_requests_since($id,$oldid,$broadcaster){
 		if($request["request_type"] != "normal"){
 			$request_img = glob("images/".$request["request_type"].".{png,gif}", GLOB_BRACE);
 			if (!$request_img){
-				$request_img = "images/random.png";
+				$request["request_type"] = "images/random.png";
 			}else{
-				$request_img = "images/".urlencode(basename($request_img[0]));
+				$request["request_type"] = "images/".urlencode(basename($request_img[0]));
 			}
-			$request["request_type"] = "<img src=\"$request_img\" class=\"type\">";
 		}else{
 			$request["request_type"] = "";
 		}
