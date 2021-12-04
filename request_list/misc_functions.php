@@ -387,7 +387,7 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
     }
 
     //if stepstype is empty, check if sm_broadcast has one set globally
-    if(empty($result['stepstype']) && !empty($result['difficulty'])){
+    if(empty($result['stepstype'])){
         $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster = '$broadcaster'";
         $retval0 = mysqli_query( $conn, $sql0 );
         if(mysqli_num_rows($retval0) == 1){
