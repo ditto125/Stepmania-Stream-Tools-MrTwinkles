@@ -70,6 +70,7 @@ function parseBanType($argsStr){
 			case "random":
 			case "randoms":
 			case "rand":
+			case "rnd":
 				$result['ban'] = "random";
 			break;
 			default:
@@ -103,7 +104,7 @@ die();
 }
 
 if(isset($_GET["bansong"])){
-	$commandArgs = parseBanType($_GET["bansongid"]);
+	$commandArgs = parseBanType($_GET["bansong"]);
 	$song = clean($commandArgs["song"]);
 	$type = $commandArgs["ban"];
 
