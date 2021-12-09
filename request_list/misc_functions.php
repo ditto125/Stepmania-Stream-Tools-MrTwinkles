@@ -7,6 +7,15 @@
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
+
+function clean($string) {
+	global $conn;
+    $string = iconv("UTF-8", "ASCII//TRANSLIT//IGNORE", $string); //tranliterate
+    $string = preg_replace('/ +/', '-', $string); // Replaces all spaces with hyphens.
+    $string = preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
+    return $string;
+}
 
 function add_user($userid, $user){
 
@@ -60,15 +69,21 @@ function check_user($userid, $user){
 
 }
 
-function check_length(){
+function check_length($maxRequests){
     global $conn;
-    $sql0 = "SELECT state FROM sm_requests ORDER BY request_time DESC LIMIT 10";
+    if(!isset($maxRequests) || !is_numeric($maxRequests)){
+        $maxRequests = 10;
+    }
+    $sql0 = "SELECT state FROM sm_requests ORDER BY request_time DESC LIMIT $maxRequests";
     $retval0 = mysqli_query( $conn, $sql0 );
     $length = 0;
     foreach($retval0 as $row){
         if($row['state'] == 'requested'){
             $length++;
         }
+    }
+    if($length > $maxRequests){
+        die("Too many songs on the request list! Try again in a few minutes.");
     }
     return $length;
 }
@@ -78,11 +93,8 @@ function check_cooldown($user){
     global $maxRequests;
 
     //check total length of requests, if over maxRequests, stop
-    $length = check_length();
+    $length = check_length($maxRequests);
 
-    if($length > $maxRequests){
-        die("Too many songs on the request list! Try again in a few minutes.");
-    }
     $interval = $cooldownMultiplier * $length;
 
     //scale cooldown as a function of the number of requests. X minutes per open request.	
@@ -90,15 +102,34 @@ function check_cooldown($user){
     $sql0 = "SELECT * FROM sm_requests WHERE state <> 'canceled' AND requestor = '$user' AND request_time > DATE_SUB(NOW(), INTERVAL {$interval} MINUTE)";
     $retval0 = mysqli_query( $conn, $sql0 );
     $numrows = mysqli_num_rows($retval0);
-    if($numrows > 0){
-        die("Slow down there, part'ner! Try again in ".ceil($interval)." minutes.");
+    if($numrows > 0 && floor($interval) > 1){
+        die("Slow down there, part'ner! Try again in ".floor($interval)." minutes.");
+    }elseif($numrows > 0 && floor($interval) <= 1){
+        die("Slow down there, part'ner! Try again in 1 minute.");
     }
 }
 
-function recently_played($song_id){
+function requested_recently($song_id,$requestor,$whitelisted,$interval){
+    global $conn;
+    
+    if(empty($interval) || !is_numeric($interval)){$interval = 1;}
+    $sql0 = "SELECT COUNT(*) AS total 
+            FROM sm_requests 
+            WHERE song_id = '$song_id' AND (state = 'requested' OR state = 'completed') AND request_time > DATE_SUB(NOW(), INTERVAL $interval HOUR)";
+	$retval0 = mysqli_query( $conn, $sql0 );
+	$row0 = mysqli_fetch_assoc($retval0);
+
+	if($row0["total"] > 0){
+    //if(($row0["total"] > 0) && ($whitelisted != "true")){
+        die("$requestor That song has already been requested recently!");
+    }
+}
+
+function recently_played($song_id,$interval){
 	global $conn;
 	$recently_played = FALSE;
-	$sql = "SELECT song_id FROM sm_songsplayed WHERE song_id={$song_id} AND lastplayed > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+    if(empty($interval) || !is_numeric($interval)){$interval = 1;}
+	$sql = "SELECT song_id FROM sm_songsplayed WHERE song_id={$song_id} AND lastplayed > DATE_SUB(NOW(), INTERVAL $interval HOUR)";
 	$retval = mysqli_query($conn,$sql);
 	if(mysqli_num_rows($retval) > 0){
 		$recently_played = TRUE;
@@ -149,7 +180,9 @@ function check_request_toggle($broadcaster){
         $request_toggle = $row0["request_toggle"];
         $message = $row0["message"];
         if($request_toggle == "OFF"){
-            die("Requests are disabled. ".$message);
+            $requestsDisableResponses = array("Requests are off.","Requests are disabled.","Requests are deactivated.");
+            $response = $requestsDisableResponses[array_rand($requestsDisableResponses,1)];
+            die($response . " " . $message);
         }
     }
 }
@@ -216,35 +249,61 @@ function check_notedata($broadcaster,$song_id,$stepstype,$difficulty,$user){
     return $response;
 }
 
+function get_duplicate_song_artist($song_id){
+    //check if the title/pack of the songid is a duplicate and return the artist
+    global $conn;
+    $response = "";
+
+    $sql = "SELECT * FROM sm_songs
+            JOIN sm_songs AS t2 ON
+            sm_songs.strippedtitle = t2.strippedtitle AND sm_songs.strippedsubtitle = t2.strippedsubtitle AND sm_songs.pack = t2.pack
+            WHERE t2.id = '$song_id' AND sm_songs.installed = 1";
+    $retval = mysqli_query( $conn, $sql);
+    if(mysqli_num_rows($retval) > 1){
+        //the song title is a duplicate in this pack, return the artist of the songid
+        $sql = "SELECT artist FROM sm_songs WHERE id = '$song_id'";
+        $retval = mysqli_query( $conn, $sql);
+        $response = mysqli_fetch_assoc($retval)['artist'];
+        $response = " by " . $response;
+    }
+    return $response;
+}
+
 function parseCommandArgs($argsStr,$user,$broadcaster){
     global $conn;
 
+    //build a blank array
     $result = array('song'=>'','stepstype'=>'','difficulty'=>'');
-    $args = explode("#",$argsStr,3);
+    //split string by '#', keeping the delimiter, and trimming
+    $args = preg_split('/(?=#)/', $argsStr,-1,PREG_SPLIT_NO_EMPTY);
     $args = array_map("trim",$args);
-    $result['song'] = $args[0];
-    if(count($args) == 2 && strlen($args[1]) == 3){
-        switch (strtoupper($args[1])){
+    //splice "song", keep arguments in the array
+    for($i=0; $i < count($args); $i++){
+        if(substr($args[$i],0,1) === "#"){
+            //$args[$i] = trim(str_replace("#","",$args[$i]));
+        }else{
+            $result['song'] = array_splice($args,$i,1);
+        }
+    }
+    if(is_array($result['song'])){
+        $result['song'] = implode("",$result['song']);
+    }
+    //remove '#' from the resulting array
+    $args = array_map(function($str) {return trim(str_replace("#","",$str));},$args);
+
+    if(count($args) == 1 && strlen($args[0]) == 3){
+        switch (strtoupper($args[0])){
             case "BSP":
                 $result['stepstype'] = "dance-single";
                 $result['difficulty'] = "Easy";
             break;
             case "DSP":
-                $result['stepstype'] = "dance-single";
-                $result['difficulty'] = "Medium";
-            break;
             case "MSP":
-                $result['stepstype'] = "dance-single";
-                $result['difficulty'] = "Medium";
-            break;
             case "SSP":
                 $result['stepstype'] = "dance-single";
                 $result['difficulty'] = "Medium";
             break;
             case "ESP":
-                $result['stepstype'] = "dance-single";
-                $result['difficulty'] = "Expert";
-            break;
             case "HSP":
                 $result['stepstype'] = "dance-single";
                 $result['difficulty'] = "Hard";
@@ -262,21 +321,12 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 $result['difficulty'] = "Easy";
             break;
             case "DDP":
-                $result['stepstype'] = "dance-double";
-                $result['difficulty'] = "Medium";
-            break;
             case "MDP":
-                $result['stepstype'] = "dance-double";
-                $result['difficulty'] = "Medium";
-            break;
             case "SDP":
                 $result['stepstype'] = "dance-double";
                 $result['difficulty'] = "Medium";
             break;
             case "EDP":
-                $result['stepstype'] = "dance-double";
-                $result['difficulty'] = "Expert";
-            break;
             case "HDP":
                 $result['stepstype'] = "dance-double";
                 $result['difficulty'] = "Hard";
@@ -290,24 +340,19 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                 $result['difficulty'] = "Edit";
             break;
             default:
-                die("$user gave an invalid 3-letter stepstype/difficulty.");
+                die("$user gave an invalid 3-letter steps-type/difficulty.");
         }  
-    }elseif(count($args) > 1){
-        $args = array_splice($args,1);
+    }elseif(count($args) >= 1){
+        //$args = array_splice($args,1);
         foreach ($args as $arg){
             switch (strtolower($arg)){
                 case "single":
-                    $result['stepstype'] = "dance-single";
-                break;
                 case "singles":
+                case "singlets":
                     $result['stepstype'] = "dance-single";
                 break;
                 case "double":
-                    $result['stepstype'] = "dance-double";
-                break;
                 case "doubles":
-                    $result['stepstype'] = "dance-double";
-                break;
                 case "doublays":
                     $result['stepstype'] = "dance-double";
                 break;
@@ -315,29 +360,20 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                     $result['difficulty'] = "Beginner";
                 break;
                 case "easy":
-                    $result['difficulty'] = "Easy";
-                break;
+                case "basic":
                 case "light":
                     $result['difficulty'] = "Easy";
                 break;
                 case "medium":
-                    $result['difficulty'] = "Medium";
-                break;
                 case "standard":
                     $result['difficulty'] = "Medium";
                 break;
                 case "hard":
-                    $result['difficulty'] = "Hard";
-                break;
                 case "heavy":
-                    $result['difficulty'] = "Hard";
-                break;
                 case "expert":
                     $result['difficulty'] = "Hard";
                 break;
                 case "challenge":
-                    $result['difficulty'] = "Challenge";
-                break;
                 case "oni":
                     $result['difficulty'] = "Challenge";
                 break;
@@ -345,10 +381,11 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
                     $result['difficulty'] = "Edit";
                 break;
                 default:
-                    die("$user gave invalid stepstype or difficulty.");
+                    die("$user gave invalid steps-type or difficulty.");
             }
         }
     }
+
     //if stepstype is empty, check if sm_broadcast has one set globally
     if(empty($result['stepstype'])){
         $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster = '$broadcaster'";
@@ -356,17 +393,27 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
         if(mysqli_num_rows($retval0) == 1){
             $row0 = mysqli_fetch_assoc($retval0);
             $result['stepstype'] = $row0["stepstype"];
-        }elseif(!empty($result['difficulty'])){
+        }
+        if(!empty($result['difficulty']) && empty($result['stepstype'])){
             //no stepstype in sm_broadcaster and only difficulty specified
-            die("$user didn't specify a stepstype!");
+            die("$user didn't specify a steps-type!");
+        }
+    }elseif(!empty($result['stepstype'])){
+        $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster = '$broadcaster'";
+        $retval0 = mysqli_query( $conn, $sql0 );
+        if(mysqli_num_rows($retval0) == 1){
+            $row0 = mysqli_fetch_assoc($retval0);
+            if($row0['stepstype'] != $result['stepstype'] && !empty($row0['stepstype'])){
+                die("$user The broadcaster has limited requests to \"".$row0['stepstype']."\".");
+            }
         }
     }
-    
+
     return $result;
 }
 
 function display_ModeDiff($commandArgs){
-    //for now we are assuming the game is always StepMania
+    //for now we are assuming the game is always StepMania and dance-mode
     $displayModeDiff = "";
     if(!empty($commandArgs['stepstype'])){
         $stepstype = ucwords(str_ireplace("dance-","",$commandArgs['stepstype']));
@@ -391,6 +438,30 @@ function wh_log($log_msg){
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtouppper(basename(__FILE__)). "] : ". $log_msg . "\n", FILE_APPEND);
 } 
+
+function check_version($versionClient){
+	//check the verion of the incoming scripts to the server version
+	$versionFilename = __DIR__."/VERSION";
+    $githubUrl = "https://github.com/MrTwinkles47/Stepmania-Stream-Tools-MrTwinkles/releases/latest";
+
+	if(file_exists($versionFilename)){
+		$versionServer = file_get_contents($versionFilename);
+		$versionServer = json_decode($versionServer,TRUE);
+		$versionServer = $versionServer['version'];
+
+		if($versionServer > $versionClient){
+			//wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
+			echo("WARNING! Your client scripts are out of date! Download the latest release at " . PHP_EOL);
+            echo("$githubUrl   Exiting... " . PHP_EOL);
+            die();
+		}
+	}else{
+		$versionServer = 0;
+		die("Version check error!");
+		//wh_log("Server version not found or unexpected value. Check VERSION file in server root directory.");
+	}
+	return FALSE;
+}
 
 mysqli_close($conn);
 ?>

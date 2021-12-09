@@ -2,3 +2,4 @@ test_files/*
 .DS_Store
 request_list/images/packs/*
 docker/persist/*
+client_scrapers/log

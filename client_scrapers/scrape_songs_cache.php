@@ -24,9 +24,36 @@ if (php_sapi_name() == "cli") {
 	$security_key = $GET['security_key'];
 }
 
-include ('config.php');
+if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
+	require ('config.php');
+}else{
+	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
+	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
+}
 
 // Code
+
+function check_environment(){
+	//check for a php.ini file
+	$iniPath = php_ini_loaded_file();
+
+	if(!$iniPath){
+		//no config found
+		wh_log("ERROR: A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests.");
+		die("A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests." . PHP_EOL);
+	}else{
+		//config found. check for enabled extensions
+		$expectedExts = array('curl','json','mbstring','SimpleXML');
+		$loadedPhpExt = get_loaded_extensions();
+
+		foreach ($expectedExts as $ext){
+			if(!in_array($ext,$loadedPhpExt)){
+				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
+				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"" . PHP_EOL);
+			}
+		}
+	}
+}
 
 function wh_log($log_msg){
     $log_filename = __DIR__."/log";
@@ -36,9 +63,29 @@ function wh_log($log_msg){
         mkdir($log_filename, 0777, true);
     }
     $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
-	$log_msg = str_replace(array("\r", "\n"), '', $log_msg); //remove line endings
+	$log_msg = rtrim($log_msg); //remove line endings
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
+}
+
+function get_version(){
+	//check the version of this script against the server
+	$versionFilename = __DIR__."/VERSION";
+
+	if(file_exists($versionFilename)){
+		$versionClient = file_get_contents($versionFilename);
+		$versionClient = json_decode($versionClient,TRUE);
+		$versionClient = $versionClient['version'];
+
+//		if($versionServer > $versionClient){
+//			wh_log("Script out of date. Client: ".$versionClient." | Server: ".$versionServer);
+//			die("WARNING! Your client scripts are out of date! Update your scripts to the latest version! Exiting..." . PHP_EOL);
+//		}
+	}else{
+		$versionClient = 0;
+		wh_log("Client version not found or unexpected value. Check VERSION file in client scrapers folder.");
+	}
+	return $versionClient;
 }
 
 function fixEncoding($line){
@@ -89,7 +136,11 @@ function parseMetadata($file) {
 					$value = substr($line,strpos($line,$delimiter)+1);
 				}
 				$value = fixEncoding($value);
-				$lines[trim($key,'"')] = trim($value,'"');	
+				$value = stripslashes($value);
+				$value = str_replace("\\","",$value);
+				
+				//add key/value pair to array
+				$lines[trim($key)] = trim($value);
 			}
 			
 	}
@@ -139,22 +190,25 @@ function parseNotedata($file) {
 								$value = "";
 						// esle treat the line as normal with $delimiter
 							}else{
-								$key = substr($line,0,strpos($line,$delimiter));
-								$value = substr($line,strpos($line,$delimiter)+1);
+								$key = trim(substr($line,0,strpos($line,$delimiter)));
+								$value = trim(substr($line,strpos($line,$delimiter)+1));
 							}
 							$value = fixEncoding($value);
-							// trim any quotes (messes up later queries)
-							$lines[trim($key,'"')] = trim($value,'"');	
+							$value = stripslashes($value);
+							$value = str_replace("\\","",$value);
+
+							//add key/value pair to array
+							$lines[trim($key)] = trim($value);
 						}	
 					}
 					
 					//build array of notedata chart information
 					
 				//Not all chart files have these descriptors, so let's check if they exist to avoid notices/errors	
-					array_key_exists('#CHARTNAME',$lines) 	? addslashes($lines['#CHARTNAME']) 	: $lines['#CHARTNAME']   = "";
-					array_key_exists('#DESCRIPTION',$lines) ? addslashes($lines['#DESCRIPTION']): $lines['#DESCRIPTION'] = "";
-					array_key_exists('#CHARTSTYLE',$lines)  ? addslashes($lines['#CHARTSTYLE']) : $lines['#CHARTSTYLE']  = "";
-					array_key_exists('#CREDIT',$lines)      ? addslashes($lines['#CREDIT']) 	: $lines['#CREDIT']      = "";
+					array_key_exists('#CHARTNAME',$lines) 	? $lines['#CHARTNAME']	 : $lines['#CHARTNAME']   = "";
+					array_key_exists('#DESCRIPTION',$lines) ? $lines['#DESCRIPTION'] : $lines['#DESCRIPTION'] = "";
+					array_key_exists('#CHARTSTYLE',$lines)  ? $lines['#CHARTSTYLE']	 : $lines['#CHARTSTYLE']  = "";
+					array_key_exists('#CREDIT',$lines)      ? $lines['#CREDIT']    	 : $lines['#CREDIT']      = "";
 					
 					if( array_key_exists('#DISPLAYBPM',$lines)){
 						if( strpos($lines['#DISPLAYBPM'],':') > 0){
@@ -201,6 +255,9 @@ function isIgnoredPack($songFilename){
 		$pack = substr($song_dir, 0, strripos($song_dir, "/"));
 		$pack = substr($pack, strripos($pack, "/")+1);
 		//if the pack is on ignore list, skip it
+		if(!is_array($packsIgnore)){
+			$packsIgnore = array($packsIgnore);
+		}
 		if (in_array($pack,$packsIgnore)){
 			$return = TRUE;
 		}elseif(!empty($packsIgnoreRegex)){
@@ -215,7 +272,7 @@ function isIgnoredPack($songFilename){
 function doesFileExist($songFilename){
 	global $songsDir;
 	global $offlineMode;
-	global $addSongDirs;
+	global $addSongsDir;
 
 	//if offline mode is set, always return TRUE
 	if($offlineMode){
@@ -240,9 +297,12 @@ function doesFileExist($songFilename){
 			//echo "File: ".$songFilename."\n";
 			wh_log("File Not Found: ".$songFilename);
 		}
-	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/"){
+	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/" && !empty($addSongsDir)){
 		//file is in one of the "AdditionalSongs" folder(s)
-		foreach($addSongDirs as $songsDir){
+		if(!is_array($addSongsDir)){
+			$addSongsDir = array($addSongsDir);
+		}
+		foreach($addSongsDir as $songsDir){
 			//loop through the "AdditionalSongsFolders"
 			$songFilename = str_replace("/AdditionalSongs/",$songsDir."/",$songFilename);
 			if(file_exists($songFilename)){
@@ -252,8 +312,13 @@ function doesFileExist($songFilename){
 				wh_log("File Not Found: ".$songFilename);
 			}
 		}
+	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/" && empty($addSongsDir)){
+		die("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.".PHP_EOL);
+		wh_log("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.");
 	}
+
 	return $return;
+
 }
 
 function additionalSongsFolders($saveDir){
@@ -286,30 +351,45 @@ function additionalSongsFolders($saveDir){
 	return $addSongDirs;
 }
 
+function prepare_for_scraping(){
+	//prepare sm_songs database for scraping, check if this is a first-run, grab compare array, and version check
+	echo "Preparing database for song scraping..." . PHP_EOL;
+	wh_log("Preparing database for song scraping...");
+
+	$songsStart = curlPost("songsStart",array(0));
+
+	return $songsStart;
+}
+
 function parseJsonErrors($error,$jsonArray){
-	if($error == "JSON_ERROR_UTF8"){
+	if($error == "JSON_ERROR_UTF8" || $error == 5){
 		echo json_last_error_msg().PHP_EOL;
 		echo "One of these files has an error. Correct the special character in the song folder name and re-run the script.".PHP_EOL;
 		wh_log("One of these files has an error. Correct the special character in the song folder name and re-run the script.");
 		foreach($jsonArray['data'] as $cacheFile){
 			//echo $cacheFile['metadata']['#SONGFILENAME'].PHP_EOL;
 			$songFilename = $cacheFile['metadata']['#SONGFILENAME'];
-			echo $songFilename.PHP_EOL;
-			wh_log($songFilename);
+			foreach($cacheFile['metadata'] as $metaDataLine){
+				if(!json_encode($metaDataLine)){
+					echo("json encoding error for song $songFilename at the following line: $metaDataLine" . PHP_EOL);
+					wh_log("json encoding error for song $songFilename at the following line: $metaDataLine");
+				}
+			}
 		}
 		die();
 	}else{
-		wh_log(json_last_error_msg());
-		die(json_last_error_msg().PHP_EOL);
+		wh_log("Json encode error: " . json_last_error_msg());
+		die("Json encode error: " . json_last_error_msg() . PHP_EOL . " Exiting." . PHP_EOL);
 	}
 }
 
 function curlPost($postSource, $array){
 	global $target_url;
 	global $security_key;
+	$versionClient = get_version();
 	unset($ch,$result,$post,$jsonArray,$errorJson);
 	//add the security_key to the array
-	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'data' => $array);
+	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'version' => $versionClient, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
 	$errorJson = json_last_error();
@@ -328,12 +408,22 @@ function curlPost($postSource, $array){
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 	$result = curl_exec ($ch);
-	if(curl_exec($ch) === FALSE){echo 'Curl error: '.curl_error($ch);wh_log("Curl error: ".curl_error($ch));}
-	echo $result; //echo from the server-side script
-	wh_log($result);
-	echo (round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs." . PHP_EOL);
-	wh_log(round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs");
+	if(curl_exec($ch) === FALSE){
+		echo 'Curl error: '.curl_error($ch) . PHP_EOL;
+		wh_log("Curl error: ".curl_error($ch));
+	}
+	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
+		echo $result; //echo from the server-side script
+		wh_log($result);
+		echo (curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs." . PHP_EOL);
+		wh_log(curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs");
+	}else{
+		echo "There was an error communicating with $target_url.".PHP_EOL;
+		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
+		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
+	}
 	curl_close ($ch);
 	//print_r($result);
 	return $result;
@@ -342,6 +432,10 @@ function curlPost($postSource, $array){
 //get start time
 $microStart = microtime(true);
 
+//check php environment setup
+check_environment();
+
+//find cache files
 $files = array ();
 foreach(glob("{$cacheDir}/*", GLOB_BRACE) as $file) {
     $files[] = $file;
@@ -350,13 +444,9 @@ foreach(glob("{$cacheDir}/*", GLOB_BRACE) as $file) {
 if(count($files) == 0){wh_log("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\"."); die("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\".");}
 
 $i = 0;
-$chunk = 500;
+$chunk = 573;
 
-//prepare sm_songs database for scraping and check if this is a first-run
-echo "Preparing database for song scraping..." . PHP_EOL;
-wh_log("Preparing database for song scraping...");
-
-$firstRun = curlPost("songsStart",array(0));
+$firstRun = prepare_for_scraping();
 
 //loop through cache files, process to json strings, and post to the webserver for further processing
 $totalFiles = count($files);
@@ -370,9 +460,8 @@ if ($firstRun != TRUE){
 }
 
 //read preferences.ini file for AddtionalSongsFolder(s)
-$addSongDirs = additionalSongsFolders($saveDir);
+//$addSongDirs = additionalSongsFolders($saveDir);
 
-//print_r($files);
 $files = array_chunk($files,$chunk,true);
 foreach ($files as $filesChunk){
 	unset($cache_array,$cache_file,$metadata,$notedata_array);
@@ -401,7 +490,9 @@ foreach ($files as $filesChunk){
 	}
 	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL..." . PHP_EOL;
 	wh_log("Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...");
-	curlPost("songs", $cache_array);
+	if(!empty($cache_array)){
+		curlPost("songs", $cache_array);
+	}
 	$currentChunk++;
 }
 

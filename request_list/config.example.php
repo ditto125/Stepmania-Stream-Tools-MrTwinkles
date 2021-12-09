@@ -46,7 +46,7 @@ if(getenv("BANNER_DIR") != ""){
 
 //List of games or channel categories that must be set as the "current game" on Twitch for the bot to work.
 //This is used as a backup if your bot does not support per game custom commands.
-$categoryGame = array('StepMania','OutFox','Etterna');
+$categoryGame = array('StepMania','Project OutFox','Etterna');
 
 //Broadcaster List. Define an array to associate broadcaster names with StepMania profile names.
 //This is only required if your StepMania setup is used by more than 1 twitch account
@@ -74,5 +74,8 @@ $maxRequests = 10;
 //This does not change how any scores are determined, only which score type is displayed.
 //Values can be "itg" or "ddr". ITG scores are in percentage and DDR scores are a number out of 1M.
 $scoreType = "itg";
+
+//limit to how many random songs can be requested at once
+$max_num = 3;
 
 ?>

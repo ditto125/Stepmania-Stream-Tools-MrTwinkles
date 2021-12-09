@@ -11,89 +11,24 @@ function new_request(array){
 	artist = array.artist;
 	pack = array.pack;
     img = array.img;
-    
-    switch (request_type){
-		case "normal":
-			request_type = '';
-			break;
-		case "random":
-			request_type = '<img src="images/d205.png" class="type">';
-			break;
-		case "top":
-			request_type = '<img src="images/top.png" class="type">';
-			break;
-		case "portal":
-			request_type = '<img src="images/portal.png" class="type">';
-			break;
-		case "gitgud":
-			request_type = '<img src="images/gitgud.png" class="type">';
-            break;
-        case "theusual":
-			request_type = '<img src="images/theusual.png" class="type">';
-            break;
-        case "itg":
-            request_type = '<img src="images/itg.png" class="type">';
-            break;
-        case "ddr":
-            request_type = '<img src="images/ddr.png" class="type">';
-            break;
-        case "gimmick":
-            request_type = '<img src="images/gimmick.png" class="type">';
-            break;
-        case "ben":
-            request_type = '<img src="images/ben.png" class="type">';
-            break;
-        case "bgs":
-            request_type = '<img src="images/bgs.png" class="type">';
-            break;
-        case "hkc":
-            request_type = '<img src="images/hkc.png" class="type">';
-            break;
-        case "weeb":
-            request_type = '<img src="images/weeb.png" class="type">';
-            break;
-        case "miku":
-            request_type = '<img src="images/miku.png" class="type">';
-            break;
-		default:
-			request_type = '<img src="images/d205.png" class="type">';;
-			break;
-	}
 
-	switch (stepstype){
-		case "dance-single":
-            stepstype = '<img src="images/singles.png" class="dance single">';
-			break;
-		case "dance-double":
-            stepstype = '<img src="images/doubles.png" class="dance double">';
-			break;
-		default:
-			stepstype = "";
-			break;
-	}
+    if(request_type){
+        request_type = `<img src="${request_type}" class="type">`;
+    }else{
+        request_type = "";
+    }
 
-    switch (difficulty){
-        case "Beginner":
-            difficulty = '<div class="difficulty beginner"></div>';
-            break;
-        case "Easy":
-            difficulty = '<div class="difficulty easy"></div>';
-            break;
-        case "Medium":
-            difficulty = '<div class="difficulty medium"></div>';
-            break;
-        case "Hard":
-            difficulty = '<div class="difficulty hard"></div>';
-            break;
-        case "Challenge":
-            difficulty = '<div class="difficulty challenge"></div>';
-            break;
-        case "Edit":
-            difficulty = '<div class="difficulty edit"></div>';
-            break;
-        default:
-            difficulty = '<div class="difficulty"></div>';
-        break;
+    if(stepstype){
+        stepstype_split = stepstype.split('-');
+        stepstype = `<img src="images/${stepstype_split[1]}s.png" class="${stepstype_split[0]} ${stepstype_split[1]}">`;
+    }else{
+        stepstype = "";
+    }
+
+    if(difficulty){
+        difficulty = `<div class="difficulty ${difficulty}"></div>`;
+    }else{
+        difficulty = `<div class="difficulty"></div>`;
     }
 
     if(!stepstype){difficulty = "";}
@@ -108,6 +43,7 @@ function new_request(array){
     ${difficulty}\n
     ${stepstype}\n
     <img class="songrow-bg" src="${img}" />
+    <span id="request_${request_id}_time" style="display:none;">${request_time}</span>\n
     </div>
     `;
     if ($("#admin").html()){

@@ -1,6 +1,6 @@
 <?php
 
-include("config.php");
+include('config.php');
 
 if(!isset($_GET["security_key"]) || $_GET["security_key"] != $security_key || empty($_GET["security_key"])){
         die("Fuck off");
@@ -12,6 +12,7 @@ if(!isset($_GET["banuser"]) && !isset($_GET["whitelist"])){
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
 if(! $conn ) {die('Could not connect: ' . mysqli_error($conn));}
+$conn->set_charset("utf8mb4");
 
 function clean_user($user){
         global $conn;
