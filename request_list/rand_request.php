@@ -229,7 +229,7 @@ if($_GET["random"] == "unplayed"){
 
 	$sql = "SELECT sm_songs.id AS id,sm_songs.title AS title,sm_songs.subtitle AS subtitle,sm_songs.artist AS artist,sm_songs.pack AS pack 
 	FROM sm_songs
-	WHERE installed=1 AND banned NOT IN(1,2) $whereTypeDiffClause AND id NOT IN (
+	WHERE installed=1 AND banned NOT IN(1,2) AND id NOT IN (
 		SELECT song_id 
 		FROM sm_songsplayed
 		WHERE song_id>0 AND username LIKE '{$profileName}') 
