@@ -489,21 +489,33 @@ function markRequest ($idArray){
 	foreach ($idArray as $id){
 		//send ID to sm_requests to mark request as completed
 		//first, we check if there is a new fully timestamped update
+
+		// $sql3 = "UPDATE sm_requests
+		// JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
+		// SET state = 'completed'
+		// WHERE sm_requests.state = 'requested' AND sm_songsplayed.id = {$id} AND sm_songsplayed.lastplayed > sm_requests.request_time AND sm_songsplayed.lastplayed > DATE(sm_songsplayed.lastplayed) 
+		// ORDER BY lastplayed DESC, request_time ASC LIMIT 1";
 		$sql3 = "UPDATE sm_requests
-		JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
 		SET state = 'completed'
-		WHERE sm_requests.state = 'requested' AND sm_songsplayed.id = {$id} AND sm_songsplayed.lastplayed > sm_requests.request_time AND sm_songsplayed.lastplayed > DATE(sm_songsplayed.lastplayed) 
-		ORDER BY lastplayed DESC, request_time ASC LIMIT 1";
+		WHERE EXISTS(
+			SELECT *
+			FROM sm_requests
+			JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
+			WHERE sm_requests.state = 'requested' AND sm_songsplayed.id = {$id} AND sm_songsplayed.lastplayed > sm_requests.request_time AND sm_songsplayed.lastplayed > DATE(sm_songsplayed.lastplayed) 
+			ORDER BY lastplayed DESC, request_time ASC LIMIT 1)";
 		if (!$retval = mysqli_query($conn, $sql3)){echo "Error: " . $sql3 . PHP_EOL . mysqli_error($conn) . PHP_EOL;}
 		if (mysqli_affected_rows($conn) > 0){
 			echo "Marking request as complete." . PHP_EOL;
 		}else{
 			//if no fully timestamp update is found, we fallback to determining an update by an increase in NumTimesPlayed
 			$sql3 = "UPDATE sm_requests
-			JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
 			SET state = 'completed'
-			WHERE sm_requests.state = 'requested' AND sm_songsplayed.id = {$id} AND (DATE(sm_songsplayed.lastplayed) = DATE(sm_requests.request_time) OR sm_songsplayed.lastplayed = DATE(sm_songsplayed.lastplayed))  
-			ORDER BY lastplayed DESC, request_time ASC LIMIT 1";
+			WHERE EXISTS(
+				SELECT *
+				FROM sm_requests
+				JOIN sm_songsplayed ON sm_songsplayed.song_id=sm_requests.song_id
+				WHERE sm_requests.state = 'requested' AND sm_songsplayed.id = {$id} AND (DATE(sm_songsplayed.lastplayed) = DATE(sm_requests.request_time) OR sm_songsplayed.lastplayed = DATE(sm_songsplayed.lastplayed))  
+				ORDER BY lastplayed DESC, request_time ASC LIMIT 1)";
 			if (!$retval = mysqli_query($conn, $sql3)){echo "Error: " . $sql3 . PHP_EOL . mysqli_error($conn) . PHP_EOL;}
 			if (mysqli_affected_rows($conn) > 0){
 				echo "Marking request as complete (fallback)." . PHP_EOL;
