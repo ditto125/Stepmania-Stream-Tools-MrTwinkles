@@ -132,23 +132,24 @@ function get_version(){
 }
 
 function fixEncoding($line){
-	//detect and convert ascii directory string to UTF-8 (Thanks, StepMania!)
+	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
 	if($encoding != 'UTF-8'){
-		//echo "Invalid UTF-8 detected ($encoding). Converting...\n";
+		wh_log( "Invalid UTF-8 detected ($encoding). Converting...");
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
-		//echo "Text: ".$line."\n";
+		wh_log("New Text: ".$line);
 	}elseif($encoding == FALSE || empty($encoding)){
 		//encoding not detected, assuming 'ISO-8859-1', again, thanks, StepMania.
 		$encoding = 'ISO-8859-1';
-		//echo "Invalid UTF-8 detected ($encoding) (fallback). Converting...\n";
+		wh_log("Invalid UTF-8 detected ($encoding) (fallback). Converting...");
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
-		//echo "Text: ".$line."\n";
+		wh_log( "New Text: ".$line);
 	}
 	//afer conversion we check AGAIN to confirm the new line is encoded as UTF-8
-	if(mb_detect_encoding($line) != 'UTF-8'){
+	if(!mb_check_encoding($line,'UTF-8')){
 		//string still has invalid characters, give up and remove them completely
 		$line = mb_convert_encoding($line,'UTF-8','UTF-8');
+		wh_log("Failed additional check. UTF-8,UTF-8 converted line: $line");
 	}
 	return $line;
 }

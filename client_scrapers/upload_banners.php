@@ -73,36 +73,6 @@ function get_version(){
 	return $versionClient;
 }
 
-function additionalSongsFolders($saveDir){
-	global $offlineMode;
-	
-	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
-	$prefFile = $saveDir."/Preferences.ini";
-	$addSongDirs = array();
-
-	//if offline mode is set, always return empty
-	if($offlineMode){
-		return $addSongDirs;
-	}
-
-	if(file_exists($prefFile)){
-		$lines = file($prefFile);
-		foreach ($lines as $line){
-			$addSongFolder = substr(strstr($line,"AdditionalSongFolders="),22);
-			if(strlen($addSongFolder) > 1){
-				//file exists, line is in file, and line contains at least 1 directory
-				//directories are delimited by ","
-				$addSongDirs = array_map('trim',explode(',',$addSongFolder));
-			break;
-			}
-		}
-		wh_log("Preferences.ini file loaded. Adding directories: " . implode(',',$addSongDirs));
-	}else{
-		wh_log("Preferences.ini file not found!");
-	}
-	return $addSongDirs;
-}
-
 function findFiles($directory) {
     $dir_paths = array ();
 	foreach(glob("{$directory}/*", GLOB_ONLYDIR) as $filename) {
@@ -218,10 +188,8 @@ echo "Finding and uploading pack banner images..." . PHP_EOL;
 
 // find all the pack/group folders
 $pack_dir = findFiles($songsDir);
+
 //add any additional songs folder(s)
-//foreach (additionalSongsFolders($saveDir) as $addPack){
-//	$pack_dir[] = $addPack;
-//}
 if(is_array($addSongsDir) && !empty($addSongsDir)){
 	foreach($addSongsDir as $directory){
 		$pack_dir[] = findFiles($directory);

@@ -92,20 +92,21 @@ function fixEncoding($line){
 	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
 	if($encoding != 'UTF-8'){
-		//echo "Invalid UTF-8 detected ($encoding). Converting...\n";
+		wh_log( "Invalid UTF-8 detected ($encoding). Converting...");
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
-		//echo "Text: ".$line."\n";
+		wh_log("New Text: ".$line);
 	}elseif($encoding == FALSE || empty($encoding)){
 		//encoding not detected, assuming 'ISO-8859-1', again, thanks, StepMania.
 		$encoding = 'ISO-8859-1';
-		//echo "Invalid UTF-8 detected ($encoding) (fallback). Converting...\n";
+		wh_log("Invalid UTF-8 detected ($encoding) (fallback). Converting...");
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
-		//echo "Text: ".$line."\n";
+		wh_log( "New Text: ".$line);
 	}
 	//afer conversion we check AGAIN to confirm the new line is encoded as UTF-8
-	if(mb_detect_encoding($line) != 'UTF-8'){
+	if(!mb_check_encoding($line,'UTF-8')){
 		//string still has invalid characters, give up and remove them completely
 		$line = mb_convert_encoding($line,'UTF-8','UTF-8');
+		wh_log("Failed additional check. UTF-8,UTF-8 converted line: $line");
 	}
 	return $line;
 }
@@ -116,7 +117,6 @@ function parseMetadata($file) {
 	$delimiter = ":";
 	$eol = ";";
 	
-	//$data = utf8_encode(file_get_contents($file));
 	$data = file_get_contents($file);
 	$data = substr($data,0,strpos($data,"//-------"));
 	
@@ -222,7 +222,7 @@ function parseNotedata($file) {
 						  $lines['#DISPLAYBPM']  = "";
 					}
 					
-					$notedata_array[] = array('chartname' => $lines['#CHARTNAME'], 'steptype' => $lines['#STEPSTYPE'], 'description' => $lines['#DESCRIPTION'], 'chartstyle' => $lines['#CHARTSTYLE'], 'difficulty' => $lines['#DIFFICULTY'], 'meter' => $lines['#METER'], 'radarvalues' => $lines['#RADARVALUES'], 'credit' => $lines['#CREDIT'], 'displaybpm' => $lines['#DISPLAYBPM'], 'stepfilename' => $lines['#STEPFILENAME']);
+					$notedata_array[] = array('chartname' => $lines['#CHARTNAME'], 'stepstype' => $lines['#STEPSTYPE'], 'description' => $lines['#DESCRIPTION'], 'chartstyle' => $lines['#CHARTSTYLE'], 'difficulty' => $lines['#DIFFICULTY'], 'meter' => $lines['#METER'], 'radarvalues' => $lines['#RADARVALUES'], 'credit' => $lines['#CREDIT'], 'displaybpm' => $lines['#DISPLAYBPM'], 'stepfilename' => $lines['#STEPFILENAME']);
 
 					$notedata_count++;
 				}
@@ -249,6 +249,7 @@ function isIgnoredPack($songFilename){
 	$return = FALSE;
 	if(!empty($songFilename)){
 		//song has a an associated simfile
+		$songFilename = fixEncoding($songFilename);
 		$song_dir = substr($songFilename,1,strrpos($songFilename,"/")-1); //remove benginning slash and file extension
 
 		//Get pack name
@@ -284,8 +285,13 @@ function doesFileExist($songFilename){
 
 	//fix possible character encoding
 	//convert string to UTF-8 then back to ISO-8859-1 so Windows can understand it
+	$songFilenameOriginal = $songFilename;
 	$songFilename = fixEncoding($songFilename);
-	$songFilename = utf8_decode($songFilename);
+	//$songFilename = utf8_decode($songFilename);
+	if($songFilenameOriginal <> $songFilename){
+		echo "Song filename contains invalid character encodings. Check log for details." . PHP_EOL;
+		wh_log("Song filename contains invalid character encodings:" . PHP_EOL . "$songFilenameOriginal changed to $songFilename");
+	}
 
 	//check if the chart file exists on the filesystem
 	if(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/Songs/"){
@@ -319,36 +325,6 @@ function doesFileExist($songFilename){
 
 	return $return;
 
-}
-
-function additionalSongsFolders($saveDir){
-	global $offlineMode;
-	
-	//read StepMania 5.x Preferences.ini file and extract the "AdditionalSongFolders" to an array
-	$prefFile = $saveDir."/Preferences.ini";
-	$addSongDirs = array();
-
-	//if offline mode is set, always return empty
-	if($offlineMode){
-		return $addSongDirs;
-	}
-
-	if(file_exists($prefFile)){
-		$lines = file($prefFile);
-		foreach ($lines as $line){
-			$addSongFolder = substr(strstr($line,"AdditionalSongFolders="),22);
-			if(strlen($addSongFolder) > 1){
-				//file exists, line is in file, and line contains at least 1 directory
-				//directories are delimited by ","
-				$addSongDirs = array_map('trim',explode(',',$addSongFolder));
-			break;
-			}
-		}
-		wh_log("Preferences.ini file loaded. Adding directories: " . implode(',',$addSongDirs));
-	}else{
-		wh_log("Preferences.ini file not found!");
-	}
-	return $addSongDirs;
 }
 
 function prepare_for_scraping(){
@@ -458,9 +434,6 @@ if ($firstRun != TRUE){
 	//only sort files if NOT first run
 	$files = prepareCacheFiles($files);
 }
-
-//read preferences.ini file for AddtionalSongsFolder(s)
-//$addSongDirs = additionalSongsFolders($saveDir);
 
 $files = array_chunk($files,$chunk,true);
 foreach ($files as $filesChunk){
