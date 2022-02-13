@@ -321,7 +321,7 @@ function scrapeSong($songCache_array){
 				$sql_notedata_values = $sql_notedata_values.",(\"$song_id\",\"$song_dir/\",\"".implode("\",\"",$key)."\",NOW())";
 			}
 			//remove beginning comma and concat to sql query string
-			$sql_notedata_query = "INSERT INTO sm_notedata (song_id, song_dir, chart_name, stepstype, description, chartstyle, difficulty, meter, radar_values, credit, display_bpm, stepfile_name, datetime) VALUES ".substr($sql_notedata_values,1);
+			$sql_notedata_query = "INSERT INTO sm_notedata (song_id, song_dir, chart_name, stepstype, description, chartstyle, charthash, difficulty, meter, radar_values, credit, display_bpm, stepfile_name, datetime) VALUES ".substr($sql_notedata_values,1);
 			
 			if (!mysqli_query($conn, $sql_notedata_query)) {
 				echo "Error: " . $sql_notedata_query . PHP_EOL . mysqli_error($conn) . PHP_EOL;
@@ -359,7 +359,7 @@ function scrapeSong($songCache_array){
 						echo "Error: " . $sql_notedata_query . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 					}
 					
-					$sql_notedata_query = "INSERT INTO sm_notedata (song_id, song_dir, chart_name, stepstype, description, chartstyle, difficulty, meter, radar_values, credit, display_bpm, stepfile_name, datetime) VALUES ".substr($sql_notedata_values,1); 
+					$sql_notedata_query = "INSERT INTO sm_notedata (song_id, song_dir, chart_name, stepstype, description, chartstyle, charthash, difficulty, meter, radar_values, credit, display_bpm, stepfile_name, datetime) VALUES ".substr($sql_notedata_values,1); 
 					
 					if (!mysqli_query($conn, $sql_notedata_query)) {
 						echo "Error: " . $sql_notedata_query . PHP_EOL . mysqli_error($conn) . PHP_EOL;
@@ -393,6 +393,8 @@ function addLastPlayedtoDB ($lastplayed_array){
 		if (mysqli_num_rows($retval) == 0){
 			//existing record is not found - let's either update or insert a record
 			$id = "";
+			$chartHashSQL ="";
+			$player_guidSQL ="";
 			$songInfo = lookupSongID($lastplayed['SongDir']);
 			//check if the number of times played has increased and update db
 			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
@@ -411,8 +413,16 @@ function addLastPlayedtoDB ($lastplayed_array){
 					//$songInfo = lookupSongID($row['song_dir']);
 					$song_id = $songInfo['id'];
 				}
+				if(empty($row['charthash']) && !empty($lastplayed['ChartHash'])){
+					//charthash is null and there is a new charthash, let's update it.
+					$chartHashSQL = "charthash = \"" . $lastplayed['ChartHash'] . "\",";
+				}
+				if(empty($row['player_guid']) && !empty($lastplayed['PlayerGuid'])){
+					//charthash is null and there is a new charthash, let's update it.
+					$player_guidSQL = "player_guid = \"" . $lastplayed['PlayerGuid'] . "\",";
+				}
 				$id = $row['id'];
-				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", datetime = NOW() WHERE id = \"{$id}\"";
+				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", $chartHashSQL $player_guidSQL datetime = NOW() WHERE id = \"{$id}\"";
 				if (!mysqli_query($conn, $sql0)){
 					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 				}
@@ -453,7 +463,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 				//record does not exist - insert a new row
 				//echo "Debug: Insert new record. Query: $sql0" . PHP_EOL;
 				$song_id = $songInfo['id'];
-				$sql0 = "INSERT INTO sm_songsplayed (song_id,song_dir,stepstype,difficulty,steps_hash,username,player_guid,numplayed,lastplayed,datetime) VALUES (\"{$song_id}\",\"{$lastplayed['SongDir']}\",\"{$lastplayed['StepsType']}\",\"{$lastplayed['Difficulty']}\",\"{$lastplayed['StepsHash']}\",\"{$lastplayed['DisplayName']}\",\"{$lastplayed['PlayerGuid']}\",\"{$lastplayed['NumTimesPlayed']}\",\"{$lastplayed['LastPlayed']}\",NOW())";
+				$sql0 = "INSERT INTO sm_songsplayed (song_id,song_dir,stepstype,difficulty,charthash,username,player_guid,numplayed,lastplayed,datetime) VALUES (\"{$song_id}\",\"{$lastplayed['SongDir']}\",\"{$lastplayed['StepsType']}\",\"{$lastplayed['Difficulty']}\",\"{$lastplayed['ChartHash']}\",\"{$lastplayed['DisplayName']}\",\"{$lastplayed['PlayerGuid']}\",\"{$lastplayed['NumTimesPlayed']}\",\"{$lastplayed['LastPlayed']}\",NOW())";
 				if (!mysqli_query($conn, $sql0)){
 					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 				}
@@ -472,6 +482,22 @@ function addLastPlayedtoDB ($lastplayed_array){
 					$song_id = $songInfo['id'];
 					$id = $row['id'];
 					$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\" WHERE id = \"{$id}\"";
+					if (!mysqli_query($conn, $sql0)){
+						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+					}
+				}
+				//update the charthash if the db is null and one exists from the Stats.xml
+				if(empty($row['charthash']) && !empty($lastplayed['ChartHash'])){
+					$id = $row['id'];
+					$sql0 = "UPDATE sm_songsplayed SET charthash = \"{$lastplayed['ChartHash']}\" WHERE id = \"{$id}\"";
+					if (!mysqli_query($conn, $sql0)){
+						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+					}
+				}
+				//update the player_guid if the db is null and one exists from the Stats.xml
+				if(empty($row['player_guid']) && !empty($lastplayed['PlayerGuid'])){
+					$id = $row['id'];
+					$sql0 = "UPDATE sm_songsplayed SET player_guid = \"{$lastplayed['PlayerGuid']}\" WHERE id = \"{$id}\"";
 					if (!mysqli_query($conn, $sql0)){
 						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 					}
@@ -576,11 +602,11 @@ function addHighScoretoDB ($highscore_array){
 			}
 
 			//Let's build the VALUES string!
-			$sql1_values = "(\"{$highscore['SongDir']}\",\"{$song_id}\",\"{$song_title}\",\"{$song_pack}\",\"{$highscore['Difficulty']}\",\"{$highscore['StepsType']}\",\"{$highscore['StepsHash']}\",\"{$highscore['DisplayName']}\",\"{$highscore['HighScore']['Grade']}\",\"{$highscore['HighScore']['Score']}\",\"{$highscore['HighScore']['PercentDP']}\",\"{$highscore['HighScore']['Modifiers']}\",\"{$highscore['HighScore']['DateTime']}\",\"{$highscore['HighScore']['SurviveSeconds']}\",\"{$highscore['HighScore']['LifeRemainingSeconds']}\",\"{$highscore['HighScore']['Disqualified']}\",\"{$highscore['HighScore']['MaxCombo']}\",\"{$stageAward}\",\"{$peakComboAward}\",\"{$highscore['HighScore']['PlayerGuid']}\",\"{$highscore['HighScore']['MachineGuid']}\",\"{$highscore['HighScore']['TapNoteScores']['HitMine']}\",\"{$highscore['HighScore']['TapNoteScores']['AvoidMine']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointMiss']}\",\"{$highscore['HighScore']['TapNoteScores']['Miss']}\",\"{$highscore['HighScore']['TapNoteScores']['W5']}\",\"{$highscore['HighScore']['TapNoteScores']['W4']}\",\"{$highscore['HighScore']['TapNoteScores']['W3']}\",\"{$highscore['HighScore']['TapNoteScores']['W2']}\",\"{$highscore['HighScore']['TapNoteScores']['W1']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointHit']}\",\"{$highscore['HighScore']['HoldNoteScores']['LetGo']}\",\"{$highscore['HighScore']['HoldNoteScores']['Held']}\",\"{$highscore['HighScore']['HoldNoteScores']['MissedHold']}\",\"{$highscore['HighScore']['RadarValues']['Stream']}\",\"{$highscore['HighScore']['RadarValues']['Voltage']}\",\"{$highscore['HighScore']['RadarValues']['Air']}\",\"{$highscore['HighScore']['RadarValues']['Freeze']}\",\"{$highscore['HighScore']['RadarValues']['Chaos']}\",\"{$highscore['HighScore']['RadarValues']['Notes']}\",\"{$highscore['HighScore']['RadarValues']['TapsAndHolds']}\",\"{$highscore['HighScore']['RadarValues']['Jumps']}\",\"{$highscore['HighScore']['RadarValues']['Holds']}\",\"{$highscore['HighScore']['RadarValues']['Mines']}\",\"{$highscore['HighScore']['RadarValues']['Hands']}\",\"{$highscore['HighScore']['RadarValues']['Rolls']}\",\"{$highscore['HighScore']['RadarValues']['Lifts']}\",\"{$highscore['HighScore']['RadarValues']['Fakes']}\")"; 
+			$sql1_values = "(\"{$highscore['SongDir']}\",\"{$song_id}\",\"{$song_title}\",\"{$song_pack}\",\"{$highscore['Difficulty']}\",\"{$highscore['StepsType']}\",\"{$highscore['ChartHash']}\",\"{$highscore['DisplayName']}\",\"{$highscore['HighScore']['Grade']}\",\"{$highscore['HighScore']['Score']}\",\"{$highscore['HighScore']['PercentDP']}\",\"{$highscore['HighScore']['Modifiers']}\",\"{$highscore['HighScore']['DateTime']}\",\"{$highscore['HighScore']['SurviveSeconds']}\",\"{$highscore['HighScore']['LifeRemainingSeconds']}\",\"{$highscore['HighScore']['Disqualified']}\",\"{$highscore['HighScore']['MaxCombo']}\",\"{$stageAward}\",\"{$peakComboAward}\",\"{$highscore['HighScore']['PlayerGuid']}\",\"{$highscore['HighScore']['MachineGuid']}\",\"{$highscore['HighScore']['TapNoteScores']['HitMine']}\",\"{$highscore['HighScore']['TapNoteScores']['AvoidMine']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointMiss']}\",\"{$highscore['HighScore']['TapNoteScores']['Miss']}\",\"{$highscore['HighScore']['TapNoteScores']['W5']}\",\"{$highscore['HighScore']['TapNoteScores']['W4']}\",\"{$highscore['HighScore']['TapNoteScores']['W3']}\",\"{$highscore['HighScore']['TapNoteScores']['W2']}\",\"{$highscore['HighScore']['TapNoteScores']['W1']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointHit']}\",\"{$highscore['HighScore']['HoldNoteScores']['LetGo']}\",\"{$highscore['HighScore']['HoldNoteScores']['Held']}\",\"{$highscore['HighScore']['HoldNoteScores']['MissedHold']}\",\"{$highscore['HighScore']['RadarValues']['Stream']}\",\"{$highscore['HighScore']['RadarValues']['Voltage']}\",\"{$highscore['HighScore']['RadarValues']['Air']}\",\"{$highscore['HighScore']['RadarValues']['Freeze']}\",\"{$highscore['HighScore']['RadarValues']['Chaos']}\",\"{$highscore['HighScore']['RadarValues']['Notes']}\",\"{$highscore['HighScore']['RadarValues']['TapsAndHolds']}\",\"{$highscore['HighScore']['RadarValues']['Jumps']}\",\"{$highscore['HighScore']['RadarValues']['Holds']}\",\"{$highscore['HighScore']['RadarValues']['Mines']}\",\"{$highscore['HighScore']['RadarValues']['Hands']}\",\"{$highscore['HighScore']['RadarValues']['Rolls']}\",\"{$highscore['HighScore']['RadarValues']['Lifts']}\",\"{$highscore['HighScore']['RadarValues']['Fakes']}\")"; 
 				
 			echo "Adding a " . $highscore['HighScore']['Grade'] . " grade for the " . $highscore['Difficulty'] . " chart of " . $song_title . " from " . $song_pack . PHP_EOL;
 			
-			$sql2 = "INSERT INTO sm_scores (song_dir,song_id,title,pack,difficulty,stepstype,steps_hash,username,grade,score,percentdp,modifiers,datetime,survive_seconds,life_remaining_seconds,disqualified,max_combo,stage_award,peak_combo_award,player_guid,machine_guid,hit_mine,avoid_mine,checkpoint_miss,miss,w5,w4,w3,w2,w1,checkpoint_hit,let_go,held,missed_hold,stream,voltage,air,freeze,chaos,notes,taps_holds,jumps,holds,mines,hands,rolls,lifts,fakes) VALUES {$sql1_values}";
+			$sql2 = "INSERT INTO sm_scores (song_dir,song_id,title,pack,difficulty,stepstype,charthash,username,grade,score,percentdp,modifiers,datetime,survive_seconds,life_remaining_seconds,disqualified,max_combo,stage_award,peak_combo_award,player_guid,machine_guid,hit_mine,avoid_mine,checkpoint_miss,miss,w5,w4,w3,w2,w1,checkpoint_hit,let_go,held,missed_hold,stream,voltage,air,freeze,chaos,notes,taps_holds,jumps,holds,mines,hands,rolls,lifts,fakes) VALUES {$sql1_values}";
 			if (!mysqli_query($conn, $sql2)){
 				echo "Error: " . $sql2 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 			}
@@ -594,6 +620,14 @@ function addHighScoretoDB ($highscore_array){
 					$song_id = $songInfo['id'];
 					$id = $row['id'];
 					$sql0 = "UPDATE sm_scores SET song_id = \"{$song_id}\" WHERE id = \"{$id}\"";
+					if (!mysqli_query($conn, $sql0)){
+						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
+					}
+				}
+				//update the charthash if the db is null and one exists from the Stats.xml
+				if(empty($row['charthash']) && !empty($highscore['ChartHash'])){
+					$id = $row['id'];
+					$sql0 = "UPDATE sm_scores SET charthash = \"{$highscore['ChartHash']}\" WHERE id = \"{$id}\"";
 					if (!mysqli_query($conn, $sql0)){
 						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 					}

@@ -222,7 +222,7 @@ function parseNotedata($file) {
 						  $lines['#DISPLAYBPM']  = "";
 					}
 					
-					$notedata_array[] = array('chartname' => $lines['#CHARTNAME'], 'stepstype' => $lines['#STEPSTYPE'], 'description' => $lines['#DESCRIPTION'], 'chartstyle' => $lines['#CHARTSTYLE'], 'difficulty' => $lines['#DIFFICULTY'], 'meter' => $lines['#METER'], 'radarvalues' => $lines['#RADARVALUES'], 'credit' => $lines['#CREDIT'], 'displaybpm' => $lines['#DISPLAYBPM'], 'stepfilename' => $lines['#STEPFILENAME']);
+					$notedata_array[] = array('chartname' => $lines['#CHARTNAME'], 'stepstype' => $lines['#STEPSTYPE'], 'description' => $lines['#DESCRIPTION'], 'chartstyle' => $lines['#CHARTSTYLE'], 'charthash' => $lines['#CHARTHASH'], 'difficulty' => $lines['#DIFFICULTY'], 'meter' => $lines['#METER'], 'radarvalues' => $lines['#RADARVALUES'], 'credit' => $lines['#CREDIT'], 'displaybpm' => $lines['#DISPLAYBPM'], 'stepfilename' => $lines['#STEPFILENAME']);
 
 					$notedata_count++;
 				}
