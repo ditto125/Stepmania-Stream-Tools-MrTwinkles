@@ -205,10 +205,11 @@ function parseNotedata($file) {
 					//build array of notedata chart information
 					
 				//Not all chart files have these descriptors, so let's check if they exist to avoid notices/errors	
-					array_key_exists('#CHARTNAME',$lines) 	? $lines['#CHARTNAME']	 : $lines['#CHARTNAME']   = "";
-					array_key_exists('#DESCRIPTION',$lines) ? $lines['#DESCRIPTION'] : $lines['#DESCRIPTION'] = "";
-					array_key_exists('#CHARTSTYLE',$lines)  ? $lines['#CHARTSTYLE']	 : $lines['#CHARTSTYLE']  = "";
-					array_key_exists('#CREDIT',$lines)      ? $lines['#CREDIT']    	 : $lines['#CREDIT']      = "";
+					array_key_exists('#CHARTNAME',$lines) 		? $lines['#CHARTNAME']	 	: $lines['#CHARTNAME']   	= "";
+					array_key_exists('#DESCRIPTION',$lines) 	? $lines['#DESCRIPTION'] 	: $lines['#DESCRIPTION'] 	= "";
+					array_key_exists('#CHARTSTYLE',$lines)  	? $lines['#CHARTSTYLE']	 	: $lines['#CHARTSTYLE']  	= "";
+					array_key_exists('#CREDIT',$lines)      	? $lines['#CREDIT']    	 	: $lines['#CREDIT']      	= "";
+					array_key_exists('#CHARTHASH',$lines)      	? $lines['#CHARTHASH']    	: $lines['#CHARTHASH']      = "";
 					
 					if( array_key_exists('#DISPLAYBPM',$lines)){
 						if( strpos($lines['#DISPLAYBPM'],':') > 0){
