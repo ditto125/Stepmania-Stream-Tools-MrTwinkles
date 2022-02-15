@@ -194,7 +194,13 @@ if(isset($_GET["songid"]) && !empty($_GET["songid"])){
 		die();
 	}
 
+	//clean up song ID
 	$song = clean($commandArgs["song"]);
+	$song = preg_replace('/^[0-9]+/','',$song);
+	if(!is_numeric($song)){
+		echo "$user gave an invalid song ID!";
+		die();
+	}
         //lookup by ID and request it
 
         $sql = "SELECT * FROM sm_songs WHERE id = '{$song}' AND installed=1 ORDER BY title ASC";
@@ -209,7 +215,7 @@ if(isset($_GET["songid"]) && !empty($_GET["songid"])){
         		die();
     		}
 	} else {
-        	echo "Didn't find any songs matching the id: " . $song . "!";
+        	echo "Didn't find any songs matching the ID: " . $song . "!";
         	die();
 }
 
