@@ -24,6 +24,21 @@ if (php_sapi_name() == "cli") {
 	$security_key = $GET['security_key'];
 }
 
+//Welcome message
+$versionClient = get_version();
+echo "  ____  __  __ ____                            _       " . PHP_EOL;
+echo " / ___||  \/  |  _ \ ___  __ _ _   _  ___  ___| |_ ___ " . PHP_EOL;
+echo " \___ \| |\/| | |_) / _ \/ _\` | | | |/ _ \/ __| __/ __|" . PHP_EOL;
+echo "  ___) | |  | |  _ <  __/ (_| | |_| |  __/\__ \ |_\__ \\" . PHP_EOL;
+echo " |____/|_|  |_|_| \_\___|\__, |\__,_|\___||___/\__|___/" . PHP_EOL;
+echo "                            |_|                        " . PHP_EOL;
+echo "" . PHP_EOL;
+echo "Version: $versionClient";
+echo "" . PHP_EOL;
+echo "StepMania Song Cache Scraper" . PHP_EOL;
+echo "*********************************************************" . PHP_EOL;
+echo "" . PHP_EOL;
+
 if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 	require ('config.php');
 }else{

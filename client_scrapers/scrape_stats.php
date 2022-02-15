@@ -11,6 +11,21 @@
 //Add additional profile IDs by space [_]: "php scrape_stats.php 00000000 00000001".
 /////
 
+//Welcome message
+$versionClient = get_version();
+echo "  ____  __  __ ____                            _       " . PHP_EOL;
+echo " / ___||  \/  |  _ \ ___  __ _ _   _  ___  ___| |_ ___ " . PHP_EOL;
+echo " \___ \| |\/| | |_) / _ \/ _\` | | | |/ _ \/ __| __/ __|" . PHP_EOL;
+echo "  ___) | |  | |  _ <  __/ (_| | |_| |  __/\__ \ |_\__ \\" . PHP_EOL;
+echo " |____/|_|  |_|_| \_\___|\__, |\__,_|\___||___/\__|___/" . PHP_EOL;
+echo "                            |_|                        " . PHP_EOL;
+echo "" . PHP_EOL;
+echo "Version: $versionClient";
+echo "" . PHP_EOL;
+echo "StepMania Stats.XML Scraper" . PHP_EOL;
+echo "*********************************************************" . PHP_EOL;
+echo "" . PHP_EOL;
+
 //Config
 
 if (php_sapi_name() == "cli") {
