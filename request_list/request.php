@@ -196,19 +196,19 @@ if(isset($_GET["songid"]) && !empty($_GET["songid"])){
 
 	//clean up song ID
 	$song = clean($commandArgs["song"]);
-	$song = preg_replace('/^[0-9]+/','',$song);
-	if(!is_numeric($song)){
+	$song = preg_replace('/\D/','',$song);
+	if(!is_numeric($song) || empty($song)){
 		echo "$user gave an invalid song ID!";
 		die();
 	}
         //lookup by ID and request it
 
-        $sql = "SELECT * FROM sm_songs WHERE id = '{$song}' AND installed=1 ORDER BY title ASC";
+        $sql = "SELECT * FROM sm_songs WHERE id = '{$song}' AND installed=1 ORDER BY title ASC, pack ASC";
         $retval = mysqli_query( $conn, $sql );
 
 	if (mysqli_num_rows($retval) == 1) {
     		while($row = mysqli_fetch_assoc($retval)) {
-        		request_song($song, $user, $tier, $twitchid, $broadcaster, $commandArgs);
+        		request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
 				$displayModeDiff = display_ModeDiff($commandArgs);
 				$displayArtist = get_duplicate_song_artist ($row["id"]);
         		echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). $displayArtist . " from " . $row["pack"].$displayModeDiff;
@@ -245,7 +245,8 @@ if(isset($_GET["song"]) && !empty($_GET["song"])){
 		while($row = mysqli_fetch_assoc($retval)) {
         	request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
 			$displayModeDiff = display_ModeDiff($commandArgs);
-        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"].$displayModeDiff;;
+			$displayArtist = get_duplicate_song_artist ($row["id"]);
+        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). $displayArtist . " from " . $row["pack"].$displayModeDiff;;
     	}
 	die();
 	//end exact match
@@ -262,7 +263,8 @@ if(isset($_GET["song"]) && !empty($_GET["song"])){
     	while($row = mysqli_fetch_assoc($retval)) {
 			request_song($row["id"], $user, $tier, $twitchid, $broadcaster, $commandArgs);
 			$displayModeDiff = display_ModeDiff($commandArgs);
-        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). " from " . $row["pack"].$displayModeDiff;;
+			$displayArtist = get_duplicate_song_artist ($row["id"]);
+        	echo "$user requested " . trim($row["title"]." ".$row["subtitle"]). $displayArtist . " from " . $row["pack"].$displayModeDiff;;
     	}
 	die();
 	//end one match
