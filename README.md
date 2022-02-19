@@ -31,10 +31,15 @@ A quick summary:
 ## Prerequisites
 This fork currently does not utilize Docker. Please ignore any docker-specific procedures.
 ### Client-side
-* Stepmania 5.0.12, 5.1x, or 5.3-Oufox with local profiles set up and enabled
+* Supported Games<br>
+  ✅ [StepMania 5.0.12](https://github.com/stepmania/stepmania/releases/tag/v5.0.12)<br>
+  ✅ [StepMania 5.1-b2](https://github.com/stepmania/stepmania/releases/tag/v5.1.0-b2)<br>
+  ✅ [Project OutFox Alpha 4.11](https://github.com/TeamRizu/OutFox/releases/tag/OF4.11.0)<br>
+  ❌ Project OutFox Alpha 4.12+ (fixes coming soon™)
+* Local profiles set up and enabled within StepMania
 * PHP 7.3.x - 7.4.x
 ### Server-side (web hosting)
-* PHP 7.x
+* PHP 7.3.x - 7.4.x
 * MariaDB (latest)
 * Nginx/Apache/some kind of web hosting
 * phpMyAdmin or similar DB management software
