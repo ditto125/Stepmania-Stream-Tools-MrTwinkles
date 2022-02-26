@@ -317,7 +317,13 @@ function doesFileExist($songFilename){
 			$return = TRUE;
 		}else{
 			//echo "File: ".$songFilename."\n";
-			wh_log("File Not Found: ".$songFilename);
+			//try converting back to ISO-8859-1. Maybe there is a non-UTF-8 character found in a Windows filename?
+			$songFilename = utf8_decode($songFilename);
+			if(file_exists($songFilename)){
+				$return = TRUE;
+			}else{
+				wh_log("File Not Found: ".$songFilename);
+			}
 		}
 	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/" && !empty($addSongsDir)){
 		//file is in one of the "AdditionalSongs" folder(s)
@@ -331,7 +337,13 @@ function doesFileExist($songFilename){
 				$return = TRUE;
 			}else{
 				//echo "File: ".$songFilename."\n";
-				wh_log("File Not Found: ".$songFilename);
+				//try converting back to ISO-8859-1. Maybe there is a non-UTF-8 character found in a Windows filename?
+				$songFilename = utf8_decode($songFilename);
+				if(file_exists($songFilename)){
+					$return = TRUE;
+				}else{
+					wh_log("File Not Found: ".$songFilename);
+				}
 			}
 		}
 	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/" && empty($addSongsDir)){
