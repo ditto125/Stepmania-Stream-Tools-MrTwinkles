@@ -36,8 +36,7 @@ if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 
 if (php_sapi_name() == "cli") {
 	// In cli-mode
-	//process command arguments as profile IDs and run mode
-	$profileIDs = array();
+	//process command arguments
 	$autoRun = TRUE;
 	$frequency = 5;
 	$fileTime = "";
@@ -45,54 +44,54 @@ if (php_sapi_name() == "cli") {
 	if ($argc > 1){
 		$argv = array_splice($argv,1);
 		foreach ($argv as $arg){
-			if (is_numeric($arg) && strlen($arg) == 8){
-				$profileIDs[] = $arg;
-			}elseif ($arg == "-auto"){
+			if ($arg == "-auto"){
 				$autoRun = FALSE;
-			}elseif ($arg = $MemoryCardProfileSubdir){
-				$profileIDs[] = $arg;
+			}else{
+				die("Profile IDs are now configured in config.php!");
 			}
 		}
-		if($USBProfile){
-			if (empty($profileIDs)){die("Please specify at least 1 profile ID! Usage: scrape_stats.php [-auto] 00000000");}
-		}
-	}else{
-		die("No arguments! Usage: scrape_stats.php [-auto] 00000000");
 	}
 
 } else {
 	// Not in cli-mode
-	if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
-	$security_key = $GET['security_key'];
-
-	//check for profile IDS
-	if (!isset($_GET['id']) || empty($_GET['id'])){die("Please specify at least 1 profile ID! Usage: &id=00000000+00000001");}
-	//check if no arguments are specified
-	if (!isset($_GET['auto']) && !isset($_GET['id'])){die("No arguments! Usage: scrape_stats.php?id=00000000[+00000001]&[auto]");}
-
-	//process command arguments as profile IDs and run mode
-	$profileIDs = array();
-	$autoRun = TRUE;
-	$frequency = 5;
-	$fileTime = '';
-
-	//get auto mode
-	if (isset($_GET['auto'])){$autoRun = FALSE;}
-	//get profile IDs
-	if (isset($_GET['id'])){
-		$getIds = explode("+",isset($_GET['id']));
-		foreach ($getIds as $getId){
-			if (is_numeric($getId) && strlen($getId) == 8){
-				$profileIDs[] = $getId;
-			}
-		}
-	}
+	die("Only support cli mode.");
 }
 
 //
 
 //check for offline mode in the config
 if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!");}
+
+//process ProfileIDs and USBProfileDir
+$profileIDs = explode(',',$profileIDs);
+if(empty($profileIDs) && !$USBProfile){
+	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
+}
+$profileIDs = array_map('trim',$profileIDs);
+//check for valid profile ID
+foreach($profileIDs as $profileID){
+	if(strlen($profileID) != 8 && is_numeric($profileID)){
+		wh_log("$profileID is not a valid LocalProfile ID!");
+		die("$profileID is not a valid LocalProfile ID!" . PHP_EOL);
+	}
+}
+
+if($USBProfile){
+	$USBProfileDir = explode(',',$USBProfileDir);
+	if(empty($USBProfile)){
+		wh_log("USB Profiles are enabled, but no directory was configured in config.php!");
+		die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
+	}
+	$USBProfileDir = array_map('trim',$USBProfileDir);
+	foreach($USBProfileDir as $dir){
+		if(!file_exists($dir)){
+			wh_log("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct.");
+			die("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct." . PHP_EOL);
+		}
+	}
+}
+
+//////
 
 function check_environment(){
 	//check for a php.ini file
@@ -196,25 +195,53 @@ function parseXmlErrors($errors,$xmlArray){
 	return $xmlStr;
 }
 
-function find_statsxml($directory,$profileIDs){
-	//look for any Stats.xml files in the profile directory
+function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
+	global $USBProfile;
+	//look for any Stats.xml files in the profile directory(ies)
+	$saveDir = $saveDir . "/LocalProfiles";
 	$file_arr = array();
 	$i = 0;
-	foreach ($profileIDs as $profileID){
-		foreach (glob($directory."/".$profileID."/Stats.xml",GLOB_BRACE) as $xml_file){
-			//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
-			$file_arr[$i]['id'] = $profileID;
-			$file_arr[$i]['file'] = $xml_file;
-			$file_arr[$i]['ftime'] = '';
-			$file_arr[$i]['mtime'] = filemtime($xml_file);
-			$file_arr[$i]['timestampLastPlayed'] = 0;
-			$i++;
-		}
-		if (empty($file_arr)){
-			wh_log("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
-			exit ("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
+	if(!empty($profileIDs)){
+		foreach ($profileIDs as $profileID){
+			foreach (glob($saveDir."/".$profileID."/Stats.xml",GLOB_BRACE) as $xml_file){
+				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
+				$file_arr[$i]['id'] = $profileID;
+				$file_arr[$i]['file'] = $xml_file;
+				$file_arr[$i]['ftime'] = '';
+				$file_arr[$i]['mtime'] = filemtime($xml_file);
+				$file_arr[$i]['timestampLastPlayed'] = 0;
+				$file_arr[$i]['type'] = "local";
+				$i++;
+			}
+			if (empty($file_arr)){
+				wh_log("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
+				exit ("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
+			}
 		}
 	}
+	if($USBProfile){
+		foreach ($USBProfileDir as $dir){
+			foreach (glob($dir."/Stats.xml",GLOB_BRACE) as $xml_file){
+				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
+				$file_arr[$i]['id'] = $dir;
+				$file_arr[$i]['file'] = $xml_file;
+				$file_arr[$i]['ftime'] = '';
+				$file_arr[$i]['mtime'] = filemtime($xml_file);
+				$file_arr[$i]['timestampLastPlayed'] = 0;
+				$file_arr[$i]['type'] = "usb";
+				$i++;
+			}
+			if (empty($file_arr)){
+				wh_log("Stats.xml file(s) not found on USB drive.");
+				exit ("Stats.xml file(s) not found on USB drive.");
+			}
+		}
+	}
+	if (empty($file_arr)){
+		wh_log("Stats.xml file(s) not found!");
+		exit ("Stats.xml file(s) not found!");
+	}
+
 	return $file_arr;
 }
 
@@ -364,7 +391,7 @@ function curlPost($postSource, $array){
 check_environment();
 
 //find stats.xml files
-$file_arr = find_statsxml ($profileDir,$profileIDs);
+$file_arr = find_statsxml ($saveDir,$profileIDs,$USBProfileDir);
 
 if (!$autoRun){
 	echo "\\\\\\\\\\\\\\\\\\AUTO MODE ENABLED////////" . PHP_EOL;

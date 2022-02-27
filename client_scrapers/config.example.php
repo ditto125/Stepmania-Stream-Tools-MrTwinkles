@@ -10,9 +10,17 @@ $cacheDir = "C:/Users/[USER]/AppData/Roaming/StepMania 5.1/Cache/Songs";
 //SM5: "[AppData]/Roaming/StepMania 5/Save"
 //SM5.1: "[AppData]/Roaming/StepMania 5.1/Save"
 //SM5.3 (OutFox) or portable installations: "[SM5]/Save"
-//If using USB Profile, please configure the $profileDir to point at your drive/share location for the USB Drive
 $saveDir = "C:/Users/[USER]/AppData/Roaming/StepMania 5.1/Save";
-$profileDir = $saveDir."/LocalProfiles";
+
+//Profile IDs for Stats.xml files you would like to scrape. These are directories located in [/Save/LocalProfiles] with names like '00000000'.
+//You must specify at least 1 ID, but can add more by separating the IDs with a comma.
+//Example: "00000000,00000001"
+$ProfileIDs = "00000000";
+
+//If using USB Profiles, please configure the $USBProfileDir to point at your drive/share location for the USB Drive.
+//This should match the value in your Preferences.ini file for 'MemoryCardProfileSubdir'
+//Example: "R:/StepMania 5.3"
+$USBProfileDir = "";
 
 //location of StepMania songs folder. This could be the "/Songs" directory in your SM5 installation directory
 //or in your [AppData] directory.
@@ -42,8 +50,5 @@ $offlineMode = FALSE;
 //USB Profile Mode
 //Set this to True if you are using a USB profile as your profile location 
 $USBProfile = FALSE;
-
-//This should match the value in your Preferences.ini file if you are using USBProfiles
-$MemoryCardProfileSubdir = "StepMania 5.3";
 
 ?>
