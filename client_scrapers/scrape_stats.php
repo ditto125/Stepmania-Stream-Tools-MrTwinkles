@@ -27,6 +27,12 @@ echo "*********************************************************" . PHP_EOL;
 echo "" . PHP_EOL;
 
 //Config
+if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
+	require ('config.php');
+}else{
+	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
+	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
+}
 
 if (php_sapi_name() == "cli") {
 	// In cli-mode
@@ -43,9 +49,13 @@ if (php_sapi_name() == "cli") {
 				$profileIDs[] = $arg;
 			}elseif ($arg == "-auto"){
 				$autoRun = FALSE;
+			}elseif ($arg = $MemoryCardProfileSubdir){
+				$profileIDs[] = $arg;
 			}
 		}
-		if (empty($profileIDs)){die("Please specify at least 1 profile ID! Usage: scrape_stats.php [-auto] 00000000");}
+		if($USBProfile){
+			if (empty($profileIDs)){die("Please specify at least 1 profile ID! Usage: scrape_stats.php [-auto] 00000000");}
+		}
 	}else{
 		die("No arguments! Usage: scrape_stats.php [-auto] 00000000");
 	}
@@ -77,13 +87,6 @@ if (php_sapi_name() == "cli") {
 			}
 		}
 	}
-}
-
-if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
-	require ('config.php');
-}else{
-	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
-	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
 }
 
 //
