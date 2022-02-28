@@ -1,5 +1,11 @@
 <?php
 
+//
+//PHP StepMania song pack banner uploader
+//This script finds each banner image for each song group/pack and uploads it via POST to the server
+//'file_uploads' must be enabled on the server for this script to work correctly
+//
+
 if (php_sapi_name() == "cli") {
     // In cli-mode
 } else {
@@ -48,6 +54,7 @@ function check_environment(){
 
 		foreach ($expectedExts as $ext){
 			if(!in_array($ext,$loadedPhpExt)){
+				//expected extension not found
 				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
 				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"" . PHP_EOL);
 			}
@@ -89,9 +96,10 @@ function get_version(){
 }
 
 function findFiles($directory) {
+	//find all directories in a directory and sort by modified time
     $dir_paths = array ();
 	foreach(glob("{$directory}/*", GLOB_ONLYDIR) as $filename) {
-            $dir_paths[] = $filename;
+        $dir_paths[] = $filename;
 	}
 	usort( $dir_paths, function( $a, $b ) { return filemtime($b) - filemtime($a); } );
     return $dir_paths;
@@ -116,7 +124,7 @@ function isIgnoredPack($pack){
 }
 
 function get_banner($img_path){
-	
+	//look for banners, reject known not banners
 	foreach($img_path as $img){
 		if(stripos(pathinfo($img,PATHINFO_FILENAME),'banner') !== FALSE){
 			$return = $img;
@@ -205,17 +213,21 @@ echo "Finding and uploading pack banner images..." . PHP_EOL;
 $pack_dir = findFiles($songsDir);
 
 //add any additional songs folder(s)
-if(is_array($addSongsDir) && !empty($addSongsDir)){
+if(!empty($addSongsDir)){
+	if(!is_array($addSongsDir)){
+		$addSongsDir = array($addSongsDir);
+	}
 	foreach($addSongsDir as $directory){
 		$pack_dir[] = findFiles($directory);
 	}
-}elseif(!empty($addSongsDir)){
-	$pack_dir[] = findFiles($addSongsDir);
 }
 
 $cPacks = count($pack_dir);
 
-if ($cPacks == 0){wh_log("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\""); die ("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\"" . PHP_EOL);}
+if ($cPacks == 0){
+	wh_log("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\""); 
+	die ("No pack/group folders found. Your StepMania /Songs directory may be located in \"AppData\"" . PHP_EOL);
+}
 
 $img_arr = array();
 
@@ -240,7 +252,6 @@ foreach ($pack_dir as $path){
 				//use the first result as the pack banner
 				$img_path = $img_path[0];
 			}
-			//echo $img_path.PHP_EOL;
 			//check for filesize
 			if (filesize($img_path) > $fileSizeMax){
 				echo $pack_name."'s image file is too large (max size: ". $fileSizeMax / 1024^2 ."MB)!" . PHP_EOL;
@@ -274,4 +285,5 @@ $cPacks = $cPacks - $notFoundBanners;
 echo "Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs." . PHP_EOL;
 wh_log("Uploaded ".$banners_copied." of ".$cPacks." banner images. Banners were not found for ".$notFoundBanners." packs.");
 
+exit();
 ?>

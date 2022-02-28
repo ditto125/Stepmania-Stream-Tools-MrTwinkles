@@ -1,18 +1,11 @@
 <?php
 
 // PHP "Song scraper" for Stepmania
-// https://github.com/DaveLinger/Stepmania-Stream-Tools
 // This script scrapes your Stepmania cache directory for songs and posts each unique song to a mysql database table.
 // It cleans [TAGS] from the song titles and it saves a "search ready" version of each song title (without spaces or special characters) to the "strippedtitle" column.
 // This way you can have another script search/parse your entire song library - for example to make song requests.
 // You only need to re-run this script any time you add new songs and Stepmania has a chance to build its cache. It'll skip songs that already exist in the DB.
 // The same exact song title is allowed to exist in different packs.
-//
-// Run this from the command line like this: "php scrape_songs_cache.php"
-//
-// "Wouldn't it be nice" future features?:
-// 
-// 2. Automatically upload each SONG's banner to the remote server (optional - this would use a lot of remote storage space)
 
 // Configuration
 
@@ -63,6 +56,7 @@ function check_environment(){
 
 		foreach ($expectedExts as $ext){
 			if(!in_array($ext,$loadedPhpExt)){
+				//expected extenstion not found
 				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
 				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"" . PHP_EOL);
 			}
@@ -105,6 +99,8 @@ function get_version(){
 
 function fixEncoding($line){
 	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
+	//96.69% of the time, the encoding error is in a Windows filename
+	//Project OutFox Alpha 4.12 fixed most of the character encoding issues, but this function will remain for legacy support
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
 	if($encoding != 'UTF-8'){
 		wh_log( "Invalid UTF-8 detected ($encoding). Converting...");
@@ -127,16 +123,20 @@ function fixEncoding($line){
 }
 
 function parseMetadata($file) {
+	//parse StepMania song cache file METADATA
+	//file structure looks like:
+	//#TAG:value;
+	//
 	$file_arr = array();
 	$lines = array();
 	$delimiter = ":";
 	$eol = ";";
 	
 	$data = file_get_contents($file);
+	//keep only data before the #NOTEDATA section
 	$data = substr($data,0,strpos($data,"//-------"));
 	
 	$file_arr = preg_split("/{$eol}/",$data);
-	//print_r($file_arr);
 	
 	foreach ($file_arr as $line){
 		// if there is no $delimiter, set an empty string
@@ -152,7 +152,7 @@ function parseMetadata($file) {
 				}
 				$value = fixEncoding($value);
 				$value = stripslashes($value);
-				$value = str_replace("\\","",$value);
+				$value = str_replace("\\","",$value);//sometimes sm/ssc files will have extra '\' escapes, for whatever reason
 				
 				//add key/value pair to array
 				$lines[trim($key)] = trim($value);
@@ -164,6 +164,8 @@ function parseMetadata($file) {
 }
 
 function parseNotedata($file) {
+	//parse StepMania song cache file NOTEDATA
+	//everything after the metadata
 	$file_arr = array();
 	$lines = array();
 	$delimiter = ":";
@@ -172,76 +174,79 @@ function parseNotedata($file) {
 	
 	$data = file_get_contents($file);
 
-	if( strpos($data,"#NOTEDATA:")){
+	if( strpos($data,"#NOTEDATA:") != FALSE){
+		//looks like we've got some notedata, as expected
+		//trim everything before the notedata
 		$data = substr($data,strpos($data,"//-------"));
 		$data = substr($data,strpos($data,"#"));
 		
 	//getting notedata info...
-			$notedata_array = array();
-			
-				$notedata_total = substr_count($data,"#NOTEDATA:"); //how many step charts are there?
-				$notedata_offset = 0;
-				$notedata_next = 0;
-				$notedata_count = 1;
-				//start from the first occurance of notedata, set found data to array
-				while ($notedata_count <= $notedata_total){ 
-					$notedata_offset = strpos($data, "#NOTEDATA:",$notedata_next);
-					$notedata_next = strpos($data, "#NOTEDATA:",$notedata_offset + strlen("#NOTEDATA:"));
-						if ($notedata_next === FALSE){
-							$notedata_next = strlen($data);
-						}
-					
-					$data_sub = substr($data,$notedata_offset,$notedata_next-$notedata_offset);
-					$file_arr = "";
-					$file_arr = preg_split("/{$eol}/",$data_sub);
-					
-					foreach ($file_arr as $line){
-						$line = trim($line);
-						//only process lines beginning with '#'
-						if (substr($line,0,1) == "#"){
-							// if there is no $delimiter, set an empty string
-							if (stripos($line,$delimiter)===FALSE){
-								$key = $line;
-								$value = "";
-						// esle treat the line as normal with $delimiter
-							}else{
-								$key = trim(substr($line,0,strpos($line,$delimiter)));
-								$value = trim(substr($line,strpos($line,$delimiter)+1));
-							}
-							$value = fixEncoding($value);
-							$value = stripslashes($value);
-							$value = str_replace("\\","",$value);
-
-							//add key/value pair to array
-							$lines[trim($key)] = trim($value);
-						}	
+		$notedata_array = array();
+		
+			$notedata_total = substr_count($data,"#NOTEDATA:"); //how many step charts are there?
+			$notedata_offset = 0;
+			$notedata_next = 0;
+			$notedata_count = 1;
+			//start from the first occurance of notedata, set found data to array
+			while ($notedata_count <= $notedata_total){ 
+				$notedata_offset = strpos($data, "#NOTEDATA:",$notedata_next);
+				$notedata_next = strpos($data, "#NOTEDATA:",$notedata_offset + strlen("#NOTEDATA:"));
+					if ($notedata_next === FALSE){
+						$notedata_next = strlen($data);
 					}
-					
-					//build array of notedata chart information
-					
-				//Not all chart files have these descriptors, so let's check if they exist to avoid notices/errors	
-					array_key_exists('#CHARTNAME',$lines) 		? $lines['#CHARTNAME']	 	: $lines['#CHARTNAME']   	= "";
-					array_key_exists('#DESCRIPTION',$lines) 	? $lines['#DESCRIPTION'] 	: $lines['#DESCRIPTION'] 	= "";
-					array_key_exists('#CHARTSTYLE',$lines)  	? $lines['#CHARTSTYLE']	 	: $lines['#CHARTSTYLE']  	= "";
-					array_key_exists('#CREDIT',$lines)      	? $lines['#CREDIT']    	 	: $lines['#CREDIT']      	= "";
-					array_key_exists('#CHARTHASH',$lines)      	? $lines['#CHARTHASH']    	: $lines['#CHARTHASH']      = "";
-					
-					if( array_key_exists('#DISPLAYBPM',$lines)){
-						if( strpos($lines['#DISPLAYBPM'],':') > 0){
-							$display_bpmSplit = array();
-							$display_bpmSplit = preg_split("/:/",$lines['#DISPLAYBPM']);
-							$lines['#DISPLAYBPM'] = intval($display_bpmSplit[0],0)."-".intval($display_bpmSplit[1],0);
+				
+				$data_sub = substr($data,$notedata_offset,$notedata_next-$notedata_offset);
+				$file_arr = "";
+				$file_arr = preg_split("/{$eol}/",$data_sub);
+				
+				foreach ($file_arr as $line){
+					$line = trim($line);
+					//only process lines beginning with '#'
+					if (substr($line,0,1) == "#"){
+						// if there is no $delimiter, set an empty string
+						if (stripos($line,$delimiter)===FALSE){
+							$key = $line;
+							$value = "";
+					// esle treat the line as normal with $delimiter
 						}else{
-							$lines['#DISPLAYBPM'] = intval($lines['#DISPLAYBPM'],0);
+							$key = trim(substr($line,0,strpos($line,$delimiter)));
+							$value = trim(substr($line,strpos($line,$delimiter)+1));
 						}
-					}else{
-						  $lines['#DISPLAYBPM']  = "";
-					}
-					
-					$notedata_array[] = array('chartname' => $lines['#CHARTNAME'], 'stepstype' => $lines['#STEPSTYPE'], 'description' => $lines['#DESCRIPTION'], 'chartstyle' => $lines['#CHARTSTYLE'], 'charthash' => $lines['#CHARTHASH'], 'difficulty' => $lines['#DIFFICULTY'], 'meter' => $lines['#METER'], 'radarvalues' => $lines['#RADARVALUES'], 'credit' => $lines['#CREDIT'], 'displaybpm' => $lines['#DISPLAYBPM'], 'stepfilename' => $lines['#STEPFILENAME']);
+						$value = fixEncoding($value);
+						$value = stripslashes($value);
+						$value = str_replace("\\","",$value);//sometimes sm/ssc files will have extra '\' escapes, for whatever reason
 
-					$notedata_count++;
+						//add key/value pair to array
+						$lines[trim($key)] = trim($value);
+					}	
 				}
+				
+				//build array of notedata chart information
+				
+			//Not all chart files have these descriptors, so let's check if they exist to avoid notices/errors	
+				array_key_exists('#CHARTNAME',$lines) 		? $lines['#CHARTNAME']	 	: $lines['#CHARTNAME']   	= "";
+				array_key_exists('#DESCRIPTION',$lines) 	? $lines['#DESCRIPTION'] 	: $lines['#DESCRIPTION'] 	= "";
+				array_key_exists('#CHARTSTYLE',$lines)  	? $lines['#CHARTSTYLE']	 	: $lines['#CHARTSTYLE']  	= "";
+				array_key_exists('#CREDIT',$lines)      	? $lines['#CREDIT']    	 	: $lines['#CREDIT']      	= "";
+				array_key_exists('#CHARTHASH',$lines)      	? $lines['#CHARTHASH']    	: $lines['#CHARTHASH']      = "";
+				
+				if( array_key_exists('#DISPLAYBPM',$lines)){
+					if( strpos($lines['#DISPLAYBPM'],':') > 0){
+						//deal with split bpm values
+						$display_bpmSplit = array();
+						$display_bpmSplit = preg_split("/:/",$lines['#DISPLAYBPM']);
+						$lines['#DISPLAYBPM'] = intval($display_bpmSplit[0],0)."-".intval($display_bpmSplit[1],0);
+					}else{
+						$lines['#DISPLAYBPM'] = intval($lines['#DISPLAYBPM'],0);
+					}
+				}else{
+						$lines['#DISPLAYBPM']  = "";
+				}
+				
+				$notedata_array[] = array('chartname' => $lines['#CHARTNAME'], 'stepstype' => $lines['#STEPSTYPE'], 'description' => $lines['#DESCRIPTION'], 'chartstyle' => $lines['#CHARTSTYLE'], 'charthash' => $lines['#CHARTHASH'], 'difficulty' => $lines['#DIFFICULTY'], 'meter' => $lines['#METER'], 'radarvalues' => $lines['#RADARVALUES'], 'credit' => $lines['#CREDIT'], 'displaybpm' => $lines['#DISPLAYBPM'], 'stepfilename' => $lines['#STEPFILENAME']);
+
+				$notedata_count++;
+			}
 	}
 	
 	return $notedata_array;
@@ -303,7 +308,6 @@ function doesFileExist($songFilename){
 	//convert string to UTF-8 then back to ISO-8859-1 so Windows can understand it
 	$songFilenameOriginal = $songFilename;
 	$songFilename = fixEncoding($songFilename);
-	//$songFilename = utf8_decode($songFilename);
 	if($songFilenameOriginal <> $songFilename){
 		echo "Song filename contains invalid character encodings. Check log for details." . PHP_EOL;
 		wh_log("Song filename contains invalid character encodings:" . PHP_EOL . "$songFilenameOriginal changed to $songFilename");
@@ -316,7 +320,6 @@ function doesFileExist($songFilename){
 		if(file_exists($songFilename)){
 			$return = TRUE;
 		}else{
-			//echo "File: ".$songFilename."\n";
 			//try converting back to ISO-8859-1. Maybe there is a non-UTF-8 character found in a Windows filename?
 			$songFilename = utf8_decode($songFilename);
 			if(file_exists($songFilename)){
@@ -336,7 +339,6 @@ function doesFileExist($songFilename){
 			if(file_exists($songFilename)){
 				$return = TRUE;
 			}else{
-				//echo "File: ".$songFilename."\n";
 				//try converting back to ISO-8859-1. Maybe there is a non-UTF-8 character found in a Windows filename?
 				$songFilename = utf8_decode($songFilename);
 				if(file_exists($songFilename)){
@@ -367,14 +369,15 @@ function prepare_for_scraping(){
 
 function parseJsonErrors($error,$jsonArray){
 	if($error == "JSON_ERROR_UTF8" || $error == 5){
+		//json error because of bad utf-8
 		echo json_last_error_msg().PHP_EOL;
 		echo "One of these files has an error. Correct the special character in the song folder name and re-run the script.".PHP_EOL;
 		wh_log("One of these files has an error. Correct the special character in the song folder name and re-run the script.");
 		foreach($jsonArray['data'] as $cacheFile){
-			//echo $cacheFile['metadata']['#SONGFILENAME'].PHP_EOL;
 			$songFilename = $cacheFile['metadata']['#SONGFILENAME'];
 			foreach($cacheFile['metadata'] as $metaDataLine){
 				if(!json_encode($metaDataLine)){
+					//specific error line found
 					echo("json encoding error for song $songFilename at the following line: $metaDataLine" . PHP_EOL);
 					wh_log("json encoding error for song $songFilename at the following line: $metaDataLine");
 				}
@@ -445,10 +448,13 @@ foreach(glob("{$cacheDir}/*", GLOB_BRACE) as $file) {
     $files[] = $file;
 }
 
-if(count($files) == 0){wh_log("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\"."); die("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\".");}
+if(count($files) == 0){
+	wh_log("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\"."); 
+	die("No files. Songs cache directory not found in Stepmania directory. You must start Stepmania before running this software. Also, if you are not running Stepmania in portable mode, your Stepmania directory may be in \"AppData\".");
+}
 
 $i = 0;
-$chunk = 573;
+$chunk = 573; //69 and 420 were too small
 
 $firstRun = prepare_for_scraping();
 
@@ -465,10 +471,11 @@ if ($firstRun != TRUE){
 
 $files = array_chunk($files,$chunk,true);
 foreach ($files as $filesChunk){
-	unset($cache_array,$cache_file,$metadata,$notedata_array);
+	unset($cache_array,$cache_file,$metadata,$notedata_array); //unset or get memory leaks
 	foreach ($filesChunk as $file){	
 		//get md5 hash of file to determine if there are any updates
 		$file_hash = md5_file($file);
+		//get metadata of file
 		$metadata = parseMetadata($file);
 		$metadata['file_hash'] = $file_hash;
 		$metadata['file'] = fixEncoding(basename($file));
@@ -517,5 +524,6 @@ wh_log("Total time: ". round((microtime(true) - $microStart)/60,1) . " mins.");
 	//	}
 
 //
+exit();
 
 ?>
