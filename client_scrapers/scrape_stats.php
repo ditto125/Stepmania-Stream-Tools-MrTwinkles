@@ -47,7 +47,7 @@ if (php_sapi_name() == "cli") {
 			if ($arg == "-auto"){
 				$autoRun = FALSE;
 			}else{
-				die("Profile IDs are now configured in config.php!");
+				die("Profile IDs are now configured in config.php!" . PHP_EOL);
 			}
 		}
 	}
@@ -60,28 +60,28 @@ if (php_sapi_name() == "cli") {
 //
 
 //check for offline mode in the config
-if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!");}
+if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!" . PHP_EOL);}
 
 //process ProfileIDs and USBProfileDir
-$profileIDs = explode(',',$profileIDs);
 if(empty($profileIDs) && !$USBProfile){
 	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
 }
+$profileIDs = explode(',',$profileIDs);
 $profileIDs = array_map('trim',$profileIDs);
 //check for valid profile ID
 foreach($profileIDs as $profileID){
 	if(strlen($profileID) != 8 && is_numeric($profileID)){
-		wh_log("$profileID is not a valid LocalProfile ID!");
-		die("$profileID is not a valid LocalProfile ID!" . PHP_EOL);
+		wh_log("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
+		die("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
 	}
 }
 
 if($USBProfile){
-	$USBProfileDir = explode(',',$USBProfileDir);
-	if(empty($USBProfile)){
+	if(empty($USBProfileDir)){
 		wh_log("USB Profiles are enabled, but no directory was configured in config.php!");
 		die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
 	}
+	$USBProfileDir = explode(',',$USBProfileDir);
 	$USBProfileDir = array_map('trim',$USBProfileDir);
 	foreach($USBProfileDir as $dir){
 		if(!file_exists($dir)){
@@ -214,8 +214,8 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 				$i++;
 			}
 			if (empty($file_arr)){
-				wh_log("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
-				exit ("Stats.xml file(s) not found! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
+				wh_log("Stats.xml file(s) not found in $saveDir/$profileID! Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
+				exit ("Stats.xml file(s) not found in $saveDir/$profileID! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\"." . PHP_EOL);
 			}
 		}
 	}
@@ -232,14 +232,14 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 				$i++;
 			}
 			if (empty($file_arr)){
-				wh_log("Stats.xml file(s) not found on USB drive.");
-				exit ("Stats.xml file(s) not found on USB drive.");
+				wh_log("Stats.xml file(s) not found on USB drive at $dir!");
+				exit ("Stats.xml file(s) not found on USB drive at $dir!" . PHP_EOL);
 			}
 		}
 	}
 	if (empty($file_arr)){
 		wh_log("Stats.xml file(s) not found!");
-		exit ("Stats.xml file(s) not found!");
+		exit ("Stats.xml file(s) not found!" . PHP_EOL);
 	}
 
 	return $file_arr;
