@@ -3,12 +3,9 @@
 /////
 //SM5 Stats.xml scraper
 //Call this scraper each time the Stats.xml file(s) are modified.
-//The scraper will not run with out specifying at least one profile ID! 
+//The scraper will not run with out specifying at least one profile ID in config.php! 
 //You can run the scraper in auto-run mode, which will run the script each time a Stats.xml file changes.
-//To run in auto-run mode: add "-auto" as an argument along with the profileID(s).
-//For each profile you want scraped, pass the profile ID/folder as an arguement:
-//Example for the Stats.xml file in the first folder, "00000000": "php scrape_stats.php 00000000".
-//Add additional profile IDs by space [_]: "php scrape_stats.php 00000000 00000001".
+//To run in auto-run mode: add "-auto" as an argument.
 /////
 
 //Welcome message
@@ -47,6 +44,7 @@ if (php_sapi_name() == "cli") {
 			if ($arg == "-auto"){
 				$autoRun = FALSE;
 			}else{
+				//inform user of changes to command arguments
 				die("Profile IDs are now configured in config.php!" . PHP_EOL);
 			}
 		}
@@ -62,29 +60,37 @@ if (php_sapi_name() == "cli") {
 //check for offline mode in the config
 if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!" . PHP_EOL);}
 
-//process ProfileIDs and USBProfileDir
+//////////////process ProfileIDs and USBProfileDir///////////////
+
 if(empty($profileIDs) && !$USBProfile){
+	//no profile ID(s) / USB profiles not used
 	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
 }
+//split comma-separated string into an array
 $profileIDs = explode(',',$profileIDs);
 $profileIDs = array_map('trim',$profileIDs);
 //check for valid profile ID
 foreach($profileIDs as $profileID){
 	if(strlen($profileID) != 8 && is_numeric($profileID)){
+		//valid profile IDs used by StepMania are 8-length numbers
 		wh_log("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
 		die("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
 	}
 }
 
 if($USBProfile){
+	//USB profiles are enabled
 	if(empty($USBProfileDir)){
+		//no usb directory configured in config.php
 		wh_log("USB Profiles are enabled, but no directory was configured in config.php!");
 		die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
 	}
+	//split comma-separated string into an array
 	$USBProfileDir = explode(',',$USBProfileDir);
 	$USBProfileDir = array_map('trim',$USBProfileDir);
 	foreach($USBProfileDir as $dir){
 		if(!file_exists($dir)){
+			//failed to find the usb drive/directory
 			wh_log("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct.");
 			die("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct." . PHP_EOL);
 		}
@@ -108,6 +114,7 @@ function check_environment(){
 
 		foreach ($expectedExts as $ext){
 			if(!in_array($ext,$loadedPhpExt)){
+				//expected extenstion not found
 				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
 				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"" . PHP_EOL);
 			}
@@ -150,6 +157,8 @@ function get_version(){
 
 function fixEncoding($line){
 	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
+	//96.69% of the time, the encoding error is in a Windows filename
+	//Project OutFox Alpha 4.12 fixed most of the character encoding issues, but this function will remain for legacy support
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
 	if($encoding != 'UTF-8'){
 		wh_log( "Invalid UTF-8 detected ($encoding). Converting...");
@@ -186,6 +195,7 @@ function parseXmlErrors($errors,$xmlArray){
 			$xmlArray[$lineNo] = fixEncoding($xmlArray[$lineNo]);
 		}elseif($error->code != 9){
 			//error code is not "9"
+			//other errors haven't really popped up, so here, have the raw output!
 			wh_log(implode(PHP_EOL,$errors)); 
 			print_r($errors);
 		}
@@ -205,12 +215,12 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 		foreach ($profileIDs as $profileID){
 			foreach (glob($saveDir."/".$profileID."/Stats.xml",GLOB_BRACE) as $xml_file){
 				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
-				$file_arr[$i]['id'] = $profileID;
-				$file_arr[$i]['file'] = $xml_file;
-				$file_arr[$i]['ftime'] = '';
-				$file_arr[$i]['mtime'] = filemtime($xml_file);
-				$file_arr[$i]['timestampLastPlayed'] = 0;
-				$file_arr[$i]['type'] = "local";
+				$file_arr[$i]['id'] = $profileID; //id for tracking 
+				$file_arr[$i]['file'] = $xml_file; //file directory
+				$file_arr[$i]['ftime'] = ''; //populated later after the first scrape
+				$file_arr[$i]['mtime'] = filemtime($xml_file); //current modified time of the file
+				$file_arr[$i]['timestampLastPlayed'] = 0; //timestamp of the last played song from the parsed stats.xml file
+				$file_arr[$i]['type'] = "local"; //type for later use?
 				$i++;
 			}
 			if (empty($file_arr)){
@@ -220,15 +230,16 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 		}
 	}
 	if($USBProfile){
+		//using usb profile(s)...
 		foreach ($USBProfileDir as $dir){
 			foreach (glob($dir."/Stats.xml",GLOB_BRACE) as $xml_file){
 				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
-				$file_arr[$i]['id'] = $dir;
-				$file_arr[$i]['file'] = $xml_file;
-				$file_arr[$i]['ftime'] = '';
-				$file_arr[$i]['mtime'] = filemtime($xml_file);
-				$file_arr[$i]['timestampLastPlayed'] = 0;
-				$file_arr[$i]['type'] = "usb";
+				$file_arr[$i]['id'] = $dir; //use the dir as the id for tracking
+				$file_arr[$i]['file'] = $xml_file; //file directory
+				$file_arr[$i]['ftime'] = ''; //populated later after the first scrape
+				$file_arr[$i]['mtime'] = filemtime($xml_file); //current modified time of the file
+				$file_arr[$i]['timestampLastPlayed'] = 0; //timestamp of the last played song from the parsed stats.xml file
+				$file_arr[$i]['type'] = "usb"; //type for later use?
 				$i++;
 			}
 			if (empty($file_arr)){
@@ -246,11 +257,17 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 }
 
 function statsXMLtoArray ($xml_file,$timestampLastPlayed){
+	//This is THE Stats.XML parser for StepMania. A lot of assumptions are made about the structure of the file, but considering it's generated by 
+	//the game, I'm not too concerned about it breaking.
+
+	//timestampLastPlayed will always be '0' the first-run, thus all records will be parsed from the xml file.
+	//further runs will only parse the records since the last timestamp
+
 	//create array to store xml file
 	$statsLastPlayed = array();
 	$statsHighScores = array();
 	$stats_arr = array();
-	unset ($xml,$xmlArray,$xmlStr,$errors);
+	unset ($xml,$xmlArray,$xmlStr,$errors); //without unsetting thses variables, we get a memory leak over time
 	
 	//open xml file
 	libxml_clear_errors();
@@ -267,8 +284,10 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 		$xml = FALSE;
 		wh_log("Loading Stats.xml file as a string (after correcting for UTF-8 errors).");
 		while (!$xml){
+			//php's simplexml loader, stops after the first error. We can't fix all the errors at one time.
+			//as long as the $xml is FALSE, we loop one fix at a time
 			libxml_clear_errors();
-			$xml = simplexml_load_string($xmlStr);
+			$xml = simplexml_load_string($xmlStr); //switched to loading as a string instead of a file
 			$errors = libxml_get_errors();
 			if (!empty($errors)){
 				$xmlArray = explode(PHP_EOL,$xmlStr);
@@ -304,17 +323,21 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 			$stepsDescription = (string)$steps['Description']; //OutFox steps description
 			
 			foreach ($steps->HighScoreList as $high_score_lists){
-				$num_played = (string)$high_score_lists->NumTimesPlayed; //useful for getting popular songs
+				$num_played = (string)$high_score_lists->NumTimesPlayed; //integer count of times a song is played
 				$last_played = (string)$high_score_lists->LastPlayed; //date the song/difficulty was last played
 
 				$dateTimeHS = array(null);
 				$highScores = array();
 
 				foreach ($high_score_lists->HighScore as $high_score){				
+					//loop through each highscore section
 					$highScores[] = $high_score;
-					$dateTimeHS[] = (string)$high_score->DateTime;
+					$dateTimeHS[] = (string)$high_score->DateTime; //store a separate datetime value
 				}
 
+				//last_played date for the song isn't always the latest due to not having a time element.
+				//assume that, if the most recent highscore is greater than the lasted time played date,
+				//we can replace the last_played date with the date/time from the highscore
 				$dateTimeMax = max($dateTimeHS);
 				if (strtotime($dateTimeMax) > strtotime($last_played)){
 					$last_played = $dateTimeMax;
@@ -323,20 +346,25 @@ function statsXMLtoArray ($xml_file,$timestampLastPlayed){
 				if (!empty($highScores)){
 					foreach ($highScores as $highScoreSingle){
 						if((string)strtotime($highScoreSingle->DateTime) > strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
+							//highscore date/time is greater than the stored lastPlayed timestamp, add it to the array
 							$statsHighScores[] = array('DisplayName' => $display_name, 'PlayerGuid' => $playerGuid, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'ChartHash' => $chartHash, 'StepsDescription' => $stepsDescription, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played, 'HighScore' => $highScoreSingle);
 						}
 					}
 				}
 				if(strtotime($last_played) >= strtotime(date("Y-m-j",strtotime($timestampLastPlayed)))){
+					//lastplayed date/time is greater than the stored lastPlayed timestamp, add it to the array
 					$statsLastPlayed[] = array('DisplayName' => $display_name, 'PlayerGuid' => $playerGuid, 'SongDir' => $song_dir, 'StepsType' => $steps_type, 'Difficulty' => $difficulty, 'ChartHash' => $chartHash, 'StepsDescription' => $stepsDescription, 'NumTimesPlayed' => $num_played, 'LastPlayed' => $last_played);
+					//add the last_played timestamp to an array for safe keeping
 					$timestampLastPlayedArr[] = $last_played;
 				}
 			}
 		}
 	}
 
-	$timestampLastPlayed = max($timestampLastPlayedArr);
+	$timestampLastPlayed = max($timestampLastPlayedArr); //overwrite the lastplayed timestamp with the new (latest) value
+	//build the final array
 	$stats_arr = array('LastPlayed' => $statsLastPlayed, 'HighScores' => $statsHighScores, 'timestampLastPlayed' => $timestampLastPlayed);
+
 	return $stats_arr; 
 }
 
@@ -384,7 +412,7 @@ function curlPost($postSource, $array){
 		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 	}
 	curl_close ($ch);
-	unset($ch,$result,$post,$jsonArray);
+	unset($ch,$result,$post,$jsonArray); //memory leak over time, if not unset
 }
 
 //check php environment
@@ -394,17 +422,19 @@ check_environment();
 $file_arr = find_statsxml ($saveDir,$profileIDs,$USBProfileDir);
 
 if (!$autoRun){
+	//welcome to an infinite loop of stats
 	echo "\\\\\\\\\\\\\\\\\\AUTO MODE ENABLED////////" . PHP_EOL;
 	wh_log("AUTO MODE ENABLED");
 }
 
-//endless loop
+//endless loop (the way PHP is SuPpOsEd to be used)
 for (;;){
 
-	foreach ($file_arr as &$file){
+	foreach ($file_arr as &$file){ //the '&' writes back the modifications in the loop to the original file
 
 		$file['mtime'] = filemtime($file['file']);
-		if ($file['ftime'] <> $file['mtime']) {
+		if ($file['ftime'] != $file['mtime']) {
+			//file has been modified. let's open it!
 			echo PHP_EOL;
 			$startMicro = microtime(true);
 			echo "Starting scrape of profile ".$file['id']."..." . PHP_EOL;
@@ -435,9 +465,10 @@ for (;;){
 		//autorun was not set, break the loop
 		break;
 	}
-	echo ".";
-	clearstatcache();
-	sleep($frequency);
+	echo "."; //what's a group of dots called?
+	clearstatcache(); //file times are cached, this clears it
+	sleep($frequency); //wait for # seconds
 }
 exit();
+
 ?>
