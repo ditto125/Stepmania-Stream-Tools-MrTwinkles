@@ -156,6 +156,8 @@ CREATE TABLE `sm_scores` (
   `difficulty` text DEFAULT NULL,
   `charthash` VARCHAR(50) DEFAULT NULL,
   `username` tinytext DEFAULT NULL,
+  `profile_id` int(8) DEFAULT NULL,
+  `profile_type` text DEFAULT NULL,
   `grade` tinytext DEFAULT NULL,
   `score` bigint(20) DEFAULT NULL,
   `percentdp` decimal(10,6) DEFAULT NULL,
@@ -241,6 +243,8 @@ CREATE TABLE `sm_songsplayed` (
   `charthash` VARCHAR(50) DEFAULT NULL,
   `username` varchar(50) DEFAULT NULL,
   `player_guid` text DEFAULT NULL,
+  `profile_id` int(8) DEFAULT NULL,
+  `profile_type` text DEFAULT NULL,
   `numplayed` int(11) DEFAULT NULL,
   `lastplayed` datetime DEFAULT NULL,
   `datetime` datetime DEFAULT NULL
