@@ -29,6 +29,10 @@ echo "StepMania Song Pack Banner Uploader" . PHP_EOL;
 echo "*********************************************************" . PHP_EOL;
 echo "" . PHP_EOL;
 
+//start logging and cleanup old logs
+wh_log("Starting SMRequests v$versionClient Song Pack Banner Uploader...");
+//
+
 if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 	require ('config.php');
 }else{

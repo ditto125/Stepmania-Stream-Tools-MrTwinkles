@@ -23,6 +23,10 @@ echo "StepMania Stats.XML Scraper" . PHP_EOL;
 echo "*********************************************************" . PHP_EOL;
 echo "" . PHP_EOL;
 
+//start logging and cleanup old logs
+wh_log("Starting SMRequests v$versionClient Stats.XML Scraper...");
+//
+
 //Config
 if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 	require ('config.php');
@@ -190,8 +194,8 @@ function parseXmlErrors($errors,$xmlArray){
 			//get line number of the invalid character(s)
 			$lineNo = $error->line - 1;
 			//open file, fix encoding, and write a new line
-			echo "Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...".PHP_EOL;
-			wh_log("Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xml[$lineNo])."] Fixing (Temporarily)...");
+			echo "Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xmlArray[$lineNo])."] Fixing (Temporarily)...".PHP_EOL;
+			wh_log("Line ".$lineNo.": [".str_replace(array("\n","\r"),'',$xmlArray[$lineNo])."] Fixing (Temporarily)...");
 			$xmlArray[$lineNo] = fixEncoding($xmlArray[$lineNo]);
 		}elseif($error->code != 9){
 			//error code is not "9"

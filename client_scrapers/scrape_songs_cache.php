@@ -32,6 +32,11 @@ echo "StepMania Song Cache Scraper" . PHP_EOL;
 echo "*********************************************************" . PHP_EOL;
 echo "" . PHP_EOL;
 
+//start logging and cleanup old logs
+wh_log("Starting SMRequests v$versionClient Song Cache Scraper...");
+wh_log_purge();
+//
+
 if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 	require ('config.php');
 }else{
@@ -75,6 +80,28 @@ function wh_log($log_msg){
 	$log_msg = rtrim($log_msg); //remove line endings
     // if you don't add `FILE_APPEND`, the file will be erased each time you add a log
     file_put_contents($log_file_data, date("Y-m-d H:i:s") . " -- [" . strtoupper(basename(__FILE__)) . "] : ". $log_msg . PHP_EOL, FILE_APPEND);
+}
+
+function wh_log_purge(){
+	//clean up old logs in /log older than 6 months
+	//FIXME: timezones in Windows?
+	$log_folder = __DIR__."/log";
+    if (!file_exists($log_folder)){
+		//no log folder, exit
+		break;
+	}
+	//find all log files older than 6 months
+	$fileSystemIterator = new FilesystemIterator($log_folder);
+	$now = time();
+	$countPurgedLogs = 0;
+	foreach ($fileSystemIterator as $file) {
+		$filename = $file->getFilename();
+    	if (($file->isFile()) && ($now - $file->getMTime() > 6 * 30 * 24 * 60 * 60) && (strpos($filename,"log_") != FALSE)) { // 6 months
+        	unlink($log_folder."/".$filename);
+			$countPurgedLogs++;
+		}
+	}
+	wh_log("Purged $countPurgedLogs log files.");
 }
 
 function get_version(){
@@ -349,8 +376,8 @@ function doesFileExist($songFilename){
 			}
 		}
 	}elseif(substr($songFilename,0,strpos($songFilename,"/",1)+1) == "/AdditionalSongs/" && empty($addSongsDir)){
-		die("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.".PHP_EOL);
 		wh_log("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.");
+		die("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.".PHP_EOL);
 	}
 
 	return $return;
