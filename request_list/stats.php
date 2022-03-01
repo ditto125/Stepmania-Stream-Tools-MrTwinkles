@@ -507,6 +507,6 @@ switch(strtolower($_GET["data"])){
 
 echo "</body>\n</html>";
 //close everything out
-die();
 mysqli_close($conn);
+die();
 ?>

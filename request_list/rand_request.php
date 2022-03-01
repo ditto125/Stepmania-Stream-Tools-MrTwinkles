@@ -552,7 +552,7 @@ if(!empty($_GET["random"]) && $_GET["random"] != "random"){
 die();
 }
 
-mysqli_close();
+mysqli_close($conn);
 die();
 
 ?>

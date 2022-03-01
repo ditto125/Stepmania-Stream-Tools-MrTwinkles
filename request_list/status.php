@@ -78,7 +78,7 @@ function lookupSongID ($song_dir){
 		//more than 1 result found - set array from split song_dir, but set id to non-zero minimum id
 		while ($row = mysqli_fetch_assoc($id_result)){
 			if ($row['id'] > 0){
-				$song_ids[] = $id;
+				$song_ids[] = $row['id'];
 			}
 		}
 		$song_id = min($song_ids);

@@ -144,6 +144,6 @@ if(isset($_GET["bansong"])){
 die();
 }
 
-mysqli_close();
+mysqli_close($conn);
 
 ?>
