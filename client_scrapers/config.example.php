@@ -30,8 +30,9 @@ $addSongsDir = "";
 
 //list of song packs/groups to ignore while scraping. These packs will not show up on the songlist and will not be request-able.
 //Example: array("~WIP","Secret Folder","MyDog's")
-//RegEx matching for dynamic ignoring of pack names
 $packsIgnore = array("~WIP");
+//RegEx matching for dynamic ignoring of pack names (https://regex101.com/)
+//Example: "/.*secret.*/i"
 $packsIgnoreRegex = "";
 
 //Target URL for POSTING updates to the server. This is typically where your songlist is hosted.
@@ -43,7 +44,7 @@ $target_url = "https://[URL]";
 $security_key = "any-secret-here";
 
 //Offline Mode
-//Set this to TRUE if you are running the request system on a separate machine that has no realtime access to the StepMania files
+//Set this to TRUE if you are running SMRequests on a separate machine that has no realtime access to the StepMania installation
 //For a description of this operation mode, review the main README.
 $offlineMode = FALSE;
 

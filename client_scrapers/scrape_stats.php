@@ -64,43 +64,6 @@ if (php_sapi_name() == "cli") {
 //check for offline mode in the config
 if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!" . PHP_EOL);}
 
-//////////////process ProfileIDs and USBProfileDir///////////////
-
-if(empty($profileIDs) && !$USBProfile){
-	//no profile ID(s) / USB profiles not used
-	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
-}
-//split comma-separated string into an array
-$profileIDs = explode(',',$profileIDs);
-$profileIDs = array_map('trim',$profileIDs);
-//check for valid profile ID
-foreach($profileIDs as $profileID){
-	if(strlen($profileID) != 8 && is_numeric($profileID)){
-		//valid profile IDs used by StepMania are 8-length numbers
-		wh_log("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
-		die("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
-	}
-}
-
-if($USBProfile){
-	//USB profiles are enabled
-	if(empty($USBProfileDir)){
-		//no usb directory configured in config.php
-		wh_log("USB Profiles are enabled, but no directory was configured in config.php!");
-		die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
-	}
-	//split comma-separated string into an array
-	$USBProfileDir = explode(',',$USBProfileDir);
-	$USBProfileDir = array_map('trim',$USBProfileDir);
-	foreach($USBProfileDir as $dir){
-		if(!file_exists($dir)){
-			//failed to find the usb drive/directory
-			wh_log("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct.");
-			die("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct." . PHP_EOL);
-		}
-	}
-}
-
 //////
 
 function check_environment(){
@@ -157,6 +120,40 @@ function get_version(){
 		wh_log("Client version not found or unexpected value. Check VERSION file in client scrapers folder.");
 	}
 	return $versionClient;
+}
+
+function process_profileIDs(string $profileIDs){
+	//split comma-separated string into an array
+	$profileIDs = explode(',',$profileIDs);
+	$profileIDs = array_map('trim',$profileIDs);
+	//check for valid profile ID
+	foreach($profileIDs as $profileID){
+		if(strlen($profileID) != 8 && is_numeric($profileID)){
+			//valid profile IDs used by StepMania are 8-length numbers
+			wh_log("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
+			die("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
+		}
+	}
+	return (array)$profileIDs;
+}
+
+function process_USBProfileDir(string $USBProfileDir){	
+	if(empty($USBProfileDir)){
+		//no usb directory configured in config.php
+		wh_log("USB Profiles are enabled, but no directory was configured in config.php!");
+		die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
+	}
+	//split comma-separated string into an array
+	$USBProfileDir = explode(',',$USBProfileDir);
+	$USBProfileDir = array_map('trim',$USBProfileDir);
+	foreach($USBProfileDir as $dir){
+		if(!file_exists($dir)){
+			//failed to find the usb drive/directory
+			wh_log("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct.");
+			die("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct." . PHP_EOL);
+		}
+	}
+	return (array)$USBProfileDir;
 }
 
 function fixEncoding($line){
@@ -425,6 +422,19 @@ function curlPost($postSource, $array){
 
 //check php environment
 check_environment();
+
+//process ProfileIDs
+if(empty($profileIDs) && !$USBProfile){
+	//no profile ID(s) / USB profiles not used
+	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
+}
+$profileIDs = process_profileIDs($profileIDs);
+
+//process USB Profiles
+if($USBProfile){
+	//USB profiles are enabled
+	$USBProfileDir = process_USBProfileDir($USBProfileDir);
+}
 
 //find stats.xml files
 $file_arr = find_statsxml ($saveDir,$profileIDs,$USBProfileDir);
