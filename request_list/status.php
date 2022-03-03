@@ -385,6 +385,8 @@ function addLastPlayedtoDB ($lastplayed_array){
 
 	foreach ($lastplayed_array as $lastplayed){
 		//loop through the array and parse the lastplayed information
+		$assignmentArray = array();
+		$assignmentSQL = "";
 		//check if this entry exists already
 		$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND numplayed = \"{$lastplayed['NumTimesPlayed']}\" AND lastplayed >= \"{$lastplayed['LastPlayed']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\"";
 		if (!$retval = mysqli_query($conn, $sql0)){
@@ -392,9 +394,6 @@ function addLastPlayedtoDB ($lastplayed_array){
 		}
 		if (mysqli_num_rows($retval) == 0){
 			//existing record is not found - let's either update or insert a record
-			$id = "";
-			$chartHashSQL ="";
-			$player_guidSQL ="";
 			$songInfo = lookupSongID($lastplayed['SongDir']);
 			//check if the number of times played has increased and update db
 			$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\" ORDER BY lastplayed DESC";
@@ -410,27 +409,28 @@ function addLastPlayedtoDB ($lastplayed_array){
 
 				$song_id = $row['song_id'];
 				if($song_id === 0 && $songInfo['id'] !== 0){
-					//$songInfo = lookupSongID($row['song_dir']);
 					$song_id = $songInfo['id'];
 				}
+
 				if(empty($row['charthash']) && !empty($lastplayed['ChartHash'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$chartHashSQL = "charthash = \"" . $lastplayed['ChartHash'] . "\",";
+					$assignmentArray[] = "charthash = \"" . $lastplayed['ChartHash'] . "\"";
 				}
 				if(empty($row['player_guid']) && !empty($lastplayed['PlayerGuid'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$player_guidSQL = "player_guid = \"" . $lastplayed['PlayerGuid'] . "\",";
+					$assignmentArray[] = "player_guid = \"" . $lastplayed['PlayerGuid'] . "\"";
 				}
 				if(empty($row['profile_id']) && !empty($lastplayed['ProfileID'])){
 					//profile_id is null and there is a new profile ID, let's update it.
-					$profile_idSQL = "profile_id = \"" . $lastplayed['ProfileID'] . "\",";
+					$assignmentArray[] = "profile_id = \"" . $lastplayed['ProfileID'] . "\"";
 				}
 				if(empty($row['profile_type']) && !empty($lastplayed['ProfileType'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$profile_typeSQL = "profile_type = \"" . $lastplayed['ProfileType'] . "\",";
+					$assignmentArray[] = "profile_type = \"" . $lastplayed['ProfileType'] . "\"";
 				}
+				if(!empty($assignmentArray)){$assignmentSQL = implode(",",$assignmentArray);}
 				$id = $row['id'];
-				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", $chartHashSQL $player_guidSQL $profile_idSQL $profile_typeSQL datetime = NOW() WHERE id = \"{$id}\"";
+				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", $assignmentSQL datetime = NOW() WHERE id = \"{$id}\"";
 				if (!mysqli_query($conn, $sql0)){
 					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 				}
@@ -486,40 +486,35 @@ function addLastPlayedtoDB ($lastplayed_array){
 			while($row = mysqli_fetch_assoc($retval)){
 				$song_id = $row['song_id'];
 				if($song_id === 0){
+					//song id is 0
 					$songInfo = lookupSongID($row['song_dir']);
 					$song_id = $songInfo['id'];
-					$id = $row['id'];
-					$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\" WHERE id = \"{$id}\"";
-					if (!mysqli_query($conn, $sql0)){
-						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
-					}
 				}
 				//update the charthash if the db is null and one exists from the Stats.xml
 				if(empty($row['charthash']) && !empty($lastplayed['ChartHash'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$chartHashSQL = "charthash = \"" . $lastplayed['ChartHash'] . "\",";
+					$assignmentArray[] = "charthash = \"" . $lastplayed['ChartHash'] . "\"";
 				}
 				if(empty($row['player_guid']) && !empty($lastplayed['PlayerGuid'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$player_guidSQL = "player_guid = \"" . $lastplayed['PlayerGuid'] . "\",";
+					$assignmentArray[] = "player_guid = \"" . $lastplayed['PlayerGuid'] . "\"";
 				}
 				if(empty($row['profile_id']) && !empty($lastplayed['ProfileID'])){
 					//profile_id is null and there is a new profile ID, let's update it.
-					$profile_idSQL = "profile_id = \"" . $lastplayed['ProfileID'] . "\",";
+					$assignmentArray[] = "profile_id = \"" . $lastplayed['ProfileID'] . "\"";
 				}
 				if(empty($row['profile_type']) && !empty($lastplayed['ProfileType'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$profile_typeSQL = "profile_type = \"" . $lastplayed['ProfileType'] . "\",";
+					$assignmentArray[] = "profile_type = \"" . $lastplayed['ProfileType'] . "\"";
 				}
-				if(empty($chartHashSQL) && empty($player_guidSQL) && empty($profile_idSQL) && empty($profile_typeSQL)){
-					//at least 1 must be not empty
-				}else{
-					$id = $row['id'];
-					$sql0 = "UPDATE sm_songsplayed SET $chartHashSQL $player_guidSQL $profile_idSQL $profile_typeSQL WHERE id = \"{$id}\"";
-					if (!mysqli_query($conn, $sql0)){
-						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
-					}
+				
+				if(!empty($assignmentArray)){$assignmentSQL = implode(",",$assignmentArray);} //at least 1 must be not empty
+				$id = $row['id'];
+				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\" $assignmentSQL WHERE id = \"{$id}\"";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 				}
+
 			}
 		}
 	}
@@ -574,6 +569,8 @@ function addHighScoretoDB ($highscore_array){
 	global $conn;
 
 	foreach ($highscore_array as $highscore){
+		$assignmentSQL ="";
+		$assignmentArray ="";
 		//look for existing record and skip if found
 		$sql1 = "SELECT * FROM sm_scores 
 		WHERE song_dir=\"{$highscore['SongDir']}\" AND stepstype=\"{$highscore['StepsType']}\" AND difficulty=\"{$highscore['Difficulty']}\" AND score=\"{$highscore['HighScore']['Score']}\" AND datetime=\"{$highscore['HighScore']['DateTime']}\" AND username =\"{$highscore['DisplayName']}\"";
@@ -622,39 +619,33 @@ function addHighScoretoDB ($highscore_array){
 			while($row = mysqli_fetch_assoc($retval)){
 				$song_id = $row['song_id'];
 				if($song_id == 0){
+					//song id is 0
 					$songInfo = lookupSongID($row['song_dir']);
 					$song_id = $songInfo['id'];
-					$id = $row['id'];
-					$sql0 = "UPDATE sm_scores SET song_id = \"{$song_id}\" WHERE id = \"{$id}\"";
-					if (!mysqli_query($conn, $sql0)){
-						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
-					}
 				}
 				//update the charthash if the db is null and one exists from the Stats.xml
 				if(empty($row['charthash']) && !empty($highscore['ChartHash'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$chartHashSQL = "charthash = \"" . $highscore['ChartHash'] . "\",";
+					$assignmentArray[] = "charthash = \"" . $highscore['ChartHash'] . "\",";
 				}
 				if(empty($row['player_guid']) && !empty($highscore['PlayerGuid'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$player_guidSQL = "player_guid = \"" . $highscore['PlayerGuid'] . "\",";
+					$assignmentArray[] = "player_guid = \"" . $highscore['PlayerGuid'] . "\",";
 				}
 				if(empty($row['profile_id']) && !empty($highscore['ProfileID'])){
 					//profile_id is null and there is a new profile ID, let's update it.
-					$profile_idSQL = "profile_id = \"" . $highscore['ProfileID'] . "\",";
+					$assignmentArray[] = "profile_id = \"" . $highscore['ProfileID'] . "\",";
 				}
 				if(empty($row['profile_type']) && !empty($highscore['ProfileType'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$profile_typeSQL = "profile_type = \"" . $highscore['ProfileType'] . "\",";
+					$assignmentArray[] = "profile_type = \"" . $highscore['ProfileType'] . "\",";
 				}
-				if(empty($chartHashSQL) && empty($player_guidSQL) && empty($profile_idSQL) && empty($profile_typeSQL)){
-					//at least 1 must be not empty
-				}else{
-					$id = $row['id'];
-					$sql0 = "UPDATE sm_scores SET $chartHashSQL $player_guidSQL $profile_idSQL $profile_typeSQL WHERE id = \"{$id}\"";
-					if (!mysqli_query($conn, $sql0)){
-						echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
-					}
+
+				if(!empty($assignmentArray)){$assignmentSQL = implode(",",$assignmentArray);} //at least 1 must be not empty
+				$id = $row['id'];
+				$sql0 = "UPDATE sm_scores SET song_id = \"{$song_id}\" $assignmentSQL WHERE id = \"{$id}\"";
+				if (!mysqli_query($conn, $sql0)){
+					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 				}
 			}
 
