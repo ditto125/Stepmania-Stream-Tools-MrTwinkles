@@ -31,7 +31,7 @@ A quick summary:
 ## Prerequisites
 This fork currently does not utilize Docker. Please ignore any docker-specific procedures.
 ### Client-side
-* Stepmania 5.0.12, 5.1x, or 5.3-Oufox with local profiles set up and enabled
+* Stepmania 5.0.12, 5.1x, or Project OutFox with local profiles set up and enabled
 * PHP 7.3.x - 7.4.x
 ### Server-side (web hosting)
 * PHP 7.x
@@ -39,16 +39,16 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 * Nginx/Apache/some kind of web hosting
 * phpMyAdmin or similar DB management software
 ### Twitch Chat Bot
-* Third-party chatbot which support custom APIs or URLfetch can be used such as Moobot, StreamElements, NightBot, etc.
+* Third-party chatbot which support custom APIs or URLfetch can be used such as StreamElements, NightBot, etc.
 ### Streaming Software
-* Ability to add a browser-source, OBS/SLOBS
+* Ability to add a browser-source, OBS Studio/Xsplit
 
 ---
 
 # Setup
 ## Server-side
 1. Git clone or copy the request_list directory to the appropriate directory on your webserver
-2. Import the /sql/.sql schema file into your already created database.
+2. Import the `/sql/mysql_schema.sql` schema file into your already created database.
 3. Edit the config.php file with your db information, credentials, and security key.
 4. Check that the song list webpage is available at your domain (sub.domain.tld/songlist.php).
 ## Client-side (SM5 machine)
@@ -58,9 +58,9 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 1. If no php.ini exists in the php directory, rename the php.ini-production file to php.ini
     * Remove semicolon in front of `;extension=curl` to enable the cURL extension.
     * Remove semicolon in front of `;extension=mbstring` to enable multi-byte string functions
-2. Configure php scripts. Rename `config.example.php` to `config.php` and input your StepMania directories, security key, and URL.
+2. Configure php scripts. Rename `config.example.php` to `config.php` and input your StepMania directories, security key, profile information, and URL.
 3. Highly Recommended: Delete all contents of your SM5 Cache/Songs directory, start SM5, and have it rebuild new cache files.
-4. Edit "scrape stats.bat" to add your LocalProfile ID number(s) you want to scrape and whether the script should run in “auto” mode.
+4. Edit "scrape stats.bat" to run in “auto” mode.
     * Run this script in "auto" mode to continuously scrape the Stats.xml file as you play/stream.
 ### Browser Source
 1. To show the request board/widget on stream, add a new broswer source for `[URL]/show_requests.php?security_key=[KEY]`
@@ -94,16 +94,16 @@ SMRequests can operate in two modes:
       * Limitations: Requests are completed manually, banner uploading is not supported, and score-based random functions will not function fully (you can scrape your existing Stats.XML file(s) occasionally to update your songs played records).
 ## First-run
 Once all setup is complete it's time to populate the database tables and upload banner images IN THIS ORDER:
-1. Run the `scrape new songs.bat` 
+1. Run the `scrape songs.bat` 
 2. Run the `upload banners.bat`
 3. Run the `scrape stats.bat`
 
 # Limitations/Known Bugs
-  * Only 4/8-panel "dance" mode is supported. Other modes that are supported by SM5 can be implemented, but they are not as of now.
+  * Only 4-panel "dance" mode is supported. Other modes that are supported by SM5 can be implemented, but they are not as of now.
   * Weird things may happen with random commands, if you start with a brand new profile Stats.xml file.
   * Stats.xml files from other judgement modes in Simply Love (FA+/Casual) are not supported.
   * Currently only one SM5 profile per broadcaster is preferred. The system will function with multiple SM5 profiles (ex. pad profile and a KB profle), but score based commands or calculating top songs maybe give odd results. 
-  * StepMania 5 does not remove associated song cache files on song deletion. If you delete a song/pack, it is recommended to also delete the corresponding cache file(s) too.
+  * StepMania 5 does not remove associated song cache files on song deletion. If you delete a song/pack, it is recommended to also delete the corresponding cache file(s) too. Disabling 'Fast Load' is also recommended.
   * The song request widget/board requires at least one song to continue to update automatically.
   * Sometimes the PHP-CLI scripts will hang. Pressing "enter" will gently encourage the script to get back to work.
 
@@ -112,6 +112,7 @@ Once all setup is complete it's time to populate the database tables and upload 
  - [x] Stats.xml scraping
  - [x] Support for steps type and difficulties in requests
  - [x] Offline mode - support dedicated SM5 machines with no network access
+ - [x] USB profile support
  - [ ] Songlist re-re-write
  - [ ] Fix custom chat bot
  - [ ] Docker support / Electron app
