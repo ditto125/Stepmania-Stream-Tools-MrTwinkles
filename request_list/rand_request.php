@@ -38,15 +38,17 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $req
 
 function build_whereclause($stepstype,$difficulty,$table){
 	//build WHERE clause for stepstype/difficulty
-	$whereTypeDiffClause = "";
+	$whereTypeDiffClause = array();
 	if(!empty($stepstype)){
-		$whereTypeDiffClause = "AND $table.stepstype LIKE '$stepstype' ";
+		$whereTypeDiffClause[] = "AND $table.stepstype LIKE '$stepstype'";
 	}
 	if(!empty($difficulty)){
-		$whereTypeDiffClause = $whereTypeDiffClause . "AND $table.difficulty LIKE '$difficulty' ";
+		$whereTypeDiffClause[] = "AND $table.difficulty LIKE '$difficulty'";
 	}
+	//implode array to string
+	if(!empty($whereTypeDiffClause)){(string)$whereTypeDiffClause = implode(" ",$whereTypeDiffClause);}
 
-	return $whereTypeDiffClause;
+	return (string)$whereTypeDiffClause;
 }
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
