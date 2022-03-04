@@ -92,6 +92,14 @@ function check_cooldown($user){
     global $cooldownMultiplier;
     global $maxRequests;
 
+    //check config variables
+    if(empty($cooldownMultiplier) || !is_numeric($cooldownMultiplier)){
+        $cooldownMultiplier = 0.4;
+    }
+    if(empty($maxRequests) || !is_numeric($maxRequests)){
+        $maxRequests = 10;
+    }
+
     //check total length of requests, if over maxRequests, stop
     $length = check_length($maxRequests);
 
