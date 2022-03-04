@@ -57,8 +57,12 @@ echo '<html>
 ';
 
 }
-
-	if(empty($requestWidgetLength) || !is_numeric($requestWidgetLength) || $requestWidgetLength > 50){
+	//parse url parameter for request board length
+	if ( isset($_GET['length']) && !empty($_GET['length']) && is_numeric($_GET['length'])) {
+		//is valid number
+		$requestWidgetLength = $_GET['length'];
+	}else{
+		//not valid number, use default
 		$requestWidgetLength = 10;
 	}
 

@@ -35,17 +35,13 @@ $broadcasters = array(
 //A value of 0.5 equates to 30 seconds of cooldown per active global request.
 $cooldownMultiplier = 0.4;
 
-//Length of the on-stream request widget (max # of visible requests).
-//The default value is 10.
-$requestWidgetLength = 10;
-
 //Max requests. Maximum active requests before requests are halted.
 //This number should be 10 or less.
 $maxRequests = 10;
 
 //Scoring type. This is the scoring type that will be visible for score-based random commands.
 //This does not change how any scores are determined, only which score type is displayed.
-//Values can be "itg" or "ddr". ITG scores are in percentage and DDR scores are a number out of 1M.
+//Values must be "itg" or "ddr". ITG scores are in percentage and DDR scores are a number out of 1M.
 $scoreType = "itg";
 
 //limit to how many random songs can be requested at once
