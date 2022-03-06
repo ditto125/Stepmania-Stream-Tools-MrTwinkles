@@ -141,8 +141,6 @@ $offset = ($pageno-1) * $no_of_records_per_page;
 //was the random button clicked?		
 if(isset($_GET['random'])){
 	$order = "RAND()";
-}else{
-	$order = "";
 }
 
 //get total songs and packs

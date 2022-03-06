@@ -88,7 +88,7 @@ function wh_log_purge(){
 	$log_folder = __DIR__."/log";
     if (!file_exists($log_folder)){
 		//no log folder, exit
-		break;
+		return;
 	}
 	//find all log files older than 6 months
 	$fileSystemIterator = new FilesystemIterator($log_folder);
@@ -96,8 +96,9 @@ function wh_log_purge(){
 	$countPurgedLogs = 0;
 	foreach ($fileSystemIterator as $file) {
 		$filename = $file->getFilename();
-    	if (($file->isFile()) && ($now - $file->getMTime() > 6 * 30 * 24 * 60 * 60) && (strpos($filename,"log_") != FALSE)) { // 6 months
-        	unlink($log_folder."/".$filename);
+    	if (($file->isFile()) && ($now - $file->getMTime() > 6 * 30 * 24 * 60 * 60) && preg_match('/^log_.+/i',$filename)) { // 6 months
+        	//file is a log file older than 6 months
+			unlink($log_folder."/".$filename);
 			$countPurgedLogs++;
 		}
 	}

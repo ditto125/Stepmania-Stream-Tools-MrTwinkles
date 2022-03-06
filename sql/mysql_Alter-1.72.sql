@@ -13,12 +13,12 @@ ADD COLUMN `charthash` VARCHAR(50) AFTER `chartstyle`;
 
 -- add new columns from Stats file
 ALTER TABLE `sm_songsplayed` 
-ADD COLUMN `profile_id` INT(8) AFTER `player_guid`;
+ADD COLUMN `profile_id` TEXT AFTER `player_guid`;
 ALTER TABLE `sm_songsplayed`
 ADD COLUMN `profile_type` TEXT AFTER `profile_id`;
 
 ALTER TABLE `sm_scores` 
-ADD COLUMN `profile_id` INT(8) AFTER `username`;
+ADD COLUMN `profile_id` TEXT AFTER `username`;
 ALTER TABLE `sm_scores`
 ADD COLUMN `profile_type` TEXT AFTER `profile_id`;
 

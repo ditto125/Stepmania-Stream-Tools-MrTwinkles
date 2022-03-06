@@ -414,23 +414,26 @@ function addLastPlayedtoDB ($lastplayed_array){
 
 				if(empty($row['charthash']) && !empty($lastplayed['ChartHash'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "charthash = \"" . $lastplayed['ChartHash'] . "\"";
+					$assignmentArray[] = "charthash = '" . $lastplayed['ChartHash'] . "'";
 				}
 				if(empty($row['player_guid']) && !empty($lastplayed['PlayerGuid'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "player_guid = \"" . $lastplayed['PlayerGuid'] . "\"";
+					$assignmentArray[] = "player_guid = '" . $lastplayed['PlayerGuid'] . "'";
 				}
 				if(empty($row['profile_id']) && !empty($lastplayed['ProfileID'])){
 					//profile_id is null and there is a new profile ID, let's update it.
-					$assignmentArray[] = "profile_id = \"" . $lastplayed['ProfileID'] . "\"";
+					$assignmentArray[] = "profile_id = '" . $lastplayed['ProfileID'] . "'";
 				}
 				if(empty($row['profile_type']) && !empty($lastplayed['ProfileType'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "profile_type = \"" . $lastplayed['ProfileType'] . "\"";
+					$assignmentArray[] = "profile_type = '" . $lastplayed['ProfileType'] . "'";
 				}
-				if(!empty($assignmentArray)){$assignmentSQL = implode(",",$assignmentArray);}
+				if(!empty($assignmentArray)){
+					$assignmentSQL = implode(", ",$assignmentArray);
+					$assignmentSQL = ", " . $assignmentSQL;
+				}
 				$id = $row['id'];
-				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\", numplayed = \"{$lastplayed['NumTimesPlayed']}\", lastplayed = \"{$lastplayed['LastPlayed']}\", $assignmentSQL datetime = NOW() WHERE id = \"{$id}\"";
+				$sql0 = "UPDATE sm_songsplayed SET song_id = '{$song_id}', numplayed = '{$lastplayed['NumTimesPlayed']}', lastplayed = '{$lastplayed['LastPlayed']}', datetime = NOW() $assignmentSQL  WHERE id = '{$id}'";
 				if (!mysqli_query($conn, $sql0)){
 					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 				}
@@ -493,22 +496,25 @@ function addLastPlayedtoDB ($lastplayed_array){
 				//update the charthash if the db is null and one exists from the Stats.xml
 				if(empty($row['charthash']) && !empty($lastplayed['ChartHash'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "charthash = \"" . $lastplayed['ChartHash'] . "\"";
+					$assignmentArray[] = "charthash = '" . $lastplayed['ChartHash'] . "'";
 				}
 				if(empty($row['player_guid']) && !empty($lastplayed['PlayerGuid'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "player_guid = \"" . $lastplayed['PlayerGuid'] . "\"";
+					$assignmentArray[] = "player_guid = '" . $lastplayed['PlayerGuid'] . "'";
 				}
 				if(empty($row['profile_id']) && !empty($lastplayed['ProfileID'])){
 					//profile_id is null and there is a new profile ID, let's update it.
-					$assignmentArray[] = "profile_id = \"" . $lastplayed['ProfileID'] . "\"";
+					$assignmentArray[] = "profile_id = '" . $lastplayed['ProfileID'] . "'";
 				}
 				if(empty($row['profile_type']) && !empty($lastplayed['ProfileType'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "profile_type = \"" . $lastplayed['ProfileType'] . "\"";
+					$assignmentArray[] = "profile_type = '" . $lastplayed['ProfileType'] . "'";
 				}
 				
-				if(!empty($assignmentArray)){$assignmentSQL = implode(",",$assignmentArray);} //at least 1 must be not empty
+				if(!empty($assignmentArray)){ //at least 1 must be not empty
+					$assignmentSQL = implode(", ",$assignmentArray);
+					$assignmentSQL = ", " . $assignmentSQL;
+				} 
 				$id = $row['id'];
 				$sql0 = "UPDATE sm_songsplayed SET song_id = \"{$song_id}\" $assignmentSQL WHERE id = \"{$id}\"";
 				if (!mysqli_query($conn, $sql0)){
@@ -570,7 +576,7 @@ function addHighScoretoDB ($highscore_array){
 
 	foreach ($highscore_array as $highscore){
 		$assignmentSQL ="";
-		$assignmentArray ="";
+		$assignmentArray = array();
 		//look for existing record and skip if found
 		$sql1 = "SELECT * FROM sm_scores 
 		WHERE song_dir=\"{$highscore['SongDir']}\" AND stepstype=\"{$highscore['StepsType']}\" AND difficulty=\"{$highscore['Difficulty']}\" AND score=\"{$highscore['HighScore']['Score']}\" AND datetime=\"{$highscore['HighScore']['DateTime']}\" AND username =\"{$highscore['DisplayName']}\"";
@@ -605,7 +611,7 @@ function addHighScoretoDB ($highscore_array){
 			}
 
 			//Let's build the VALUES string!
-			$sql1_values = "(\"{$highscore['SongDir']}\",\"{$song_id}\",\"{$song_title}\",\"{$song_pack}\",\"{$highscore['Difficulty']}\",\"{$highscore['StepsType']}\",\"{$highscore['ChartHash']}\",\"{$highscore['DisplayName']}\",\"{$highscore['ProfileID']}\",\"{$highscore['ProifileType']}\",\"{$highscore['HighScore']['Grade']}\",\"{$highscore['HighScore']['Score']}\",\"{$highscore['HighScore']['PercentDP']}\",\"{$highscore['HighScore']['Modifiers']}\",\"{$highscore['HighScore']['DateTime']}\",\"{$highscore['HighScore']['SurviveSeconds']}\",\"{$highscore['HighScore']['LifeRemainingSeconds']}\",\"{$highscore['HighScore']['Disqualified']}\",\"{$highscore['HighScore']['MaxCombo']}\",\"{$stageAward}\",\"{$peakComboAward}\",\"{$highscore['HighScore']['PlayerGuid']}\",\"{$highscore['HighScore']['MachineGuid']}\",\"{$highscore['HighScore']['TapNoteScores']['HitMine']}\",\"{$highscore['HighScore']['TapNoteScores']['AvoidMine']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointMiss']}\",\"{$highscore['HighScore']['TapNoteScores']['Miss']}\",\"{$highscore['HighScore']['TapNoteScores']['W5']}\",\"{$highscore['HighScore']['TapNoteScores']['W4']}\",\"{$highscore['HighScore']['TapNoteScores']['W3']}\",\"{$highscore['HighScore']['TapNoteScores']['W2']}\",\"{$highscore['HighScore']['TapNoteScores']['W1']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointHit']}\",\"{$highscore['HighScore']['HoldNoteScores']['LetGo']}\",\"{$highscore['HighScore']['HoldNoteScores']['Held']}\",\"{$highscore['HighScore']['HoldNoteScores']['MissedHold']}\",\"{$highscore['HighScore']['RadarValues']['Stream']}\",\"{$highscore['HighScore']['RadarValues']['Voltage']}\",\"{$highscore['HighScore']['RadarValues']['Air']}\",\"{$highscore['HighScore']['RadarValues']['Freeze']}\",\"{$highscore['HighScore']['RadarValues']['Chaos']}\",\"{$highscore['HighScore']['RadarValues']['Notes']}\",\"{$highscore['HighScore']['RadarValues']['TapsAndHolds']}\",\"{$highscore['HighScore']['RadarValues']['Jumps']}\",\"{$highscore['HighScore']['RadarValues']['Holds']}\",\"{$highscore['HighScore']['RadarValues']['Mines']}\",\"{$highscore['HighScore']['RadarValues']['Hands']}\",\"{$highscore['HighScore']['RadarValues']['Rolls']}\",\"{$highscore['HighScore']['RadarValues']['Lifts']}\",\"{$highscore['HighScore']['RadarValues']['Fakes']}\")"; 
+			$sql1_values = "(\"{$highscore['SongDir']}\",\"{$song_id}\",\"{$song_title}\",\"{$song_pack}\",\"{$highscore['Difficulty']}\",\"{$highscore['StepsType']}\",\"{$highscore['ChartHash']}\",\"{$highscore['DisplayName']}\",\"{$highscore['ProfileID']}\",\"{$highscore['ProfileType']}\",\"{$highscore['HighScore']['Grade']}\",\"{$highscore['HighScore']['Score']}\",\"{$highscore['HighScore']['PercentDP']}\",\"{$highscore['HighScore']['Modifiers']}\",\"{$highscore['HighScore']['DateTime']}\",\"{$highscore['HighScore']['SurviveSeconds']}\",\"{$highscore['HighScore']['LifeRemainingSeconds']}\",\"{$highscore['HighScore']['Disqualified']}\",\"{$highscore['HighScore']['MaxCombo']}\",\"{$stageAward}\",\"{$peakComboAward}\",\"{$highscore['HighScore']['PlayerGuid']}\",\"{$highscore['HighScore']['MachineGuid']}\",\"{$highscore['HighScore']['TapNoteScores']['HitMine']}\",\"{$highscore['HighScore']['TapNoteScores']['AvoidMine']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointMiss']}\",\"{$highscore['HighScore']['TapNoteScores']['Miss']}\",\"{$highscore['HighScore']['TapNoteScores']['W5']}\",\"{$highscore['HighScore']['TapNoteScores']['W4']}\",\"{$highscore['HighScore']['TapNoteScores']['W3']}\",\"{$highscore['HighScore']['TapNoteScores']['W2']}\",\"{$highscore['HighScore']['TapNoteScores']['W1']}\",\"{$highscore['HighScore']['TapNoteScores']['CheckpointHit']}\",\"{$highscore['HighScore']['HoldNoteScores']['LetGo']}\",\"{$highscore['HighScore']['HoldNoteScores']['Held']}\",\"{$highscore['HighScore']['HoldNoteScores']['MissedHold']}\",\"{$highscore['HighScore']['RadarValues']['Stream']}\",\"{$highscore['HighScore']['RadarValues']['Voltage']}\",\"{$highscore['HighScore']['RadarValues']['Air']}\",\"{$highscore['HighScore']['RadarValues']['Freeze']}\",\"{$highscore['HighScore']['RadarValues']['Chaos']}\",\"{$highscore['HighScore']['RadarValues']['Notes']}\",\"{$highscore['HighScore']['RadarValues']['TapsAndHolds']}\",\"{$highscore['HighScore']['RadarValues']['Jumps']}\",\"{$highscore['HighScore']['RadarValues']['Holds']}\",\"{$highscore['HighScore']['RadarValues']['Mines']}\",\"{$highscore['HighScore']['RadarValues']['Hands']}\",\"{$highscore['HighScore']['RadarValues']['Rolls']}\",\"{$highscore['HighScore']['RadarValues']['Lifts']}\",\"{$highscore['HighScore']['RadarValues']['Fakes']}\")"; 
 				
 			echo "Adding a " . $highscore['HighScore']['Grade'] . " grade for the " . $highscore['Difficulty'] . " chart of " . $song_title . " from " . $song_pack . PHP_EOL;
 			
@@ -626,24 +632,29 @@ function addHighScoretoDB ($highscore_array){
 				//update the charthash if the db is null and one exists from the Stats.xml
 				if(empty($row['charthash']) && !empty($highscore['ChartHash'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "charthash = \"" . $highscore['ChartHash'] . "\",";
+					$assignmentArray[] = "charthash = '" . $highscore['ChartHash'] . "'";
 				}
-				if(empty($row['player_guid']) && !empty($highscore['PlayerGuid'])){
+				if(empty($row['player_guid']) && !empty($highscore['HighScore']['PlayerGuid'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "player_guid = \"" . $highscore['PlayerGuid'] . "\",";
+					$assignmentArray[] = "player_guid = '" . $highscore['HighScore']['PlayerGuid'] . "'";
 				}
 				if(empty($row['profile_id']) && !empty($highscore['ProfileID'])){
 					//profile_id is null and there is a new profile ID, let's update it.
-					$assignmentArray[] = "profile_id = \"" . $highscore['ProfileID'] . "\",";
+					$assignmentArray[] = "profile_id = '" . $highscore['ProfileID'] . "'";
 				}
 				if(empty($row['profile_type']) && !empty($highscore['ProfileType'])){
 					//charthash is null and there is a new charthash, let's update it.
-					$assignmentArray[] = "profile_type = \"" . $highscore['ProfileType'] . "\",";
+					$assignmentArray[] = "profile_type = '" . $highscore['ProfileType'] . "'";
 				}
 
-				if(!empty($assignmentArray)){$assignmentSQL = implode(",",$assignmentArray);} //at least 1 must be not empty
+				if(!empty($assignmentArray)){ //at least 1 must be not empty
+					$assignmentSQL = implode(", ",$assignmentArray);
+					$assignmentSQL = ", " . $assignmentSQL;
+				} 
+
 				$id = $row['id'];
-				$sql0 = "UPDATE sm_scores SET song_id = \"{$song_id}\" $assignmentSQL WHERE id = \"{$id}\"";
+				$sql0 = "UPDATE sm_scores SET song_id = '{$song_id}' $assignmentSQL WHERE id = '{$id}'";
+				//echo $sql0 . PHP_EOL;
 				if (!mysqli_query($conn, $sql0)){
 					echo "Error: " . $sql0 . PHP_EOL . mysqli_error($conn) . PHP_EOL;
 				}
