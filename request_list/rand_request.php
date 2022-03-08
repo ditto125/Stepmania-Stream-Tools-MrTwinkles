@@ -39,6 +39,7 @@ function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $req
 function build_whereclause($stepstype,$difficulty,$table){
 	//build WHERE clause for stepstype/difficulty
 	$whereTypeDiffClause = array();
+	$whereTypeDiffClauseStr = "";
 	if(!empty($stepstype)){
 		$whereTypeDiffClause[] = "AND $table.stepstype LIKE '$stepstype'";
 	}
@@ -46,9 +47,11 @@ function build_whereclause($stepstype,$difficulty,$table){
 		$whereTypeDiffClause[] = "AND $table.difficulty LIKE '$difficulty'";
 	}
 	//implode array to string
-	if(!empty($whereTypeDiffClause)){(string)$whereTypeDiffClause = implode(" ",$whereTypeDiffClause);}
+	if(!empty($whereTypeDiffClause)){
+		$whereTypeDiffClauseStr = implode(" ",$whereTypeDiffClause);
+	}
 
-	return (string)$whereTypeDiffClause;
+	return $whereTypeDiffClauseStr;
 }
 
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);
@@ -165,8 +168,8 @@ if($_GET["random"] == "random"){
 		LIMIT 100";
 		$retval = mysqli_query( $conn, $sql );
 		
-		if(mysqli_num_rows($retval) >= 10) {
-			//let's hope for at least 10 results so that it at least seems like a random pick
+		if(mysqli_num_rows($retval) >= 100) {
+			//let's hope for at least 100 results so that it at least seems like a random pick
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(!recently_played($row["id"],1) && check_stepstype($broadcaster,$row["id"]) && check_meter($broadcaster,$row["id"])){
@@ -308,8 +311,8 @@ if($_GET["random"] == "top"){
 				ORDER BY RAND()";
 		$retval = mysqli_query( $conn, $sql );
 		
-		if(mysqli_num_rows($retval) >= 10) {
-			//let's hope for at least 10 results so that it at least seems like a random pick
+		if(mysqli_num_rows($retval) >= 100) {
+			//let's hope for at least 100 results so that it at least seems like a random pick
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
 				if(!recently_played($row["id"],1) && check_stepstype($broadcaster,$row["id"]) && check_meter($broadcaster,$row["id"])){
@@ -454,8 +457,8 @@ if($_GET["random"] == "roll"){
 		LIMIT 100";
 		$retval = mysqli_query( $conn, $sql );
 		
-		if(mysqli_num_rows($retval) >= 10) {
-			//let's hope for at least 10 results so that it at least seems like a random pick
+		if(mysqli_num_rows($retval) >= 100) {
+			//let's hope for at least 100 results so that it at least seems like a random pick
 			echo "$user rolled (request with !requestid [song id]):\n";
 			$i=1;
 			while(($row = mysqli_fetch_assoc($retval)) && ($i <= $num)) {
