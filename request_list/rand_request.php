@@ -54,9 +54,11 @@ function build_whereclause($stepstype,$difficulty,$table){
 	return $whereTypeDiffClauseStr;
 }
 
-function get_grade_from_tier(string $scoreType, string $percentdp, string $grade){
+function percentdp_to_grade(string $percentdp){
 	//look up grade for ddr/itg from %DP, SM tier/grade
 	global $conn;
+	global $scoreType;
+	$grade = "";
 
 	switch ($scoreType){
 		case "ddr":
@@ -72,7 +74,7 @@ function get_grade_from_tier(string $scoreType, string $percentdp, string $grade
 
 	$sql = "SELECT percentdp, $score_tier, $score_grade 
 			FROM sm_grade_tiers 
-			WHERE percentdp <= $percentdp AND $score_tier = '$grade'
+			WHERE percentdp <= $percentdp 
 			ORDER BY percentdp DESC 
 			LIMIT 1";
 
@@ -80,15 +82,16 @@ function get_grade_from_tier(string $scoreType, string $percentdp, string $grade
 	if (mysqli_num_rows($retval) > 0){
 		$grade = mysqli_fetch_assoc($retval)[$score_grade];
 	}else{
-		die("Error finding the grade! " . mysqli_error($conn));
+		//die("Error finding the grade! " . mysqli_error($conn));
 	}
 
 	return (string)$grade;
 }
 
-function get_top_played_songs(float $topPercent, string $profileName, string $whereTypeDiffClause){
+function get_top_percent_played_songs(string $profileName, string $whereTypeDiffClause){
 	//get the total number of unique songs played for use in "top" queries
 	global $conn;
+	global $topPercent;
 
 	$sql = "SELECT song_id, SUM(numplayed) AS numplayed
 			FROM sm_songsplayed
@@ -96,7 +99,8 @@ function get_top_played_songs(float $topPercent, string $profileName, string $wh
 			WHERE sm_songs.installed = 1 AND sm_songs.banned NOT IN(1, 2) AND sm_songsplayed.song_id > 0 AND numplayed > 1 AND username LIKE '{$profileName}' $whereTypeDiffClause AND sm_songsplayed.song_id IN (
 				SELECT song_id
 				FROM sm_scores
-				WHERE percentdp > 0) 
+				GROUP BY song_id
+				HAVING MAX(percentdp) > 0) 
 			GROUP BY song_id
 			ORDER BY numplayed DESC";
 	$retval = mysqli_query( $conn, $sql );
@@ -107,13 +111,14 @@ function get_top_played_songs(float $topPercent, string $profileName, string $wh
 		$total = intval($total);
 		if ($total < 100){$total = 100;} //100 is the lowest value
 	}else{
-		die("Error getting top percent of played songs! " . mysqli_error($conn));
+		$total = 100; //fallback to 100 as the lowest value
+		//die("Error getting top percent of played songs! " . mysqli_error($conn));
 	}
 
 	return (integer)$total;
 }
 
-function get_average_percentDP(string $total, string $profileName, string $whereTypeDiffClause){
+function get_average_percentDP(string $profileName, string $whereTypeDiffClause){
 	//get average score 
 	global $conn;
 
@@ -123,10 +128,12 @@ function get_average_percentDP(string $total, string $profileName, string $where
 			WHERE sm_songs.installed = 1 AND sm_songs.banned NOT IN(1, 2) AND grade <> 'Failed' AND percentdp > 0.5 AND username LIKE '{$profileName}' $whereTypeDiffClause";
 
 	$retval = mysqli_query( $conn, $sql );
+	
 	if (mysqli_num_rows($retval) > 0){
 		$average = mysqli_fetch_assoc($retval)['average'];
 	}else{
-		die("Error calculating the average score! " . mysqli_error($conn));
+		$average = 0.5; 
+		//die("Error calculating the average score! " . mysqli_error($conn));
 	}
 
 	return (float)$average;
@@ -441,10 +448,10 @@ if($_GET["random"] == "gitgud"){
 		// 		ORDER BY RAND()";
         // $retval = mysqli_query( $conn, $sql );
 
-	$topTotal = get_top_played_songs($topPercent,$profileName,$whereTypeDiffClauseSP);
-	$averagePercentDP = get_average_percentDP($topTotal,$profileName,$whereTypeDiffClause);
+	$topTotal = get_top_percent_played_songs($profileName,$whereTypeDiffClauseSP);
+	$averagePercentDP = get_average_percentDP($profileName,$whereTypeDiffClause);
 
-	$sql = "SELECT score_id, t2.song_id AS song_id, sm_songs.title AS title, sm_songs.subtitle AS subtitle, 		sm_songs.artist AS artist, sm_songs.pack AS pack, t2.percentdp, grade, score, t2.stepstype, difficulty, 	t2.numplayed, scores, DATETIME
+	$sql = "SELECT score_id, t2.song_id AS song_id, sm_songs.title AS title, sm_songs.subtitle AS subtitle, sm_songs.artist AS artist, sm_songs.pack AS pack, t2.percentdp, grade, score, t2.stepstype, difficulty, t2.numplayed, scores, DATETIME
 		FROM sm_scores
 		JOIN(
 			SELECT id AS score_id, sm_scores.song_id, MAX(percentdp) AS percentdp, COUNT(sm_scores.id) AS scores, stepstype, numplayed
@@ -453,13 +460,17 @@ if($_GET["random"] == "gitgud"){
 				SELECT song_id, SUM(numplayed) AS numplayed
 				FROM sm_songsplayed
 				JOIN sm_songs ON sm_songsplayed.song_id = sm_songs.id
-				WHERE sm_songs.installed = 1 AND sm_songs.banned NOT IN(1, 2) AND sm_songsplayed.song_id > 0 AND numplayed > 1 AND username LIKE '{$profileName}' $whereTypeDiffClauseSP 
+				WHERE sm_songs.installed = 1 AND sm_songs.banned NOT IN(1, 2) AND sm_songsplayed.song_id > 0 AND numplayed > 1 AND username LIKE '{$profileName}' $whereTypeDiffClauseSP AND sm_songsplayed.song_id IN (
+                    SELECT song_id
+                    FROM sm_scores
+                    GROUP BY song_id
+                    HAVING MAX(percentdp) > 0) 
 				GROUP BY song_id
 				ORDER BY numplayed DESC
 				LIMIT $topTotal 
 				) AS topt
 			ON topt.song_id = sm_scores.song_id
-			WHERE grade <> 'Failed' AND percentdp < $averagePercentDP AND username LIKE '{$profileName}' $whereTypeDiffClause 
+			WHERE grade <> 'Failed' AND percentdp > 0 AND percentdp < $averagePercentDP AND username LIKE '{$profileName}' $whereTypeDiffClause 
 			GROUP BY song_id, stepstype
 			HAVING scores > 1
 			ORDER BY percentdp ASC
@@ -493,7 +504,7 @@ if($_GET["random"] == "gitgud"){
 							break;
 					}
 					//translate SM grade/tier to ddr/itg grade
-					$grade = get_grade_from_tier($scoreType,$row['percentdp'],$row['grade']);
+					$grade = percentdp_to_grade($row['percentdp']);
 					if (!empty($grade)){
 						$displayScore = $displayScore . " (" . $grade . ")";
 					}
