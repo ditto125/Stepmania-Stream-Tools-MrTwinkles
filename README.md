@@ -65,6 +65,7 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 ### Browser Source
 1. To show the request board/widget on stream, add a new broswer source for `[URL]/show_requests.php?security_key=[KEY]`
     * If you are using multiple broadcasters, append `&broadcaster=[BROADCASTER]`
+    * To display a custom number of requests, append `&length=[#]`
     * For "offline/admin mode", append `&admin` to the end of the URL to add buttons for manually marking songs as completed, skipped, or banned.
 2. To show stats on stream, add a new browser source for `[URL]/stats.php?data=[?]`
     * [?] = "songs" : ## songs played this session
