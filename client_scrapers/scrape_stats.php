@@ -161,22 +161,23 @@ function fixEncoding($line){
 	//96.69% of the time, the encoding error is in a Windows filename
 	//Project OutFox Alpha 4.12 fixed most of the character encoding issues, but this function will remain for legacy support
 	$encoding = mb_detect_encoding($line,'UTF-8,CP1252,ASCII,ISO-8859-1');
+	$oldLine = $line;
 	if($encoding != 'UTF-8'){
 		wh_log( "Invalid UTF-8 detected ($encoding). Converting...");
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
-		wh_log("New Text: ".$line);
+		wh_log("Text converted from: \"" . $oldLine . "\" to: \"" . $line . "\".");
 	}elseif($encoding == FALSE || empty($encoding)){
 		//encoding not detected, assuming 'ISO-8859-1', again, thanks, StepMania.
 		$encoding = 'ISO-8859-1';
 		wh_log("Invalid UTF-8 detected ($encoding) (fallback). Converting...");
 		$line = mb_convert_encoding($line,'UTF-8',$encoding);
-		wh_log( "New Text: ".$line);
+		wh_log("Text converted from: \"" . $oldLine . "\" to: \"" . $line . "\".");
 	}
 	//afer conversion we check AGAIN to confirm the new line is encoded as UTF-8
 	if(!mb_check_encoding($line,'UTF-8')){
 		//string still has invalid characters, give up and remove them completely
 		$line = mb_convert_encoding($line,'UTF-8','UTF-8');
-		wh_log("Failed additional check. UTF-8,UTF-8 converted line: $line");
+		wh_log("Failed additional check. UTF-8,UTF-8 converted line from: \"" . $oldLine . "\" to: \"" . $line . "\".");
 	}
 	return $line;
 }
@@ -244,8 +245,8 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 				$i++;
 			}
 			if (empty($file_arr)){
-				wh_log("Stats.xml file(s) not found on USB drive at $dir!");
-				exit ("Stats.xml file(s) not found on USB drive at $dir!" . PHP_EOL);
+				wh_log("Stats.xml file(s) not found on USB drive at \"$dir!\"");
+				exit ("Stats.xml file(s) not found on USB drive at \"$dir!\"" . PHP_EOL);
 			}
 		}
 	}
@@ -455,26 +456,26 @@ for (;;){
 			//file has been modified. let's open it!
 			echo PHP_EOL;
 			$startMicro = microtime(true);
-			echo "Starting scrape of profile ".$file['id']."..." . PHP_EOL;
-			wh_log("Starting scrape of profile ".$file['id']);
+			echo "Starting scrape of profile \"".$file['id']."\"..." . PHP_EOL;
+			wh_log("Starting scrape of profile \"".$file['id']."\"");
 			//parse stats.xml file to an array
 			$statsMicro = microtime(true);
 			$stats_arr = statsXMLtoArray ($file);
 			//save the last played timestamp in the $file array
 			$file['timestampLastPlayed'] = $stats_arr['timestampLastPlayed'];
-			wh_log ("Stats.XML parse of " . $file['id'] . " took: " . round(microtime(true) - $statsMicro,3) . " secs.");
+			wh_log ("Stats.XML parse of \"" . $file['id'] . "\" took: " . round(microtime(true) - $statsMicro,3) . " secs.");
 			//LastPlayed
 			$lpMicro = microtime(true);
 			wh_log("Uploading " . count($stats_arr['LastPlayed']) . " lastplayed records.");
 			curlPost("lastplayed", $stats_arr['LastPlayed']);
-			wh_log ("POST and processing of LastPlayed of " . $file['id'] . " took: " . round(microtime(true) - $lpMicro,3) . " secs.");
+			wh_log ("POST and processing of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			//HighScores
 			$hsMicro = microtime(true);
-			wh_log("Uploading " . count($stats_arr['HighScores']) . " highscores records.");
+			wh_log("Uploading " . count($stats_arr['HighScores']) . " highscore records.");
 			curlPost("highscores", $stats_arr['HighScores']);
-			wh_log ("POST and processing of HighScores of " . $file['id'] . " took: " . round(microtime(true) - $hsMicro,3) . " secs.");
+			wh_log ("POST and processing of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			echo "Done " . PHP_EOL;
-			wh_log ("Done. Scrape of " . $file['id'] . " took: " . round(microtime(true) - $startMicro,3) . " secs.");
+			wh_log ("Done. Scrape of \"" . $file['id'] . "\" took: " . round(microtime(true) - $startMicro,3) . " secs.");
 			unset($stats_arr);
 		}
 		$file['ftime'] = $file['mtime'];
