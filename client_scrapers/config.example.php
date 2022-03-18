@@ -14,8 +14,9 @@ $saveDir = "C:/Users/[USER]/AppData/Roaming/StepMania 5.1/Save";
 
 //Profile IDs for Stats.xml files you would like to scrape. These are directories located in [/Save/LocalProfiles] with names like '00000000'.
 //You must specify at least 1 ID, but can add more by separating the IDs with a comma.
-//Example: "00000000,00000001"
-$profileIDs = "00000000";
+//Example for 1 local profile: "00000000"
+//Example for 2 local profiles: "00000000,00000001"
+$profileIDs = "";
 
 //If using USB Profiles, please configure the $USBProfileDir to point at your drive/share location for the USB Drive.
 //This should match the value in your Preferences.ini file for 'MemoryCardProfileSubdir'

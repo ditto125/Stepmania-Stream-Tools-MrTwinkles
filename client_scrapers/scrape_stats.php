@@ -224,7 +224,7 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 				$file_arr[$i]['type'] = "local"; //type for later use?
 				$i++;
 			}
-			if (empty($file_arr)){
+			if (empty($file_arr) && !USBProfile){ //don't exit too early
 				wh_log("Stats.xml file(s) not found in $saveDir/$profileID! Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
 				exit ("Stats.xml file(s) not found in $saveDir/$profileID! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\"." . PHP_EOL);
 			}
@@ -424,7 +424,7 @@ function curlPost($postSource, $array){
 check_environment();
 
 //process ProfileIDs
-if(empty($profileIDs) && !$USBProfile){
+if((empty($profileIDs) || $profileIDs == "") && !$USBProfile){
 	//no profile ID(s) / USB profiles not used
 	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
 }
