@@ -171,15 +171,17 @@ function curl_upload($file,$pack_name){
 	global $security_key;
 	unset($ch,$post,$cFile);
 	$versionClient = get_version();
+	$security_keyToken = base64_encode($security_key);
 	//special curl function to create the information needed to upload files
 	//renaming the banner images to be consistent with the pack name
 	$cFile = curl_file_create($file,'',$pack_name.'.'.strtolower(pathinfo($file,PATHINFO_EXTENSION)));
 	//add the security_key to the array
-	$post = array('security_key' => $security_key, 'version' => $versionClient,'file_contents'=> $cFile);
+	$post = array('version' => $versionClient, 'file_contents'=> $cFile);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL,$target_url."/banners.php");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array("Key: $security_keyToken"));
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
 	curl_setopt($ch, CURLOPT_SAFE_UPLOAD, true);
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');

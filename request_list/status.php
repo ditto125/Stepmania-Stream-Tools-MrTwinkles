@@ -16,30 +16,52 @@ include ('config.php');
 include ('misc_functions.php');
 
 //--------Accept the POSTed json string, validate, and check security--------//
-	
+
 //Make sure that it is a POST request.
 if(strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0){
-    echo('Request method must be POST!' . PHP_EOL);
+    die('Request method must be POST!' . PHP_EOL);
+}
+
+//Get access token/security key from http header
+if(isset($_SERVER['HTTP_KEY'])){
+	$keyToken = trim($_SERVER['HTTP_KEY']);
+	if(empty($keyToken)){
+		die("Fuck off" . PHP_EOL);
+	}
+	$keyToken = base64_decode($keyToken);
+	if($keyToken != $security_key){
+		die("Fuck off" . PHP_EOL);
+	}
+}else{
+	die("No valid HTTP security_key header" . PHP_EOL);
 }
  
 //Make sure that the content type of the POST request has been set to application/json
-$contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
+$contentType = isset($_SERVER['CONTENT_TYPE']) ? trim($_SERVER['CONTENT_TYPE']) : '';
 if(strcasecmp($contentType, 'application/json') != 0){
-	echo('Content type must be: application/json' . PHP_EOL);
+	die('Content type must be: application/json' . PHP_EOL);
 }
  
 //Receive the RAW post data.
-$content = trim(file_get_contents("php://input"));
- 
+$content = file_get_contents("php://input");
+
+//Decode RAW post data, if usuing gzip
+$contentEncoding = isset($_SERVER['CONTENT_ENCODING']) ? trim($_SERVER['CONTENT_ENCODING']) : '';
+if(strcasecmp($contentEncoding, 'gzip')){
+	$content = gzdecode($content);
+}
+
 //Attempt to decode the incoming RAW post data from JSON.
-$jsonDecoded = json_decode($content, true);
+$jsonDecoded = json_decode($content, true, JSON_INVALID_UTF8_IGNORE);
  
 //If json_decode failed, the JSON is invalid.
 if(!is_array($jsonDecoded)){
-    echo('Received content contained invalid JSON!' . PHP_EOL);
+    die('Received content contained invalid JSON!' . PHP_EOL);
 }
 
-if (!isset($jsonDecoded['security_key']) || $jsonDecoded['security_key'] != $security_key || empty($jsonDecoded['security_key']) || !isset($jsonDecoded['source']) || empty($jsonDecoded['data'])){die("Fuck off" . PHP_EOL);}
+//if (!isset($jsonDecoded['security_key']) || $jsonDecoded['security_key'] != $security_key || empty($jsonDecoded['security_key']) || !isset($jsonDecoded['source']) || empty($jsonDecoded['data'])){die("Fuck off" . PHP_EOL);}
+
+unset($conent);
 
 //--------Open mysql link--------//
 
@@ -715,6 +737,7 @@ switch ($jsonDecoded['source']){
 		echo "No valid json string found." . PHP_EOL;
 }
 
+unset($jsonDecoded);
 mysqli_close($conn);
 die();
 

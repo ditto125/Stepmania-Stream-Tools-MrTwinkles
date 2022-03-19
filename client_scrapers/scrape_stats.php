@@ -380,8 +380,9 @@ function curlPost($postSource, $array){
 	global $offlineMode;
 	$versionClient = get_version();
 	//add the security_key to the array
+	$security_keyToken = base64_encode($security_key);
 	$jsMicro = microtime(true);
-	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'version' => $versionClient, 'offline' => $offlineMode, 'data' => $array);
+	$jsonArray = array('source' => $postSource, 'version' => $versionClient, 'offline' => $offlineMode, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
 	wh_log ("Creating JSON took: " . round(microtime(true) - $jsMicro,3) . " secs.");
@@ -391,11 +392,13 @@ function curlPost($postSource, $array){
 		wh_log(json_last_error_msg());
 		die(json_last_error_msg().PHP_EOL);
 	}
+	//compress post data
+	$post = gzencode($post,6);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php?$postSource");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Encoding: gzip', "Key: $security_keyToken"));
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_POST,1); 

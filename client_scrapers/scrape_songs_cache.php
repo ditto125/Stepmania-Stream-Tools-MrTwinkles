@@ -423,8 +423,9 @@ function curlPost($postSource, $array){
 	global $security_key;
 	$versionClient = get_version();
 	unset($ch,$result,$post,$jsonArray,$errorJson);
+	$security_keyToken = base64_encode($security_key);
 	//add the security_key to the array
-	$jsonArray = array('security_key' => $security_key, 'source' => $postSource, 'version' => $versionClient, 'data' => $array);
+	$jsonArray = array('source' => $postSource, 'version' => $versionClient, 'data' => $array);
 	//encode array as json
 	$post = json_encode($jsonArray);
 	$errorJson = json_last_error();
@@ -433,11 +434,13 @@ function curlPost($postSource, $array){
 		parseJsonErrors($errorJson,$jsonArray);
 		die();
 	}
+	//compress post data
+	$post = gzencode($post,6);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php?$postSource");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Encoding: gzip', "Key: $security_keyToken"));
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
 	curl_setopt($ch, CURLOPT_POST,1); 

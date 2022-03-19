@@ -220,6 +220,8 @@ if(!isset($_GET["id"])){die("You must specify an id");}
 
 $id = $_GET["id"];
 
+$output = array();
+
 if(isset($_GET["func"])){
 	switch($_GET["func"]){
 		case "MarkCompleted":
@@ -251,18 +253,14 @@ if(isset($_GET["func"])){
 		$broadcaster = "%";
 	}
 
-	$cancels = get_cancels_since($id,$oldid,$broadcaster);
+	$output["cancels"] = get_cancels_since($id,$oldid,$broadcaster);
 
-	$requests = get_requests_since($id,$oldid,$broadcaster);
+	$output["requests"] = get_requests_since($id,$oldid,$broadcaster);
 
-	$completions = get_completions_since($id,$oldid,$broadcaster);
+	$output["completions"] = get_completions_since($id,$oldid,$broadcaster);
 
-	$skips = get_skips_since($id,$oldid,$broadcaster);
+	$output["skips"] = get_skips_since($id,$oldid,$broadcaster);
 
-	$output["cancels"] = $cancels;
-	$output["requests"] = $requests;
-	$output["completions"] = $completions;
-	$output["skips"] = $skips;
 }
 
 $output = json_encode($output);
