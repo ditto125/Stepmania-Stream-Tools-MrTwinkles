@@ -176,7 +176,7 @@ function scrapeSong($songCache_array){
 	global $conn;
 	
 	$metadata = $notedata_array = array();
-	$song_dir = $title = $subtitle = $artist = $pack = $display_bpm = $song_credit = $stepstype = $difficulty = $stored_hash = $file_hash = "";
+	$song_dir = $title = $subtitle = $artist = $pack = $display_bpm = $song_credit = $stored_hash = $file_hash = "";
 	$music_length = $bga = 0;
 
 	$metadata = $songCache_array['metadata'];
@@ -223,7 +223,7 @@ function scrapeSong($songCache_array){
 		if(strpos($title, "[") == 0 && strpos($title, "]") && !preg_match("/]$/",$title)){
 			//This song title has a [BRACKETED TAG] before the actual title, let's remove it
 			$firstbracketpos = strpos($title, "[");
-			$lastbracketpos = strpos($title, "]");
+			$lastbracketpos = strpos($title, "]",$firstbracketpos+1);
 			$title = substr($title, $lastbracketpos+1);
 			
 			if(strpos($title, "- ") == 1){
@@ -409,6 +409,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 		//loop through the array and parse the lastplayed information
 		$assignmentArray = array();
 		$assignmentSQL = "";
+		$songInfo = array();
 		//check if this entry exists already
 		$sql0 = "SELECT * FROM sm_songsplayed WHERE song_dir = \"{$lastplayed['SongDir']}\" AND numplayed = \"{$lastplayed['NumTimesPlayed']}\" AND lastplayed >= \"{$lastplayed['LastPlayed']}\" AND difficulty = \"{$lastplayed['Difficulty']}\" AND stepstype = \"{$lastplayed['StepsType']}\" AND username = \"{$lastplayed['DisplayName']}\"";
 		if (!$retval = mysqli_query($conn, $sql0)){
@@ -599,6 +600,7 @@ function addHighScoretoDB ($highscore_array){
 	foreach ($highscore_array as $highscore){
 		$assignmentSQL ="";
 		$assignmentArray = array();
+		$songInfo = array();
 		//look for existing record and skip if found
 		$sql1 = "SELECT * FROM sm_scores 
 		WHERE song_dir=\"{$highscore['SongDir']}\" AND stepstype=\"{$highscore['StepsType']}\" AND difficulty=\"{$highscore['Difficulty']}\" AND score=\"{$highscore['HighScore']['Score']}\" AND datetime=\"{$highscore['HighScore']['DateTime']}\" AND username =\"{$highscore['DisplayName']}\"";

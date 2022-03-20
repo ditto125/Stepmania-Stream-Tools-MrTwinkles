@@ -225,7 +225,7 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 				$file_arr[$i]['type'] = "local"; //type for later use?
 				$i++;
 			}
-			if (empty($file_arr) && !USBProfile){ //don't exit too early
+			if (empty($file_arr) && !$USBProfile){ //don't exit too early
 				wh_log("Stats.xml file(s) not found in $saveDir/$profileID! Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
 				exit ("Stats.xml file(s) not found in $saveDir/$profileID! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\"." . PHP_EOL);
 			}
@@ -470,20 +470,28 @@ for (;;){
 			//LastPlayed
 			if(($countLP = count($stats_arr['LastPlayed'])) > 0){
 				$lpMicro = microtime(true);
+				$countChunk = 0;
 				wh_log("Uploading $countLP lastplayed records.");
-				curlPost("lastplayed", $stats_arr['LastPlayed']);
-				wh_log ("POST and processing of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
+				foreach (array_chunk($stats_arr['LastPlayed'],1000,true) as $chunkArr){
+					curlPost("lastplayed", $chunkArr);
+					$countChunk++;
+				}
+				wh_log ("POST and processing of $countChunk chunk(s) of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			}
 			//HighScores
 			if(($countHS = count($stats_arr['HighScores'])) > 0){
 				$hsMicro = microtime(true);
+				$countChunk = 0;
 				wh_log("Uploading $countHS highscore records.");
-				curlPost("highscores", $stats_arr['HighScores']);
-				wh_log ("POST and processing of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
+				foreach (array_chunk($stats_arr['HighScores'],1000,true) as $chunkArr){
+					curlPost("highscores", $chunkArr);
+					$countChunk++;
+				}
+				wh_log ("POST and processing of $countChunk chunk(s) of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			}
 			echo "Done " . PHP_EOL;
 			wh_log ("Done. Scrape of \"" . $file['id'] . "\" took: " . round(microtime(true) - $startMicro,3) . " secs.");
-			unset($stats_arr);
+			unset($stats_arr,$chunkArr);
 		}
 		$file['ftime'] = $file['mtime'];
 	}
