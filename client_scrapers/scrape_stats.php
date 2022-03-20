@@ -468,15 +468,19 @@ for (;;){
 			$file['timestampLastPlayed'] = $stats_arr['timestampLastPlayed'];
 			wh_log ("Stats.XML parse of \"" . $file['id'] . "\" took: " . round(microtime(true) - $statsMicro,3) . " secs.");
 			//LastPlayed
-			$lpMicro = microtime(true);
-			wh_log("Uploading " . count($stats_arr['LastPlayed']) . " lastplayed records.");
-			curlPost("lastplayed", $stats_arr['LastPlayed']);
-			wh_log ("POST and processing of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
+			if(($countLP = count($stats_arr['LastPlayed'])) > 0){
+				$lpMicro = microtime(true);
+				wh_log("Uploading $countLP lastplayed records.");
+				curlPost("lastplayed", $stats_arr['LastPlayed']);
+				wh_log ("POST and processing of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
+			}
 			//HighScores
-			$hsMicro = microtime(true);
-			wh_log("Uploading " . count($stats_arr['HighScores']) . " highscore records.");
-			curlPost("highscores", $stats_arr['HighScores']);
-			wh_log ("POST and processing of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
+			if(($countHS = count($stats_arr['HighScores'])) > 0){
+				$hsMicro = microtime(true);
+				wh_log("Uploading $countHS highscore records.");
+				curlPost("highscores", $stats_arr['HighScores']);
+				wh_log ("POST and processing of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
+			}
 			echo "Done " . PHP_EOL;
 			wh_log ("Done. Scrape of \"" . $file['id'] . "\" took: " . round(microtime(true) - $startMicro,3) . " secs.");
 			unset($stats_arr);
