@@ -125,7 +125,7 @@ function get_version(){
 	return $versionClient;
 }
 
-function fixEncoding($line){
+function fixEncoding(string $line){
 	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
 	//96.69% of the time, the encoding error is in a Windows filename
 	//Project OutFox Alpha 4.12 fixed most of the character encoding issues, but this function will remain for legacy support
@@ -147,7 +147,7 @@ function fixEncoding($line){
 		$line = mb_convert_encoding($line,'UTF-8','UTF-8');
 		wh_log("Failed additional check. UTF-8,UTF-8 converted line: $line");
 	}
-	return $line;
+	return (string) $line;
 }
 
 function parseMetadata($file) {
@@ -188,7 +188,7 @@ function parseMetadata($file) {
 			
 	}
 	
-	return $lines;
+	return (array) $lines;
 }
 
 function parseNotedata($file) {
@@ -277,21 +277,21 @@ function parseNotedata($file) {
 			}
 	}
 	
-	return $notedata_array;
+	return (array) $notedata_array;
 }
 
-function prepareCacheFiles($filesArr){
+function prepareCacheFiles(array $filesArr){
 	//sort files by last modified date
 	echo "Sorting cache files by modified date..." . PHP_EOL;
 	wh_log("Sorting cache files by modified date...");
 	$micros = microtime(true);
 	usort( $filesArr, function( $a, $b ) { return filemtime($b) - filemtime($a); } );
-	echo ("Sort time: ".round(microtime(true) - $micros,3)." secs." . PHP_EOL);
+	wh_log ("Sort time: ".round(microtime(true) - $micros,3)." secs." . PHP_EOL);
 
-	return $filesArr;
+	return (array) $filesArr;
 }
 
-function isIgnoredPack($songFilename){
+function isIgnoredPack(string $songFilename){
 	global $packsIgnore;
 	global $packsIgnoreRegex;
 
@@ -316,10 +316,10 @@ function isIgnoredPack($songFilename){
 			}
 		}
 	}
-	return $return;
+	return (bool) $return;
 }
 
-function doesFileExist($songFilename){
+function doesFileExist(string $songFilename){
 	global $songsDir;
 	global $offlineMode;
 	global $addSongsDir;
@@ -381,7 +381,7 @@ function doesFileExist($songFilename){
 		die("It appears you are using an \"AdditionalSongsFolder\" and it was not specified in the configuration file! Please add the folder(s) to the config.php file.".PHP_EOL);
 	}
 
-	return $return;
+	return (bool) $return;
 
 }
 
@@ -392,10 +392,28 @@ function prepare_for_scraping(){
 
 	$songsStart = curlPost("songsStart",array(0));
 
-	return $songsStart;
+	return (bool) $songsStart;
 }
 
-function parseJsonErrors($error,$jsonArray){
+function get_progress($timeChunkStart, $currentChunk, $totalChunks, array $chunkTimes){
+	$progress = array();
+
+	$timeNow = microtime(true);
+	$elapsedTime = $timeNow - $timeChunkStart;
+
+	$chunkTimes[] = $elapsedTime;
+	$chunksRemain = $totalChunks - $currentChunk;
+	$percentChunk = round (($currentChunk / $totalChunks) * 100, 0); //"integer" percent
+
+	$avgTimePerChunk = array_sum($chunkTimes) / count($chunkTimes);
+	$timeRemain = round (($avgTimePerChunk * $chunksRemain) / 60, 1); //minutes
+
+	$progress = array('percent' => $percentChunk, 'time' => $timeRemain, 'chunktimes' => $chunkTimes);
+
+	return (array) $progress;
+}
+
+function parseJsonErrors(string $error, array $jsonArray){
 	if($error == "JSON_ERROR_UTF8" || $error == 5){
 		//json error because of bad utf-8
 		echo json_last_error_msg().PHP_EOL;
@@ -418,7 +436,7 @@ function parseJsonErrors($error,$jsonArray){
 	}
 }
 
-function curlPost($postSource, $array){
+function curlPost(string $postSource, array $array){
 	global $target_url;
 	global $security_key;
 	$versionClient = get_version();
@@ -455,7 +473,7 @@ function curlPost($postSource, $array){
 	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
 		echo $result; //echo from the server-side script
 		wh_log($result);
-		echo (curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs." . PHP_EOL);
+		//echo (curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs." . PHP_EOL);
 		wh_log(curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs");
 	}else{
 		echo "There was an error communicating with $target_url.".PHP_EOL;
@@ -495,6 +513,7 @@ echo "Looping through ".$totalFiles." cache files..." . PHP_EOL;
 wh_log("Looping through ".$totalFiles." cache files...");
 $totalChunks = ceil($totalFiles / $chunk);
 $currentChunk = 1;
+$chunkTimes = array(); //array of elapsed times for each chunk
 if ($firstRun != TRUE){
 	//only sort files if NOT first run
 	$files = prepareCacheFiles($files);
@@ -503,6 +522,7 @@ if ($firstRun != TRUE){
 $files = array_chunk($files,$chunk,true);
 foreach ($files as $filesChunk){
 	unset($cache_array,$cache_file,$metadata,$notedata_array); //unset or get memory leaks
+	$timeChunkStart = microtime(true); //get start time of this chunk of files
 	foreach ($filesChunk as $file){	
 		//get md5 hash of file to determine if there are any updates
 		$file_hash = md5_file($file);
@@ -538,11 +558,17 @@ foreach ($files as $filesChunk){
 		$cache_array[] = $cache_file;
 		$i++;
 	}
-	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL..." . PHP_EOL;
-	wh_log("Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...");
+	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) to SMRequests..." . PHP_EOL;
+	wh_log("Sending ".$currentChunk." of ".$totalChunks." chunk(s) to SMRequests...");
 	if(!empty($cache_array)){
 		curlPost("songs", $cache_array);
 	}
+	//show progress of file chunks
+	$progress = get_progress($timeChunkStart,$currentChunk,$totalChunks,$chunkTimes);
+	echo $progress['percent'] . "% Complete  |  " . $progress['time'] . " mins remaining..." . PHP_EOL;
+	wh_log ($progress['percent'] . "% Complete  |  " . $progress['time'] . " mins remaining...");
+	$chunkTimes = $progress['chunktimes'];
+
 	$currentChunk++;
 }
 
