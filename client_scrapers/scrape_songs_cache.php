@@ -512,20 +512,31 @@ foreach ($files as $filesChunk){
 		$metadata['file'] = fixEncoding(basename($file));
 		$notedata_array = parseNotedata($file);
 		//sanity on the file, if no filename or notedata, ignore
-		if (isset($metadata['#SONGFILENAME']) && !empty($metadata['#SONGFILENAME']) && !empty($notedata_array)){
+		if (!isset($metadata['#SONGFILENAME']) && empty($metadata['#SONGFILENAME']) && empty($notedata_array)){
 			//check if this file is in an ignored pack and that the chart file exists
-			if (isIgnoredPack($metadata['#SONGFILENAME']) == FALSE && doesFileExist($metadata['#SONGFILENAME']) == TRUE){
-				$cache_file = array('metadata' => $metadata, 'notedata' => $notedata_array);
-				$cache_array[] = $cache_file;
-				$i++;
-			}else{
-				echo $metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!" . PHP_EOL;
-				wh_log($metadata['file']." is either in an Ignored Pack or the orginal chart file is missing!");
-			}
-		}else{
 			echo "There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping..." . PHP_EOL;
 			wh_log("There was an error with: [".$metadata['file']."]. No chartfile or NOTEDATA found! Skipping...");
+			continue;
 		}
+
+		if (isIgnoredPack($metadata['#SONGFILENAME'])){
+			//song is in an ignored pack
+			echo $metadata['file']." is in an Ignored Pack. Skipping..." . PHP_EOL;
+			wh_log($metadata['file']." is in an Ignored Pack. Skipping...");
+			continue;
+		}
+
+		if (!doesFileExist($metadata['#SONGFILENAME'])){
+			//song sm/ssc file was not found
+			echo $metadata['file']." original chart file is missing! Skipping..." . PHP_EOL;
+			wh_log($metadata['file']." original chart file is missing! Skipping...");
+			continue;
+		}
+
+		//everything checks out for this cache file
+		$cache_file = array('metadata' => $metadata, 'notedata' => $notedata_array);
+		$cache_array[] = $cache_file;
+		$i++;
 	}
 	echo "Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL..." . PHP_EOL;
 	wh_log("Sending ".$currentChunk." of ".$totalChunks." chunk(s) via cURL...");
