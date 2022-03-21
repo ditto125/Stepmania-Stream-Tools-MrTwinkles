@@ -9,16 +9,15 @@
 
 // Configuration
 
-if (php_sapi_name() == "cli") {
-    // In cli-mode
-} else {
+if (php_sapi_name() != "cli") {
 	// Not in cli-mode
-	if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
-	$security_key = $GET['security_key'];
+	die("Only support cli mode.");
 }
-
-//Welcome message
+// In cli-mode
 $versionClient = get_version();
+cli_set_process_title("SMRequests v$versionClient | StepMania Song Cache Scraper");
+    
+//Welcome message
 echo "  ____  __  __ ____                            _       " . PHP_EOL;
 echo " / ___||  \/  |  _ \ ___  __ _ _   _  ___  ___| |_ ___ " . PHP_EOL;
 echo " \___ \| |\/| | |_) / _ \/ _\`| | | |/ _ \/ __| __/ __|" . PHP_EOL;

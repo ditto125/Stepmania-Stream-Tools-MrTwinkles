@@ -8,8 +8,32 @@
 //To run in auto-run mode: add "-auto" as an argument.
 /////
 
-//Welcome message
+if (php_sapi_name() != "cli") {
+	// Not in cli-mode
+	die("Only support cli mode.");
+}
+// In cli-mode
 $versionClient = get_version();
+cli_set_process_title("SMRequests v$versionClient | StepMania Stats.XML Scraper");
+
+//process command arguments
+$autoRun = TRUE;
+$frequency = 5;
+$fileTime = "";
+
+if ($argc > 1){
+	$argv = array_splice($argv,1);
+	foreach ($argv as $arg){
+		if ($arg == "-auto"){
+			$autoRun = FALSE;
+		}else{
+			//inform user of changes to command arguments
+			die("Profile IDs are now configured in config.php!" . PHP_EOL);
+		}
+	}
+}
+
+//Welcome message
 echo "  ____  __  __ ____                            _       " . PHP_EOL;
 echo " / ___||  \/  |  _ \ ___  __ _ _   _  ___  ___| |_ ___ " . PHP_EOL;
 echo " \___ \| |\/| | |_) / _ \/ _\`| | | |/ _ \/ __| __/ __|" . PHP_EOL;
@@ -24,7 +48,7 @@ echo "*********************************************************" . PHP_EOL;
 echo "" . PHP_EOL;
 
 //start logging and cleanup old logs
-wh_log("Starting SMRequests v$versionClient Stats.XML Scraper...");
+wh_log("Starting SMRequests v$versionClient StepMania Stats.XML Scraper...");
 //
 
 //Config
@@ -33,30 +57,6 @@ if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 }else{
 	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
 	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
-}
-
-if (php_sapi_name() == "cli") {
-	// In cli-mode
-	//process command arguments
-	$autoRun = TRUE;
-	$frequency = 5;
-	$fileTime = "";
-
-	if ($argc > 1){
-		$argv = array_splice($argv,1);
-		foreach ($argv as $arg){
-			if ($arg == "-auto"){
-				$autoRun = FALSE;
-			}else{
-				//inform user of changes to command arguments
-				die("Profile IDs are now configured in config.php!" . PHP_EOL);
-			}
-		}
-	}
-
-} else {
-	// Not in cli-mode
-	die("Only support cli mode.");
 }
 
 //

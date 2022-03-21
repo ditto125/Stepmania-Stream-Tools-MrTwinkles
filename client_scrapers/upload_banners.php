@@ -6,16 +6,15 @@
 //'file_uploads' must be enabled on the server for this script to work correctly
 //
 
-if (php_sapi_name() == "cli") {
-    // In cli-mode
-} else {
+if (php_sapi_name() != "cli") {
 	// Not in cli-mode
-	if (!isset($_GET['security_key']) || $_GET['security_key'] != $security_key || empty($_GET['security_key'])){die("Fuck off");}
-	$security_key = $GET['security_key'];
+	die("Only support cli mode.");
 }
+// In cli-mode
+$versionClient = get_version();
+cli_set_process_title("SMRequests v$versionClient | StepMania Song Pack Banner Uploader");
 
 //Welcome message
-$versionClient = get_version();
 echo "  ____  __  __ ____                            _       " . PHP_EOL;
 echo " / ___||  \/  |  _ \ ___  __ _ _   _  ___  ___| |_ ___ " . PHP_EOL;
 echo " \___ \| |\/| | |_) / _ \/ _\`| | | |/ _ \/ __| __/ __|" . PHP_EOL;
@@ -39,9 +38,6 @@ if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
 	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
 }
-
-$banners_copied = $notFoundBanners = $cPacks = 0;
-$fileSizeMax = 5242880; //5MB
 
 function check_environment(){
 	//check for a php.ini file
@@ -214,6 +210,10 @@ function curl_upload($file,$pack_name){
 check_environment();
 
 echo "Finding and uploading pack banner images..." . PHP_EOL;
+
+//ready variables
+$banners_copied = $notFoundBanners = $cPacks = 0;
+$fileSizeMax = 5242880; //5MB
 
 // find all the pack/group folders
 $pack_dir = findFiles($songsDir);
