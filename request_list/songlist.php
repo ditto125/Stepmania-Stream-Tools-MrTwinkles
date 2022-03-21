@@ -74,7 +74,7 @@ $(document).ready(function(){
 
 //
 
-require('config.php');
+require_once ('config.php');
 
 //create connection
 $conn = mysqli_connect(dbhost, dbuser, dbpass, db);

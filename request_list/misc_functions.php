@@ -440,7 +440,7 @@ function wh_log($log_msg){
     if (!file_exists($log_filename)) 
     {
         // create directory/folder uploads.
-        mkdir($log_filename, 0777, true);
+        mkdir($log_filename, 0700, true);
     }
     $log_file_data = $log_filename.'/log_' . date('Y-m-d') . '.log';
     $log_msg = rtrim($log_msg); //remove line endings

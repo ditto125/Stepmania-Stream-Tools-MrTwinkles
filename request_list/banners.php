@@ -1,7 +1,7 @@
 <?php
 
-include ('config.php');
-include ('misc_functions.php');
+require_once ('config.php');
+require_once ('misc_functions.php');
 
 $fileSizeMax = 5242880; //5MB
 	

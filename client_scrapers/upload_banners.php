@@ -33,7 +33,7 @@ wh_log("Starting SMRequests v$versionClient Song Pack Banner Uploader...");
 //
 
 if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
-	require ('config.php');
+	require_once ('config.php');
 }else{
 	wh_log("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.");
 	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);

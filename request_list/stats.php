@@ -155,7 +155,7 @@
  
 <?php
 
-include('config.php');
+require_once ('config.php');
 
 if(strtolower($_GET["data"])=="endscreenscroll"){ 
    echo "<body>";
