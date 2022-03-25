@@ -96,16 +96,16 @@ function get_top_percent_played_songs(string $profileName, string $whereTypeDiff
 	$sql = "SELECT song_id, SUM(numplayed) AS numplayed
 			FROM sm_songsplayed
 			JOIN sm_songs ON sm_songsplayed.song_id = sm_songs.id
-			WHERE sm_songs.installed = 1 AND sm_songs.banned NOT IN(1, 2) AND sm_songsplayed.song_id > 0 AND numplayed > 1 AND username LIKE '{$profileName}' $whereTypeDiffClause AND sm_songsplayed.song_id IN (
+			WHERE sm_songs.installed = 1 AND sm_songs.banned NOT IN(1, 2) AND sm_songsplayed.song_id > 0 AND username LIKE '{$profileName}' $whereTypeDiffClause AND sm_songsplayed.song_id IN (
 				SELECT song_id
 				FROM sm_scores
 				GROUP BY song_id
 				HAVING MAX(percentdp) > 0) 
 			GROUP BY song_id
 			ORDER BY numplayed DESC";
-	$retval = mysqli_query( $conn, $sql );
-
-	if (($total = mysqli_num_rows($retval) > 0)){
+	if($retval = mysqli_query( $conn, $sql )){
+		//get number of rows
+		$total = mysqli_num_rows($retval);
 		//calculate percent of total
 		$total = round($total * $topPercent,0);
 		$total = intval($total);
