@@ -451,10 +451,10 @@ if($_GET["random"] == "gitgud"){
 	$topTotal = get_top_percent_played_songs($profileName,$whereTypeDiffClauseSP);
 	$averagePercentDP = get_average_percentDP($profileName,$whereTypeDiffClause);
 
-	$sql = "SELECT score_id, t2.song_id AS song_id, sm_songs.title AS title, sm_songs.subtitle AS subtitle, sm_songs.artist AS artist, sm_songs.pack AS pack, t2.percentdp, grade, score, t2.stepstype, difficulty, t2.numplayed, scores, DATETIME
+	$sql = "SELECT t2.song_id AS song_id, sm_songs.title AS title, sm_songs.subtitle AS subtitle, sm_songs.artist AS artist, sm_songs.pack AS pack, t2.percentdp as percentdp, grade, score, t2.stepstype, difficulty, scores, DATETIME
 		FROM sm_scores
 		JOIN(
-			SELECT id AS score_id, sm_scores.song_id, MAX(percentdp) AS percentdp, COUNT(sm_scores.id) AS scores, stepstype, numplayed
+			SELECT sm_scores.song_id, MAX(percentdp) AS percentdp, COUNT(sm_scores.id) AS scores, stepstype
 			FROM sm_scores
 			JOIN(
 				SELECT song_id, SUM(numplayed) AS numplayed
@@ -470,13 +470,14 @@ if($_GET["random"] == "gitgud"){
 				LIMIT $topTotal 
 				) AS topt
 			ON topt.song_id = sm_scores.song_id
-			WHERE grade <> 'Failed' AND percentdp > 0 AND percentdp < $averagePercentDP AND username LIKE '{$profileName}' $whereTypeDiffClause 
+			WHERE grade <> 'Failed' AND percentdp > 0 AND username LIKE '{$profileName}' $whereTypeDiffClause 
 			GROUP BY song_id, stepstype
 			HAVING scores > 1
 			ORDER BY percentdp ASC
 			) AS t2
-		ON t2.score_id = sm_scores.id
+		ON t2.song_id = sm_scores.song_id AND t2.percentdp = sm_scores.percentdp 
 		JOIN sm_songs ON sm_songs.id = sm_scores.song_id
+		WHERE t2.percentdp < $averagePercentDP 
 		ORDER BY RAND()";
 	$retval = mysqli_query( $conn, $sql );
 
@@ -518,6 +519,8 @@ if($_GET["random"] == "gitgud"){
 	} else {
         	die("Didn't find any songs to git gud at!");
 }
+
+wh_log("$user requested $request_type (TopPercent: $topTotal, AveragePDP: $averagePercentDP): $displayScore at " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . $displayModeDiff);
 
 die();
 }
