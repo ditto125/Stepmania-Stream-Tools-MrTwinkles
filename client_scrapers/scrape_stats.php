@@ -269,7 +269,6 @@ function statsXMLtoArray (array $file){
 	$statsLastPlayed = array();
 	$statsHighScores = array();
 	$stats_arr = array();
-	unset ($xml,$xmlArray,$xmlStr,$errors); //without unsetting thses variables, we get a memory leak over time
 	
 	//open xml file
 	libxml_clear_errors();
@@ -284,6 +283,7 @@ function statsXMLtoArray (array $file){
 		//not a great solution, but blame StepMania, not me!
 		$xmlArray = file($xml_file);
 		$xmlStr = parseXmlErrors($errors,$xmlArray);
+		unset($xmlArray);
 		$xml = FALSE;
 		wh_log("Loading Stats.xml file as a string (after correcting for UTF-8 errors).");
 		while (!$xml){
@@ -295,10 +295,12 @@ function statsXMLtoArray (array $file){
 			if (!empty($errors)){
 				$xmlArray = explode(PHP_EOL,$xmlStr);
 				$xmlStr = parseXmlErrors($errors,$xmlArray);
+				unset($xmlArray);
 				$xml = FALSE;
 			}
 		}
 	}
+	unset ($xmlArray,$xmlStr,$errors); //without unsetting thses variables, we get a memory leak over time
 
 	//die if too many errors
 	if(!$xml){wh_log("Too many errors with Stats.xml file."); die ("Too many errors with Stats.xml file." . PHP_EOL);}
@@ -374,17 +376,19 @@ function statsXMLtoArray (array $file){
 	return $stats_arr; 
 }
 
-function curlPost($postSource, $array){
+function curlPost(string $postSource, array $postData){
 	global $target_url;
 	global $security_key;
 	global $offlineMode;
+	$return = FALSE;
 	$versionClient = get_version();
 	//add the security_key to the array
 	$security_keyToken = base64_encode($security_key);
 	$jsMicro = microtime(true);
-	$jsonArray = array('source' => $postSource, 'version' => $versionClient, 'offline' => $offlineMode, 'data' => $array);
+	$jsonArray = array('source' => $postSource, 'version' => $versionClient, 'offline' => $offlineMode, 'data' => $postData);
 	//encode array as json
 	$post = json_encode($jsonArray);
+	unset($postData,$jsonArray); //memory leak
 	wh_log ("Creating JSON took: " . round(microtime(true) - $jsMicro,3) . " secs.");
 	$errorJson = json_last_error();
 	if($errorJson != "JSON_ERROR_NONE"){
@@ -415,13 +419,15 @@ function curlPost($postSource, $array){
 		echo $result; //echo from the server-side script
 		wh_log($result);
 		wh_log("cURL exec took: " . round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs");
+		$return = TRUE;
 	}else{
 		echo "There was an error communicating with $target_url.".PHP_EOL;
 		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
 		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 	}
 	curl_close ($ch);
-	unset($ch,$result,$post,$jsonArray); //memory leak over time, if not unset
+
+	return (bool)$return;
 }
 
 //check php environment
@@ -471,10 +477,16 @@ for (;;){
 			if(($countLP = count($stats_arr['LastPlayed'])) > 0){
 				$lpMicro = microtime(true);
 				$countChunk = 0;
+				$retries = 0;
 				wh_log("Uploading $countLP lastplayed records.");
 				foreach (array_chunk($stats_arr['LastPlayed'],1000,true) as $chunkArr){
-					curlPost("lastplayed", $chunkArr);
-					$countChunk++;
+					do{
+						//post data via cURL, retry 3x on failure
+						$curlSuccess = curlPost("lastplayed", $chunkArr);
+						$countChunk++;
+						$retries++;
+					}
+					while((!$curlSuccess) && ($retries <= 3));
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			}
@@ -482,10 +494,16 @@ for (;;){
 			if(($countHS = count($stats_arr['HighScores'])) > 0){
 				$hsMicro = microtime(true);
 				$countChunk = 0;
+				$retries = 0;
 				wh_log("Uploading $countHS highscore records.");
 				foreach (array_chunk($stats_arr['HighScores'],1000,true) as $chunkArr){
-					curlPost("highscores", $chunkArr);
-					$countChunk++;
+					do{
+						//post data via cURL, retry 3x on failure
+						$curlSuccess = curlPost("highscores", $chunkArr);
+						$countChunk++;
+						$retries++;
+					}
+					while((!$curlSuccess) && ($retries <= 3));
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			}

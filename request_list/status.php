@@ -82,7 +82,7 @@ function splitSongDir($song_dir){
 	$song_title = substr($song_title, strripos($song_title, "/")+1);
 	//return array containing the title and pack
 	$splitDir = array ('title' => $song_title, 'pack' => $song_pack);
-	return $splitDir;
+	return (array) $splitDir;
 }
 
 function lookupSongID ($song_dir){
@@ -119,7 +119,7 @@ function lookupSongID ($song_dir){
 		//notify user that an ID was not found in the sm_songs db
 		//echo "No song ID found for {$song_title} in {$song_pack}. Moving on...\n";
 	}
-	return $songInfo;
+	return (array)$songInfo;
 }
  
 function scrapeSongStart(){
@@ -431,7 +431,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 				$row = mysqli_fetch_assoc($retval);
 
 				$song_id = $row['song_id'];
-				if($song_id === 0 && $songInfo['id'] !== 0){
+				if($song_id == 0 && $songInfo['id'] != 0){
 					$song_id = $songInfo['id'];
 				}
 
@@ -511,7 +511,7 @@ function addLastPlayedtoDB ($lastplayed_array){
 			//Let's update the song ID, just in case it was added before a song cache scrape
 			while($row = mysqli_fetch_assoc($retval)){
 				$song_id = $row['song_id'];
-				if($song_id === 0){
+				if($song_id == 0){
 					//song id is 0
 					$songInfo = lookupSongID($row['song_dir']);
 					$song_id = $songInfo['id'];

@@ -435,14 +435,13 @@ function parseJsonErrors(string $error, array $jsonArray){
 	}
 }
 
-function curlPost(string $postSource, array $array){
+function curlPost(string $postSource, array $postData){
 	global $target_url;
 	global $security_key;
 	$versionClient = get_version();
-	unset($ch,$result,$post,$jsonArray,$errorJson);
-	$security_keyToken = base64_encode($security_key);
 	//add the security_key to the array
-	$jsonArray = array('source' => $postSource, 'version' => $versionClient, 'data' => $array);
+	$security_keyToken = base64_encode($security_key);
+	$jsonArray = array('source' => $postSource, 'version' => $versionClient, 'data' => $postData);
 	//encode array as json
 	$post = json_encode($jsonArray);
 	$errorJson = json_last_error();
@@ -451,6 +450,7 @@ function curlPost(string $postSource, array $array){
 		parseJsonErrors($errorJson,$jsonArray);
 		die();
 	}
+	unset($postData,$jsonArray);
 	//compress post data
 	$post = gzencode($post,6);
 	//this curl method only works with PHP 5.5+
@@ -480,7 +480,7 @@ function curlPost(string $postSource, array $array){
 		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 	}
 	curl_close ($ch);
-	//print_r($result);
+
 	return $result;
 }
 
