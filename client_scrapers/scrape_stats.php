@@ -269,6 +269,10 @@ function statsXMLtoArray (array $file){
 	$statsLastPlayed = array();
 	$statsHighScores = array();
 	$stats_arr = array();
+
+	//OutFox "steps hash" implementation was changed 3+ times so far, it can be either:
+	$outFoxHash = array('StepsHash','ChartHash','Hash','OnlineHash');
+	$outFoxDesc = array('Description','OnlineDescription');
 	
 	//open xml file
 	libxml_clear_errors();
@@ -327,14 +331,28 @@ function statsXMLtoArray (array $file){
 		foreach ($song->Steps as $steps){		
 			$steps_type = (string)$steps['StepsType']; //dance-single, dance-double, etc.
 			$difficulty = (string)$steps['Difficulty']; //Beginner, Medium, Expert, etc.
-			$chartHash = (string)$steps['Hash']; //OutFox chart hash
-			$stepsDescription = (string)$steps['Description']; //OutFox steps description
+			//$chartHash = (string)$steps['Hash']; //OutFox chart hash
+			$chartHash = "";
+			foreach ($outFoxHash as $hash){
+				if(!empty($steps[$hash])){
+					$chartHash = (string)$steps[$hash];
+					break;
+				}
+			}
+			//$stepsDescription = (string)$steps['Description']; //OutFox steps description
+			$stepsDescription = "";
+			foreach ($outFoxDesc as $desc){
+				if(!empty($steps[$desc])){
+					$stepsDescription = (string)$steps[$desc];
+					break;
+				}
+			}
 			
 			foreach ($steps->HighScoreList as $high_score_lists){
 				$num_played = (string)$high_score_lists->NumTimesPlayed; //integer count of times a song is played
 				$last_played = (string)$high_score_lists->LastPlayed; //date the song/difficulty was last played
 
-				$dateTimeHS = array(null);
+				$dateTimeHS = array();
 				$highScores = array();
 
 				foreach ($high_score_lists->HighScore as $high_score){				
