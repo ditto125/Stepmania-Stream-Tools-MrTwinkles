@@ -352,7 +352,7 @@ function statsXMLtoArray (array $file){
 				$num_played = (string)$high_score_lists->NumTimesPlayed; //integer count of times a song is played
 				$last_played = (string)$high_score_lists->LastPlayed; //date the song/difficulty was last played
 
-				$dateTimeHS = array();
+				$dateTimeHS = array(null);
 				$highScores = array();
 
 				foreach ($high_score_lists->HighScore as $high_score){				
