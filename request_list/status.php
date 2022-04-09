@@ -276,20 +276,25 @@ function scrapeSong($songCache_array){
 		if( isset($metadata['#DISPLAYBPM']) && !empty($metadata['#DISPLAYBPM'])){
 			//song has a bpm listed
 			$display_bpm = $metadata['#DISPLAYBPM'];
-		}elseif( isset($metadata['#BPMS']) && !empty($metadata['#BPMS'])){
-			$displaybpmstart = strpos($metadata['#BPMS'],"=")+1;
-			$display_bpm = substr($metadata['#BPMS'],$displaybpmstart);
+			if( strpos($display_bpm,':') > 0){
+				//bpm is a range
+				$display_bpmSplit = explode(":",$display_bpm);
+				//round and format bpm range
+				$display_bpm = intval(round(min($display_bpmSplit),0)) . "-" . intval(round(max($display_bpmSplit),0));
+			}else{
+				$display_bpm = trim($display_bpm);
+				$display_bpm = intval(round($display_bpm,0));
 			}
 
-		if( strpos($display_bpm,':') > 0){
-			//bpm is a range
-			$display_bpmSplit = array();
-			$display_bpmSplit = preg_split("/:/",$display_bpm);
-			//get the average bpm
-			$display_bpm =  ceil((intval($display_bpmSplit[0],0) + intval($display_bpmSplit[1],0)) / 2);
-		}else{
-			$display_bpm = trim($display_bpm);
-			$display_bpm = intval($display_bpm,0);
+		}elseif( isset($metadata['#BPMS']) && !empty($metadata['#BPMS'])){
+			//split all the bpms, find the min and max
+			$display_bpm = explode(",",$metadata['#BPMS']);
+			$display_bpm = array_map(function($n){return substr($n,strpos($n,"=")+1);},$display_bpm);
+			if(count($display_bpm) > 1){
+				$display_bpm = intval(round(min($display_bpm),0)) . "-" . intval(round(max($display_bpm),0));
+			}else{
+				$display_bpm = intval(round($display_bpm[0],0));
+			}
 		}
 
 	// Get music length in seconds
@@ -300,7 +305,7 @@ function scrapeSong($songCache_array){
 		}
 
 		$music_length = trim($music_length);
-		$music_length = intval($music_length,0);
+		$music_length = round($music_length,0);
 
 	//Get existence of background video
 		
