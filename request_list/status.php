@@ -206,7 +206,7 @@ function scrapeSong($songCache_array){
 	//Get title
 		if( !isset($metadata['#TITLETRANSLIT']) || empty($metadata['#TITLETRANSLIT'])){
 			//song does not have a transliterated title
-			If (isset($metadata['#TITLE']) && !empty($metadata['#TITLE'])){
+			if (isset($metadata['#TITLE']) && !empty($metadata['#TITLE'])){
 				//song has a regular title
 				$title = $metadata['#TITLE'];
 			}else{
@@ -220,27 +220,24 @@ function scrapeSong($songCache_array){
 				echo "!!!!! File must be busted. No title or titletranslit. !!!!!" . PHP_EOL;
 			}
 		
-		if(strpos($title, "[") == 0 && strpos($title, "]") && !preg_match("/]$/",$title)){
-			//This song title has a [BRACKETED TAG] before the actual title, let's remove it
-			$firstbracketpos = strpos($title, "[");
-			$lastbracketpos = strpos($title, "]",$firstbracketpos+1);
-			$title = substr($title, $lastbracketpos+1);
-			
-			if(strpos($title, "- ") == 1){
-				//This song title now has a " - " before the actual title, let's remove that too
-				$title = substr($title, 3);
-			}
-		}
-		
 		$title = trim($title);
 		$title = mysqli_real_escape_string($conn,$title);
+
+		if(preg_match('/^\[\S+\] +/',$title)){
+			//This song title has a [BRACKETED TAG] before the actual title, let's remove it
+			//"[07] Disco Pop" or "[Stamina] EuroBeatSong"
+			$strippedtitle = preg_replace('/^\[\S+\] +/',"",$title,1);
+			$strippedtitle = trim($strippedtitle);
+			//replace leftover "-" from beginning of title
+			$strippedtitle = preg_replace('/^-/',"",$strippedtitle);
+		}
 		$strippedtitle = clean($title);
 
 	//Get subtitle
 		
 		if( !isset($metadata['#SUBTITLETRANSLIT']) || empty($metadata['#SUBTITLETRANSLIT'])){
 			//song does not have a transliterated subtitle
-			If (isset($metadata['#SUBTITLE']) && !empty($metadata['#SUBTITLE'])){
+			if (isset($metadata['#SUBTITLE']) && !empty($metadata['#SUBTITLE'])){
 				//song has a regular subtitle
 				$subtitle = $metadata['#SUBTITLE'];
 			}
@@ -257,7 +254,7 @@ function scrapeSong($songCache_array){
 		
 		if( !isset($metadata['#ARTISTTRANSLIT']) || empty($metadata['#ARTISTTRANSLIT'])){
 			//song does not have a transliterated artist
-			If (isset($metadata['#ARTIST']) && !empty($metadata['#ARTIST'])){
+			if (isset($metadata['#ARTIST']) && !empty($metadata['#ARTIST'])){
 				//song has a regular artist
 				$artist = $metadata['#ARTIST'];
 			}
