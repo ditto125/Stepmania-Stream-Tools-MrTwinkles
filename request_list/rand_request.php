@@ -511,16 +511,15 @@ if($_GET["random"] == "gitgud"){
 					}
 
 					$displayModeDiff = display_ModeDiff(array('stepstype' => $row['stepstype'],'difficulty' => $row['difficulty']));
-					$displayArtist = get_duplicate_song_artist ($row["id"]);
+					$displayArtist = get_duplicate_song_artist ($row["song_id"]);
 					echo ("$user dares you to beat ".$displayScore." at " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . $displayModeDiff . " ");
+					wh_log("$user requested $request_type (TopPercent: $topTotal, AveragePDP: $averagePercentDP): $displayScore at " . $row["song_id"] . " : " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . $displayModeDiff);
 					$i++;
 				}
 			}
 	} else {
         	die("Didn't find any songs to git gud at!");
 }
-
-wh_log("$user requested $request_type (TopPercent: $topTotal, AveragePDP: $averagePercentDP): $displayScore at " . trim($row["title"]." ".$row["subtitle"]).$displayArtist. " from " . $row["pack"] . $displayModeDiff);
 
 die();
 }
