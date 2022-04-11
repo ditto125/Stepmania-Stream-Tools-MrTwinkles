@@ -47,18 +47,22 @@ function check_environment(){
 		//no config found
 		wh_log("ERROR: A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests.");
 		die("A php.ini configuration file was not found. Refer to the documentation on how to configure your php envirnment for SMRequests." . PHP_EOL);
-	}else{
-		//config found. check for enabled extensions
-		$expectedExts = array('curl','json','mbstring','SimpleXML');
-		$loadedPhpExt = get_loaded_extensions();
+	}
+	//config found. check for enabled extensions
+	$expectedExts = array('curl','json','mbstring','SimpleXML');
+	$loadedPhpExt = get_loaded_extensions();
+	$missingExt = array();
 
-		foreach ($expectedExts as $ext){
-			if(!in_array($ext,$loadedPhpExt)){
-				//expected extension not found
-				wh_log("ERROR: $ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"");
-				die("$ext extension not enabled. Please enable the extension in your config file: \"$iniPath\"" . PHP_EOL);
-			}
+	foreach ($expectedExts as $ext){
+		if(!in_array($ext,$loadedPhpExt)){
+			//expected extenstion not found
+			$missingExt[] = $ext;
 		}
+	}
+	if(count($missingExt) > 0){
+		$ext = implode(', ',$missingExt);
+		wh_log("ERROR: $ext extension(s) not enabled. Please enable the extension(s) in your PHP config file: \"$iniPath\"");
+		die("$ext extension(s) not enabled. Please enable the extension(s) in your PHP config file: \"$iniPath\"" . PHP_EOL);
 	}
 }
 
