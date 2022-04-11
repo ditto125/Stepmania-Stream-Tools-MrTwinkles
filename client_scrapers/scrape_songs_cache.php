@@ -574,7 +574,12 @@ foreach ($files as $filesChunk){
 //mark songs as (not)installed
 echo "Finishing up..." . PHP_EOL;
 wh_log("Finishing up...");
-curlPost("songsEnd",array($i));
+if($i > 0){
+	curlPost("songsEnd",array($i));
+}else{
+	echo "No songs scraped!" . PHP_EOL;
+	wh_log("No songs scraped!");
+}
 
 //display time
 echo (PHP_EOL . "Total time: ". round((microtime(true) - $microStart)/60,1) . " mins." . PHP_EOL);
