@@ -631,7 +631,7 @@ function addHighScoretoDB ($highscore_array){
 			//catch a weird "-nan(ind)" error with radar values when jumps or freezes are zero
 			//error discovered in Project Outfox Alpha 4.9.10, fixed in 4.10.0
 			foreach($highscore['HighScore']['RadarValues'] as $radarValueName => $radarValue){
-				if(!is_numeric($radarValue)){
+				if(!is_numeric($radarValue) || $radarValue < 0){
 					$highscore['HighScore']['RadarValues'][$radarValueName] = 0;
 				}
 			}
