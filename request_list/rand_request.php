@@ -624,7 +624,7 @@ if($_GET["random"] == "theusual"){
 			}
 		}
 	} else {
-		die("$user hasn't met the minimum number of requested songs or isn't a reqular around here.");
+		die("$user hasn't met the minimum number of requested songs or isn't a regular around here.");
 	}
 
 	die();
