@@ -495,20 +495,24 @@ for (;;){
 			//save the last played timestamp in the $file array
 			$file['timestampLastPlayed'] = $stats_arr['timestampLastPlayed'];
 			wh_log ("Stats.XML parse of \"" . $file['id'] . "\" took: " . round(microtime(true) - $statsMicro,3) . " secs.");
+			$chunk = 1000;
 			//LastPlayed
 			if(($countLP = count($stats_arr['LastPlayed'])) > 0){
 				$lpMicro = microtime(true);
 				$countChunk = 0;
+				$totalChunks = ceil($countLP / $chunk);
 				$retries = 0;
 				wh_log("Uploading $countLP lastplayed records.");
-				foreach (array_chunk($stats_arr['LastPlayed'],1000,true) as $chunkArr){
+				foreach (array_chunk($stats_arr['LastPlayed'],$chunk,true) as $chunkArr){
 					do{
 						//post data via cURL, retry 3x on failure
 						$curlSuccess = curlPost("lastplayed", $chunkArr);
-						$countChunk++;
 						$retries++;
 					}
 					while((!$curlSuccess) && ($retries <= 3));
+					$countChunk++;
+					if($retries >= 3){wh_log ("POST and processing of chunk: $countChunk of LastPlayed of \"" . $file['id'] . "\" timed out after 3 retries.");}
+					echo("($currentChunk/$totalChunks)") . PHP_EOL;
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			}
@@ -516,16 +520,19 @@ for (;;){
 			if(($countHS = count($stats_arr['HighScores'])) > 0){
 				$hsMicro = microtime(true);
 				$countChunk = 0;
+				$totalChunks = ceil($countHS / $chunk);
 				$retries = 0;
 				wh_log("Uploading $countHS highscore records.");
-				foreach (array_chunk($stats_arr['HighScores'],1000,true) as $chunkArr){
+				foreach (array_chunk($stats_arr['HighScores'],$chunk,true) as $chunkArr){
 					do{
 						//post data via cURL, retry 3x on failure
 						$curlSuccess = curlPost("highscores", $chunkArr);
-						$countChunk++;
 						$retries++;
 					}
 					while((!$curlSuccess) && ($retries <= 3));
+					$countChunk++;
+					if($retries >= 3){wh_log ("POST and processing of chunk: $countChunk of HighScores of \"" . $file['id'] . "\" timed out after 3 retries.");}
+					echo("($currentChunk/$totalChunks)") . PHP_EOL;
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			}
