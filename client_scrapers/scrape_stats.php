@@ -25,7 +25,8 @@ if ($argc > 1){
 	$argv = array_splice($argv,1);
 	foreach ($argv as $arg){
 		if ($arg == "-auto"){
-			$autoRun = FALSE;
+			//inform user of changes to command arguments
+			echo("\"-auto\" is no longer required. Please update your .bat file." . PHP_EOL);
 		}else{
 			//inform user of changes to command arguments
 			die("Profile IDs are now configured in config.php!" . PHP_EOL);
@@ -62,7 +63,7 @@ if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 //
 
 //check for offline mode in the config
-if ($autoRun == FALSE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!" . PHP_EOL);}
+//if ($autoRun == TRUE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!" . PHP_EOL);}
 
 //////
 
@@ -471,9 +472,9 @@ if($USBProfile){
 //find stats.xml files
 $file_arr = find_statsxml ($saveDir,$profileIDs,$USBProfileDir);
 
-if (!$autoRun){
+if ($autoRun){
 	//welcome to an infinite loop of stats
-	echo "\\\\\\\\\\\\\\\\\\AUTO MODE ENABLED////////" . PHP_EOL;
+	//echo "\\\\\\\\\\\\\\\\\\AUTO MODE ENABLED////////" . PHP_EOL;
 	wh_log("AUTO MODE ENABLED");
 }
 
@@ -542,7 +543,7 @@ for (;;){
 		}
 		$file['ftime'] = $file['mtime'];
 	}
-	if ($autoRun){
+	if (!$autoRun){
 		//autorun was not set, break the loop
 		break;
 	}

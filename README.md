@@ -60,8 +60,6 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
     * Remove semicolon in front of `;extension=mbstring` to enable multi-byte string functions
 2. Configure php scripts. Rename `config.example.php` to `config.php` and input your StepMania directories, security key, profile information, and URL.
 3. Highly Recommended: Delete all contents of your SM5 Cache/Songs directory, start SM5, and have it rebuild new cache files.
-4. Edit "scrape stats.bat" to run in “auto” mode.
-    * Run this script in "auto" mode to continuously scrape the Stats.xml file as you play/stream.
 ### Browser Source
 1. To show the request board/widget on stream, add a new broswer source for `[URL]/show_requests.php?security_key=[KEY]`
     * If you are using multiple broadcasters, append `&broadcaster=[BROADCASTER]`

@@ -2,7 +2,6 @@
 @echo off
 cd "C:\php"
 cls
-::an optional "-auto" argument is used to allow the scraper to run continuously
-::example:  php.exe "%~dp0scrape_stats.php" -auto
+::example:  php.exe "%~dp0scrape_stats.php"
 php.exe "%~dp0scrape_stats.php" -auto
 pause

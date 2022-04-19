@@ -12,7 +12,7 @@ This script finds the first image file in each pack folder, formats the name to 
 
 ## Scrape Stats
 
-The stats scraper is responsible for grabbing all your highscores and recently played songs from your Stats.xml file(s). An "-auto" argument can be added to the run command to automatically run when the Stats.xml is updated (usually at the song evaluation screen). Configure the active local profile(s) or USB profile(s) in your config.php file.
+The stats scraper is responsible for automatically grabbing all your highscores and recently played songs from your Stats.xml file(s) (usually at the song evaluation screen). The data is used to automatically complete open song requests and provide information for random commands (top, gitgud, etc.). Configure the active local profile(s) or USB profile(s) in your config.php file.
 
 # Usage (first-run)
 * Start StepMania and allow it to build its song cache files
