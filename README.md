@@ -31,7 +31,7 @@ A quick summary:
 ## Prerequisites
 This fork currently does not utilize Docker. Please ignore any docker-specific procedures.
 ### Client-side
-* Stepmania 5.0.12, 5.1-b2
+* Stepmania 5.0.12, 5.1-b2, 5.1-new
 * Project OutFox Alpha <=4.12 (4.13+ are not supported)
 * Local profiles set up and enabled
 * PHP 7.3.x - 7.4.x
