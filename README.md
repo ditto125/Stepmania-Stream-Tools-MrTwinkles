@@ -31,10 +31,12 @@ A quick summary:
 ## Prerequisites
 This fork currently does not utilize Docker. Please ignore any docker-specific procedures.
 ### Client-side
-* Stepmania 5.0.12, 5.1x, or Project OutFox with local profiles set up and enabled
+* Stepmania 5.0.12, 5.1-b2
+* Project OutFox Alpha <=4.12 (4.13+ are not supported)
+* Local profiles set up and enabled
 * PHP 7.3.x - 7.4.x
 ### Server-side (web hosting)
-* PHP 7.x
+* PHP 7.4.x
 * MariaDB (latest)
 * Nginx/Apache/some kind of web hosting
 * phpMyAdmin or similar DB management software
@@ -53,7 +55,7 @@ This fork currently does not utilize Docker. Please ignore any docker-specific p
 4. Check that the song list webpage is available at your domain (sub.domain.tld/songlist.php).
 ## Client-side (SM5 machine)
 1. Git clone or copy the client_scraper directory to an accessible directory on your system.
-2. Download php 7.x NTS x86/x64 https://windows.php.net/download#php-7.4 (depending on your system) and copy the extracted folder to "C:/php".
+2. Download php 7.4.x NTS x86/x64 https://windows.php.net/download#php-7.4 (depending on your system) and copy the extracted folder to "C:/php".
 ### Configure PHP (edit php.ini):
 1. If no php.ini exists in the php directory, rename the php.ini-production file to php.ini
     * Remove semicolon in front of `;extension=curl` to enable the cURL extension.
