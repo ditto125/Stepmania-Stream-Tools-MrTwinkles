@@ -513,7 +513,7 @@ for (;;){
 					while((!$curlSuccess) && ($retries <= 3));
 					$countChunk++;
 					if($retries >= 3){wh_log ("POST and processing of chunk: $countChunk of LastPlayed of \"" . $file['id'] . "\" timed out after 3 retries.");}
-					echo("($currentChunk/$totalChunks)") . PHP_EOL;
+					echo("($countChunk/$totalChunks)") . PHP_EOL;
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			}
@@ -533,7 +533,7 @@ for (;;){
 					while((!$curlSuccess) && ($retries <= 3));
 					$countChunk++;
 					if($retries >= 3){wh_log ("POST and processing of chunk: $countChunk of HighScores of \"" . $file['id'] . "\" timed out after 3 retries.");}
-					echo("($currentChunk/$totalChunks)") . PHP_EOL;
+					echo("($countChunk/$totalChunks)") . PHP_EOL;
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			}
