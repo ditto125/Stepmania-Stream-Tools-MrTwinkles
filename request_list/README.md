@@ -22,10 +22,10 @@
     * '!random'* : Picks a random song that has been played at least once
     * '!top'* : Picks a random song from the top 100 most played songs
     * '!portal' : Picks any random song
-    * '!gitgud'* : Picks a random song from the lowest scoring 25 of the top 100 most played songs
+    * '!gitgud'* : Picks a random song with a below average score from the top 10% of songs played
     * '!unplayed'* : Picks a random song that has never been played
     * '!randomroll'* : Responds with 3 random songs, which then can be requested by ID
-    * '!theusual' : Picks a random song from your top 10 most requested songs
+    * '!theusual' : Picks a random song from your top 5 most requested songs
 * Special Request Commands
     * '!random["something"]' : Queries the song list filtering by pack name and credit. Examples:
         * '!randomddr' : Picks a random official DDR song
@@ -33,8 +33,8 @@
         * '!randomben' : Picks a random song charted by Ben Speirs
         * '!randomfearmix' : Picks a random song from the FEARMIX packs
 * Moderator/Broadcaster Commands
-    * '!skip #' : Skip the nth request (skips last request if no number is specified)
-    * '!complete #' : Complete the nth request (completes last request if no number is specified) [For use as a fallback, if a request is not auto-completing.]
+    * '!skip [#]' : Skip the nth request (skips last request if no number is specified)
+    * '!complete [#]' : Complete the nth request (completes last request if no number is specified) [For use as a fallback, if a request is not auto-completing.]
     * '!whitelist @user' : Whitelist a user to remove all request cooldowns
     * '!banuser @user' : Ban a user’s ability to request songs
     * '!bansong "song name" [#random]' : Ban a song by song name. Append `#random` to ban the song from random commands only.
@@ -47,14 +47,14 @@
 
 ## Stats.php Usage
 
-##### General Configuration
+### General Configuration
 
 Use the URL parameter: `session` to set the (maximum) length of a StepMania play session in hours.
 Example: https://[URL]/stats.php?data=[data]&session=6
 
 If `session` is not set, a default value of '6' hours is used.
 
-##### Configuring Request Status Indicator
+### Configuring Request Status Indicator
 
 Request status indicator is something that you can use to help your stream understand if you are accepting requests currently or not. It has some configuration options in CSS that allow you to place it anywhere and have it go with your stream.
 
@@ -70,7 +70,7 @@ Request status indicator is something that you can use to help your stream under
 .outputON { color: Blue; }
 ```
 
-##### Configuring Scrolling End Screen Statistics
+### Configuring Scrolling End Screen Statistics
 
 Scrolling End Screen Statistics allows you to give a comprehensive list of the requested songs, requestor, score acheived, and any awards associated with the score obtained during the requested play.
 
