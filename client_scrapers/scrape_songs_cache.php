@@ -436,7 +436,7 @@ function parseJsonErrors(string $error, array $jsonArray){
 }
 
 function curlPost(string $postSource, array $postData){
-	global $target_url;
+	global $targetURL;
 	global $security_key;
 	$versionClient = get_version();
 	//add the security_key to the array
@@ -455,7 +455,7 @@ function curlPost(string $postSource, array $postData){
 	$post = gzencode($post,6);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php?$postSource");
+	curl_setopt($ch, CURLOPT_URL,$targetURL."/status.php?$postSource");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Encoding: gzip', "Key: $security_keyToken"));
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
@@ -475,7 +475,7 @@ function curlPost(string $postSource, array $postData){
 		//echo (curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs." . PHP_EOL);
 		wh_log(curl_getinfo($ch, CURLINFO_TOTAL_TIME) . " secs");
 	}else{
-		echo "There was an error communicating with $target_url.".PHP_EOL;
+		echo "There was an error communicating with $targetURL.".PHP_EOL;
 		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
 		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 	}

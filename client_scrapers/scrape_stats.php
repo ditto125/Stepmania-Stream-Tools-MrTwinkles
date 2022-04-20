@@ -60,8 +60,6 @@ if(file_exists(__DIR__."/config.php") && is_file(__DIR__."/config.php")){
 	die("config.php file not found! You must configure these scripts before running. You can find an example config.php file at config.example.php.".PHP_EOL);
 }
 
-//
-
 //check for offline mode in the config
 //if ($autoRun == TRUE && $offlineMode == TRUE){die("[-auto] and \"Offline Mode\" cannot be set at the same time!" . PHP_EOL);}
 
@@ -127,16 +125,16 @@ function get_version(){
 	return $versionClient;
 }
 
-function process_profileIDs(string $profileIDs){
+function process_profileIDs(string $profileID){
 	//split comma-separated string into an array
-	$profileIDs = explode(',',$profileIDs);
+	$profileIDs = explode(',',$profileID);
 	$profileIDs = array_map('trim',$profileIDs);
 	//check for valid profile ID
-	foreach($profileIDs as $profileID){
-		if(strlen($profileID) != 8 && is_numeric($profileID)){
+	foreach($profileIDs as $id){
+		if(strlen($id) != 8 && is_numeric($id)){
 			//valid profile IDs used by StepMania are 8-length numbers
-			wh_log("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
-			die("$profileID is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
+			wh_log("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
+			die("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
 		}
 	}
 	return (array)$profileIDs;
@@ -149,19 +147,19 @@ function process_USBProfileDir(string $USBProfileDir){
 		die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
 	}
 	//split comma-separated string into an array
-	$USBProfileDir = explode(',',$USBProfileDir);
-	$USBProfileDir = array_map('trim',$USBProfileDir);
-	foreach($USBProfileDir as $dir){
+	$USBProfileDirs = explode(',',$USBProfileDir);
+	$USBProfileDirs = array_map('trim',$USBProfileDirs);
+	foreach($USBProfileDirs as $dir){
 		if(!file_exists($dir)){
 			//failed to find the usb drive/directory
 			wh_log("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct.");
 			die("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct." . PHP_EOL);
 		}
 	}
-	return (array)$USBProfileDir;
+	return (array)$USBProfileDirs;
 }
 
-function fixEncoding($line){
+function fixEncoding(string $line){
 	//detect and convert ascii, et. al directory string to UTF-8 (Thanks, StepMania!)
 	//96.69% of the time, the encoding error is in a Windows filename
 	//Project OutFox Alpha 4.12 fixed most of the character encoding issues, but this function will remain for legacy support
@@ -184,10 +182,10 @@ function fixEncoding($line){
 		$line = mb_convert_encoding($line,'UTF-8','UTF-8');
 		wh_log("Failed additional check. UTF-8,UTF-8 converted line from: \"" . $oldLine . "\" to: \"" . $line . "\".");
 	}
-	return $line;
+	return (string) $line;
 }
 
-function parseXmlErrors($errors,$xmlArray){
+function parseXmlErrors(object $errors,array $xmlArray){
 	foreach ($errors as $error){
 		if ($error->code == 9){
 			//error code: 9 is "Invalid UTF-8 encoding detected"
@@ -209,20 +207,20 @@ function parseXmlErrors($errors,$xmlArray){
 	}
 	//write back changes to the file in memory and save as string
 	$xmlStr = implode(PHP_EOL,$xmlArray);
-	return $xmlStr;
+	return (string) $xmlStr;
 }
 
-function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
+function find_statsxml(string $saveDir, array $profileIDs, array $USBProfileDirs){
 	global $USBProfile;
 	//look for any Stats.xml files in the profile directory(ies)
 	$saveDir = $saveDir . "/LocalProfiles";
 	$file_arr = array();
 	$i = 0;
 	if(!empty($profileIDs)){
-		foreach ($profileIDs as $profileID){
-			foreach (glob($saveDir."/".$profileID."/Stats.xml",GLOB_BRACE) as $xml_file){
+		foreach ($profileIDs as $id){
+			foreach (glob($saveDir."/".$id."/Stats.xml",GLOB_BRACE) as $xml_file){
 				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
-				$file_arr[$i]['id'] = $profileID; //id for tracking 
+				$file_arr[$i]['id'] = $id; //id for tracking 
 				$file_arr[$i]['file'] = $xml_file; //file directory
 				$file_arr[$i]['ftime'] = ''; //populated later after the first scrape
 				$file_arr[$i]['mtime'] = filemtime($xml_file); //current modified time of the file
@@ -231,14 +229,14 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 				$i++;
 			}
 			if (empty($file_arr) && !$USBProfile){ //don't exit too early
-				wh_log("Stats.xml file(s) not found in $saveDir/$profileID! Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
-				exit ("Stats.xml file(s) not found in $saveDir/$profileID! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\"." . PHP_EOL);
+				wh_log("Stats.xml file(s) not found in $saveDir/$id! Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\".");
+				exit ("Stats.xml file(s) not found in $saveDir/$id! LocalProfiles directory not found in Stepmania Save directory. Also, if you are not running Stepmania in portable mode, your Stepmania Save directory may be in \"AppData\"." . PHP_EOL);
 			}
 		}
 	}
 	if($USBProfile){
 		//using usb profile(s)...
-		foreach ($USBProfileDir as $dir){
+		foreach ($USBProfileDirs as $dir){
 			foreach (glob($dir."/Stats.xml",GLOB_BRACE) as $xml_file){
 				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
 				$file_arr[$i]['id'] = $dir; //use the dir as the id for tracking
@@ -260,7 +258,7 @@ function find_statsxml($saveDir,$profileIDs,$USBProfileDir){
 		exit ("Stats.xml file(s) not found!" . PHP_EOL);
 	}
 
-	return $file_arr;
+	return (array) $file_arr;
 }
 
 function statsXMLtoArray (array $file){
@@ -396,11 +394,11 @@ function statsXMLtoArray (array $file){
 	//build the final array
 	$stats_arr = array('LastPlayed' => $statsLastPlayed, 'HighScores' => $statsHighScores, 'timestampLastPlayed' => $timestampLastPlayed);
 
-	return $stats_arr; 
+	return (array) $stats_arr; 
 }
 
 function curlPost(string $postSource, array $postData){
-	global $target_url;
+	global $targetURL;
 	global $security_key;
 	global $offlineMode;
 	$return = FALSE;
@@ -423,7 +421,7 @@ function curlPost(string $postSource, array $postData){
 	$post = gzencode($post,6);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL,$target_url."/status.php?$postSource");
+	curl_setopt($ch, CURLOPT_URL,$targetURL."/status.php?$postSource");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Encoding: gzip', "Key: $security_keyToken"));
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
@@ -444,7 +442,7 @@ function curlPost(string $postSource, array $postData){
 		wh_log("cURL exec took: " . round(curl_getinfo($ch)['total_time_us'] / 1000000,3)." secs");
 		$return = TRUE;
 	}else{
-		echo "There was an error communicating with $target_url.".PHP_EOL;
+		echo "There was an error communicating with $targetURL.".PHP_EOL;
 		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
 		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 	}
@@ -461,16 +459,16 @@ if((empty($profileIDs) || $profileIDs == "") && !$USBProfile){
 	//no profile ID(s) / USB profiles not used
 	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
 }
-$profileIDs = process_profileIDs($profileIDs);
+$profileIDs = process_profileIDs($profileID);
 
 //process USB Profiles
 if($USBProfile){
 	//USB profiles are enabled
-	$USBProfileDir = process_USBProfileDir($USBProfileDir);
+	$USBProfileDirs = process_USBProfileDir($USBProfileDir);
 }
 
 //find stats.xml files
-$file_arr = find_statsxml ($saveDir,$profileIDs,$USBProfileDir);
+$file_arr = find_statsxml ($saveDir,$profileIDs,$USBProfileDirs);
 
 if ($autoRun){
 	//welcome to an infinite loop of stats
@@ -513,7 +511,7 @@ for (;;){
 					while((!$curlSuccess) && ($retries <= 3));
 					$countChunk++;
 					if($retries >= 3){wh_log ("POST and processing of chunk: $countChunk of LastPlayed of \"" . $file['id'] . "\" timed out after 3 retries.");}
-					echo("($countChunk/$totalChunks)") . PHP_EOL;
+					if($totalChunks > 1){echo("($countChunk/$totalChunks)") . PHP_EOL;}
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of LastPlayed of \"" . $file['id'] . "\" took: " . round(microtime(true) - $lpMicro,3) . " secs.");
 			}
@@ -533,7 +531,7 @@ for (;;){
 					while((!$curlSuccess) && ($retries <= 3));
 					$countChunk++;
 					if($retries >= 3){wh_log ("POST and processing of chunk: $countChunk of HighScores of \"" . $file['id'] . "\" timed out after 3 retries.");}
-					echo("($countChunk/$totalChunks)") . PHP_EOL;
+					if($totalChunks > 1){echo("($countChunk/$totalChunks)") . PHP_EOL;}
 				}
 				wh_log ("POST and processing of $countChunk chunk(s) of HighScores of \"" . $file['id'] . "\" took: " . round(microtime(true) - $hsMicro,3) . " secs.");
 			}

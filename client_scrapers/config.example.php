@@ -12,11 +12,11 @@ $cacheDir = "C:/Users/[USER]/AppData/Roaming/StepMania 5.1/Cache/Songs";
 //SM5.3 (OutFox) or portable installations: "[SM5]/Save"
 $saveDir = "C:/Users/[USER]/AppData/Roaming/StepMania 5.1/Save";
 
-//Profile IDs for Stats.xml files you would like to scrape. These are directories located in [/Save/LocalProfiles] with names like '00000000'.
+//Profile ID(s) for Stats.xml files you would like to scrape. These are directories located in [/Save/LocalProfiles] with names like '00000000'.
 //You must specify at least 1 ID, but can add more by separating the IDs with a comma.
 //Example for 1 local profile: "00000000"
 //Example for 2 local profiles: "00000000,00000001"
-$profileIDs = "";
+$profileID = "";
 
 //If using USB Profiles, please configure the $USBProfileDir to point at your drive/share location for the USB Drive.
 //This should match the value in your Preferences.ini file for 'MemoryCardProfileSubdir'
@@ -38,7 +38,7 @@ $packsIgnoreRegex = "";
 
 //Target URL for POSTING updates to the server. This is typically where your songlist is hosted.
 //Example: "https://famoustwitchstreamer.smrequests.com" (No trailing '/' !!!)
-$target_url = "https://[URL]";
+$targetURL = "https://[URL]";
 
 //Security key. Set this to anything. All incoming requests from the chatbot will have to include this key or they'll be discarded.
 //This way people can't hit your endpoints directly without permission. This MUST match the security key on the server-side.

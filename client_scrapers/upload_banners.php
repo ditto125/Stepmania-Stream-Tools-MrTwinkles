@@ -152,12 +152,12 @@ function get_banner($img_path){
 
 function does_banner_exist($file,$pack_name){
 	//quick check to see if the banner is on the server
-	global $target_url;
+	global $targetURL;
 	$return = FALSE;
 	unset($ch);
 
 	$imgName = urlencode($pack_name.'.'.strtolower(pathinfo($file,PATHINFO_EXTENSION)));
-	$ch = curl_init($target_url."/images/packs/".$imgName);
+	$ch = curl_init($targetURL."/images/packs/".$imgName);
 	curl_setopt($ch, CURLOPT_NOBODY, TRUE);
 	curl_exec($ch);
 	$retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -167,7 +167,7 @@ function does_banner_exist($file,$pack_name){
 }
 
 function curl_upload($file,$pack_name){
-	global $target_url;
+	global $targetURL;
 	global $security_key;
 	unset($ch,$post,$cFile);
 	$versionClient = get_version();
@@ -179,7 +179,7 @@ function curl_upload($file,$pack_name){
 	$post = array('version' => $versionClient, 'file_contents'=> $cFile);
 	//this curl method only works with PHP 5.5+
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL,$target_url."/banners.php");
+	curl_setopt($ch, CURLOPT_URL,$targetURL."/banners.php");
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array("Key: $security_keyToken"));
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
@@ -201,7 +201,7 @@ function curl_upload($file,$pack_name){
 		$return = 0;
 	}else{
 		//some kind of error
-		echo "There was an error communicating with $target_url." . PHP_EOL;
+		echo "There was an error communicating with $targetURL." . PHP_EOL;
 		wh_log("The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE));
 		echo "The server responded with error: " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . PHP_EOL;
 		$return = 1;
