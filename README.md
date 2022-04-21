@@ -1,77 +1,9 @@
 # Stepmania-Stream-Tools-MrTwinkles
 # SMRequests Fork
---
 ## Getting Started
-### Prerequisites
-This fork currently does not utilize Docker. Please ignore any docker-specific procedures.
-#### Client-side
-* Stepmania 5.0.12, 5.1-b2, 5.1-new
-* Project OutFox Alpha <=4.12 (4.13+ are not supported)
-* Local profiles set up and enabled
-* PHP 7.4.x
-#### Server-side (web hosting)
-* PHP 7.4.x
-* MariaDB (latest)
-* Nginx/Apache/some kind of web hosting
-* phpMyAdmin or similar DB management software
-#### Twitch Chat Bot
-* Third-party chatbot which support custom APIs or URLfetch can be used such as StreamElements, NightBot, etc.
-#### Streaming Software
-* Ability to add a browser-source, OBS Studio/Xsplit
+**Check out the new [wiki](https://github.com/MrTwinkles47/Stepmania-Stream-Tools-MrTwinkles/wiki/Getting-Started)!**
 
 ---
-
-## Setup
-### Server-side
-1. Git clone or copy the request_list directory to the appropriate directory on your webserver
-2. Import the `/sql/mysql_schema.sql` schema file into your already created database.
-3. Edit the config.php file with your db information, credentials, and security key.
-4. Check that the song list webpage is available at your domain (sub.domain.tld/songlist.php).
-### Client-side (SM5 machine)
-1. Git clone or copy the client_scraper directory to an accessible directory on your system.
-2. Download php 7.4.x NTS x86/x64 https://windows.php.net/download#php-7.4 (depending on your system) and copy the extracted folder to "C:/php".
-#### Configure PHP (edit php.ini):
-1. If no php.ini exists in the php directory, rename the php.ini-production file to php.ini
-    * Remove semicolon in front of `;extension=curl` to enable the cURL extension.
-    * Remove semicolon in front of `;extension=mbstring` to enable multi-byte string functions
-2. Configure php scripts. Rename `config.example.php` to `config.php` and input your StepMania directories, security key, profile information, and URL.
-3. Highly Recommended: Delete all contents of your SM5 Cache/Songs directory, start SM5, and have it rebuild new cache files.
-#### Browser Source
-1. To show the request board/widget on stream, add a new broswer source for `[URL]/show_requests.php?security_key=[KEY]`
-    * If you are using multiple broadcasters, append `&broadcaster=[BROADCASTER]`
-    * To display a custom number of requests, append `&length=[#]`
-    * For "offline/admin mode", append `&admin` to the end of the URL to add buttons for manually marking songs as completed, skipped, or banned.
-2. To show stats on stream, add a new browser source for `[URL]/stats.php?data=[?]`
-    * [?] = "songs" : ## songs played this session
-    * [?] = "requests" : ## requests this session
-    * [?] = "scores" : table of top scores for the session
-    * [?] = "recent" : most recently played songs and their scores
-    * [?] = "requestors" : list of top 5 requestors for the session
-    * [?] = "requeststatus[&onlystate]" : current status of the requests (on/off)
-    * [?] = "endscreenscroll" : session requests, requestors, and scores in end-credits style
-### Twitch Chat Bot
-You can use your existing chat bot or roll your own custom bot. Whichever bot you choose must be capable of custom commands with variables and GET urlfetch capability. I recommend using StreamElements.
-* Command variables that are supported across end-points. Refer to your bot’s documentation to determine how to use variables.
-  * Arguments -- bot must support multi-word arguments!
-  * Twitch user -- required for request commands
-  * Twitch user id -- lookup by user id is also available
-  * Broadcaster -- required for broadcast commands and multiple stream accounts
-  * Game/Category -- Useful if your bot does not have game specific commands (SE)
-  * Twitch tier -- Useful for limiting requests to certain user levels (subscriber, moderator, etc.)
-## Usage
-### Operation Mode
-SMRequests can operate in two modes:
-  1. Normal Mode -- Real-time access to the SM5 machine/cabinet for automated request completions and continuous Stats.XML scraping.
-      * This is the default operation mode. No additional configuration required.
-  2. Offline Mode -- No real-time access to the SM5 machine/cabinet. Requests need to be manually completed and Stats.XML scraping isn't possible or cannot be continuous.
-      * `$offlineMode` in `client_scrapers/config.php` must be set to `TRUE`.
-      * SM5's cache folder containing all the song cache files must be copied to the machine running the php scripts. Update your config.php file to point to this "cloned" cache directory.
-      * Limitations: Requests are completed manually, banner uploading is not supported, and score-based random functions will not function fully (you can scrape your existing Stats.XML file(s) occasionally to update your songs played records).
-### First-run
-Once all setup is complete it's time to populate the database tables and upload banner images IN THIS ORDER:
-1. Run the `scrape songs.bat` 
-2. Run the `upload banners.bat`
-3. Run the `scrape stats.bat`
 
 ## Limitations/Known Bugs
   * Only 4-panel "dance" mode is supported. Other modes that are supported by SM5 can be implemented, but they are not as of now.
