@@ -22,6 +22,7 @@ A tool for viewer song requests for live streaming StepMania 5 on Twitch
 * Ability to ban songs from being requested or being included in random commands. 
 * On-stream session stats including recent scores, high score lists, and requestors.
 * Ability to whitelist or ban users from making requests.
+* Broadcaster can limit requests by steps-type and/or difficulty level.
 ---
 ## Limitations/Known Bugs
   * Only 4-panel "dance" mode is supported. Other modes that are supported by SM5 can be implemented, but they are not as of now.
@@ -48,13 +49,13 @@ A tool for viewer song requests for live streaming StepMania 5 on Twitch
 # Stepmania-Stream-Tools (From ddrDave's original fork. Sone information below might be out-of-date.)
 Tools and utilities for interacting with Stepmania 5 to provide added features for live streaming.
 
-## 5. Stepmania Scene Switching and Song Output
+### 0. Stepmania Scene Switching and Song Output
 On my stream, I have OBS automatically switch between a "song select/evalution" scene (which shows the whole screen capture), calories burned, face camera, etc) and a "gameplay" scene, which only shows the Player 1 side of the video capture, as well as the input overlay, overhead camera, and current heart rate reading. The way this is accomplished is by having Stepmania output text to a specific text file when it switches to or from one of those screens.
 
 I also output the currently-being-played song title to a different text file. This allows me to "check off" songs that have been requested, as soon as the song starts. This requires the use of a python script I wrote on the computer running Stepmania to watch for changes to this file, and send them off to a php script on my remote web server to parse. Details in the relevant readme.
 
-## 6. Pulsoid Food/Calories Web Widget
+### 0. Pulsoid Food/Calories Web Widget
 I use Pulsoid (free) to display my current heart rate BPM on stream from my Wahoo Tickr heart rate strap. Pulsoid also offers a "calories burned" counter. I copied and modified that page to instead display total calories burned in relation to common food items, similar to DDR A.
 
-## 7. DDR Input Indicator
+### 0. DDR Input Indicator
 I use an OBS plugin called **[Input Overlay](https://obsproject.com/forum/resources/input-overlay.552/)** to achieve this - I had to make a custom config file and two custom graphics for this, which I'll include here in the repo. The other key factor here is you need to get the keyboard inputs from your stepmania machine onto your streaming machine, or this won't work. So I use a piece of free software called **[Input Director](https://www.inputdirector.com)** to mirror the keyboard inputs from the Stepmania PC to the streaming PC. There's virtually no latency. Install the software on both PCs, setup your steaming PC as a slave and use the software on your Stepmania PC to "Mirror keyboard input across slaves".
