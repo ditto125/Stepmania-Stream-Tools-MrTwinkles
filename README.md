@@ -8,6 +8,7 @@ A tool for viewer song requests for live streaming StepMania 5 on Twitch
 ## SMRequests features
 * Public songlist webpage that supports searching and display of additional song/chart information.
 * Viewers can request songs via Twitch chat.
+* Viewers can specify steps-type or difficulties for a request
 * Script for song scraping, which iterates through the SM5 Cache directory to index packs, songs, and chart metadata.
 * Automatic request completion when using the stats scraper.
 * Scraping of the Stats.xml files in the LocalProfile and USB profile directories.
@@ -15,6 +16,7 @@ A tool for viewer song requests for live streaming StepMania 5 on Twitch
 * Supports "offline" mode, for SM5 machines with no network access.
 * On-stream request board to show current and completed requests, and information about the request, such as steps-type, difficulty, or request type.
 * Broadcaster controls for the request board to complete, skip, or ban requests.
+* Moderator control for toggling requests on or off via chat commands.
 * Script for uploading banner images for each song pack for use with the request board.
 * Random requests based on songs played and scores: !top, !random, !gitgud
 * Ability to ban songs from being requested or being included in random commands. 
