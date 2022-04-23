@@ -183,14 +183,13 @@ function curl_upload($file,$pack_name){
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array("Key: $security_keyToken"));
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //if true, must specify cacert.pem location in php.ini
-	curl_setopt($ch, CURLOPT_SAFE_UPLOAD, true);
 	curl_setopt($ch, CURLOPT_ENCODING,'gzip,deflate');
 	curl_setopt($ch, CURLOPT_POST,1); 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 	$result = curl_exec ($ch);
-	if(curl_exec($ch) === FALSE){
+	if($result === FALSE){
 		echo 'Curl error: '. curl_error($ch) . PHP_EOL;
 		wh_log("Curl error: ".curl_error($ch));
 	}

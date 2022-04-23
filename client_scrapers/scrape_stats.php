@@ -431,8 +431,7 @@ function curlPost(string $postSource, array $postData){
 	curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 	$result = curl_exec ($ch);
-	//$error = curl_strerror(curl_errno($ch));
-	if(curl_exec($ch) === FALSE){
+	if($result === FALSE){
 		wh_log("Curl error: ".curl_error($ch));
 		echo 'Curl error: '.curl_error($ch) . PHP_EOL;
 	}
