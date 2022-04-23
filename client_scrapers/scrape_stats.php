@@ -127,36 +127,42 @@ function get_version(){
 
 function process_profileIDs(string $profileID){
 	//split comma-separated string into an array
-	$profileIDs = explode(',',$profileID);
-	$profileIDs = array_map('trim',$profileIDs);
+	$profileID = explode(',',$profileID);
+	$profileID = array_map('trim',$profileID);
 	//check for valid profile ID
-	foreach($profileIDs as $id){
-		if(strlen($id) != 8 && is_numeric($id)){
+	foreach($profileID as $id){
+		if(strlen($id) != 8 && !is_numeric($id)){
 			//valid profile IDs used by StepMania are 8-length numbers
 			wh_log("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
 			die("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
 		}
 	}
-	return (array)$profileIDs;
+	if(!is_array($profileID)){$profileID = array($profileID);}
+	return (array)$profileID;
 }
 
-function process_USBProfileDir(string $USBProfileDir){	
-	if(empty($USBProfileDir)){
-		//no usb directory configured in config.php
-		wh_log("USB Profiles are enabled, but no directory was configured in config.php!");
-		die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
-	}
-	//split comma-separated string into an array
-	$USBProfileDirs = explode(',',$USBProfileDir);
-	$USBProfileDirs = array_map('trim',$USBProfileDirs);
-	foreach($USBProfileDirs as $dir){
-		if(!file_exists($dir)){
-			//failed to find the usb drive/directory
-			wh_log("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct.");
-			die("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct." . PHP_EOL);
+function process_USBProfileDir(string $USBProfileDir){
+	global $USBProfile;
+
+	if ($USBProfile){
+		if(empty($USBProfileDir)){
+			//no usb directory configured in config.php
+			wh_log("USB Profiles are enabled, but no directory was configured in config.php!");
+			die("USB Profiles are enabled, but no directory was configured in config.php!" . PHP_EOL);
+		}
+		//split comma-separated string into an array
+		$USBProfileDir = explode(',',$USBProfileDir);
+		$USBProfileDir = array_map('trim',$USBProfileDir);
+		foreach($USBProfileDir as $dir){
+			if(!file_exists($dir)){
+				//failed to find the usb drive/directory
+				wh_log("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct.");
+				die("USB Profile directory: \"$dir\" does not exist! Check that the USB drive is inserted and the drive letter is correct." . PHP_EOL);
+			}
 		}
 	}
-	return (array)$USBProfileDirs;
+	if(!is_array($USBProfileDir)){$USBProfileDir = array($USBProfileDir);}
+	return (array)$USBProfileDir;
 }
 
 function fixEncoding(string $line){
@@ -210,14 +216,14 @@ function parseXmlErrors($errors,array $xmlArray){
 	return (string) $xmlStr;
 }
 
-function find_statsxml(string $saveDir, array $profileIDs, array $USBProfileDirs){
+function find_statsxml(string $saveDir, array $profileID, array $USBProfileDir){
 	global $USBProfile;
 	//look for any Stats.xml files in the profile directory(ies)
 	$saveDir = $saveDir . "/LocalProfiles";
 	$file_arr = array();
 	$i = 0;
-	if(!empty($profileIDs)){
-		foreach ($profileIDs as $id){
+	if(!empty($profileID)){
+		foreach ($profileID as $id){
 			foreach (glob($saveDir."/".$id."/Stats.xml",GLOB_BRACE) as $xml_file){
 				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
 				$file_arr[$i]['id'] = $id; //id for tracking 
@@ -236,7 +242,7 @@ function find_statsxml(string $saveDir, array $profileIDs, array $USBProfileDirs
 	}
 	if($USBProfile){
 		//using usb profile(s)...
-		foreach ($USBProfileDirs as $dir){
+		foreach ($USBProfileDir as $dir){
 			foreach (glob($dir."/Stats.xml",GLOB_BRACE) as $xml_file){
 				//build array of file directory, IDs, modified file times, and set the inital timestamp to "0"
 				$file_arr[$i]['id'] = $dir; //use the dir as the id for tracking
@@ -458,16 +464,14 @@ if((empty($profileID) || $profileID == "") && !$USBProfile){
 	//no profile ID(s) / USB profiles not used
 	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
 }
-$profileIDs = process_profileIDs($profileID);
+//process local profiles
+$profileID = process_profileIDs($profileID);
 
 //process USB Profiles
-if($USBProfile){
-	//USB profiles are enabled
-	$USBProfileDirs = process_USBProfileDir($USBProfileDir);
-}
+$USBProfileDir = process_USBProfileDir($USBProfileDir);
 
 //find stats.xml files
-$file_arr = find_statsxml ($saveDir,$profileIDs,$USBProfileDirs);
+$file_arr = find_statsxml ($saveDir,$profileID,$USBProfileDir);
 
 if ($autoRun){
 	//welcome to an infinite loop of stats
