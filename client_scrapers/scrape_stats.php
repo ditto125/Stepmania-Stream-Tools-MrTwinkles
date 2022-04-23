@@ -185,7 +185,7 @@ function fixEncoding(string $line){
 	return (string) $line;
 }
 
-function parseXmlErrors(object $errors,array $xmlArray){
+function parseXmlErrors($errors,array $xmlArray){
 	foreach ($errors as $error){
 		if ($error->code == 9){
 			//error code: 9 is "Invalid UTF-8 encoding detected"
@@ -201,7 +201,7 @@ function parseXmlErrors(object $errors,array $xmlArray){
 		}elseif($error->code != 9){
 			//error code is not "9"
 			//other errors haven't really popped up, so here, have the raw output!
-			wh_log(implode(PHP_EOL,$errors)); 
+			wh_log(implode(PHP_EOL,(array) $errors)); 
 			print_r($errors);
 		}
 	}
@@ -455,7 +455,7 @@ function curlPost(string $postSource, array $postData){
 check_environment();
 
 //process ProfileIDs
-if((empty($profileIDs) || $profileIDs == "") && !$USBProfile){
+if((empty($profileID) || $profileID == "") && !$USBProfile){
 	//no profile ID(s) / USB profiles not used
 	die("No LocalProfile ID specified! You must specify at least 1 profile ID in config.php." . PHP_EOL);
 }
