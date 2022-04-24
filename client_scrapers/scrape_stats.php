@@ -126,15 +126,17 @@ function get_version(){
 }
 
 function process_profileIDs(string $profileID){
-	//split comma-separated string into an array
-	$profileID = explode(',',$profileID);
-	$profileID = array_map('trim',$profileID);
-	//check for valid profile ID
-	foreach($profileID as $id){
-		if(strlen($id) != 8 && !is_numeric($id)){
-			//valid profile IDs used by StepMania are 8-length numbers
-			wh_log("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
-			die("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
+	if(!empty($profileID)){
+		//split comma-separated string into an array
+		$profileID = explode(',',$profileID);
+		$profileID = array_map('trim',$profileID);
+		//check for valid profile ID
+		foreach($profileID as $id){
+			if(strlen($id) != 8 && !is_numeric($id)){
+				//valid profile IDs used by StepMania are 8-length numbers
+				wh_log("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs.");
+				die("$id is not a valid LocalProfile ID! Check your config.php configuration for profileIDs." . PHP_EOL);
+			}
 		}
 	}
 	if(!is_array($profileID)){$profileID = array($profileID);}
