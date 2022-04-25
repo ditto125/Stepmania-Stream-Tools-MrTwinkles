@@ -99,6 +99,25 @@ function get_version(){
 	return $versionClient;
 }
 
+function check_target_url(){
+	global $targetURL;
+	global $target_url;
+
+	if(isset($target_url) && !empty($target_url)){
+		$targetURL = $target_url;
+	}
+	if(!isset($targetURL) || empty($targetURL)){
+		die("No target URL found! Check the \"targetURL\" value in your config.php file" . PHP_EOL);
+	}elseif(filter_var($targetURL,FILTER_VALIDATE_URL) === FALSE){
+		die("\"$targetURL\" is not a valid URL. Check the \"targetURL\" value in your config.php file" . PHP_EOL);
+	}elseif(preg_match('/(smrequests\.)(com|dev)/',$targetURL)){
+		//this is a hosted domain
+		if(!preg_match('/(https:\/\/.+\.smrequests\.)(com|dev)(?!\/)/',$targetURL)){
+			die("\"$targetURL\" is not a valid URL for the SMRequests hosted service. Check the \"targetURL\" value in your config.php file" . PHP_EOL);
+		}
+	}
+}
+
 function findFiles($directory) {
 	//find all directories in a directory and sort by modified time
     $dir_paths = array ();
@@ -190,7 +209,7 @@ function curl_upload($file,$pack_name){
 	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 	$result = curl_exec ($ch);
 	if($result === FALSE){
-		echo 'Curl error: '. curl_error($ch) . PHP_EOL;
+		echo "Curl error: ".curl_error($ch) . PHP_EOL;
 		wh_log("Curl error: ".curl_error($ch));
 	}
 	if(curl_getinfo($ch, CURLINFO_HTTP_CODE) < 400){
@@ -211,6 +230,9 @@ function curl_upload($file,$pack_name){
 
 //check php environment
 check_environment();
+
+//check for valid target URL
+check_target_url();
 
 echo "Finding and uploading pack banner images..." . PHP_EOL;
 
