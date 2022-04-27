@@ -430,7 +430,10 @@ function curlPost(string $postSource, array $postData){
 	global $offlineMode;
 	$return = FALSE;
 	$versionClient = get_version();
-	//add the security_key to the array
+	//add the security_key to the http header
+	if(!isset($security_key) || empty($security_key)){
+		die("No security_key found! Check the \"security_key\" value in your config.php file" . PHP_EOL);
+	}
 	$security_keyToken = base64_encode($security_key);
 	$jsMicro = microtime(true);
 	$jsonArray = array('source' => $postSource, 'version' => $versionClient, 'offline' => $offlineMode, 'data' => $postData);

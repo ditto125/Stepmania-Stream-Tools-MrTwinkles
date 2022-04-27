@@ -190,6 +190,10 @@ function curl_upload($file,$pack_name){
 	global $security_key;
 	unset($ch,$post,$cFile);
 	$versionClient = get_version();
+	//add the security_key to the http header
+	if(!isset($security_key) || empty($security_key)){
+		die("No security_key found! Check the \"security_key\" value in your config.php file" . PHP_EOL);
+	}
 	$security_keyToken = base64_encode($security_key);
 	//special curl function to create the information needed to upload files
 	//renaming the banner images to be consistent with the pack name
