@@ -18,21 +18,23 @@ if(!isset($_GET["random"]) && ((!isset($_GET["num"]) && !is_numeric($_GET["num"]
 function request_song($song_id, $requestor, $tier, $twitchid, $broadcaster, $request_type, $stepstype, $difficulty){
 	global $conn;
 	
-	$userobj = check_user($twitchid, $requestor);
-
-	if($userobj["banned"] == "true"){
-        die();
-	}   
-	if($userobj["whitelisted"] != "true"){
-        check_cooldown($requestor);
-		}
-
 	if(empty($request_type)){$request_type = "random";}
 
-	requested_recently($song_id,$requestor,$userobj["whitelisted"],1);
+	$userobj = check_user($twitchid, $requestor);
+
+	if(strtolower($broadcaster) != strtolower($requestor)){
+		//requestor not broadcaster. broadcaster bypasses these checks
+		if($userobj["banned"] == "true"){
+			die();
+		}   
+		if($userobj["whitelisted"] != "true"){
+			check_cooldown($requestor);
+		}
+		requested_recently($song_id,$requestor,$userobj["whitelisted"]);
+	}
 
     $sql = "INSERT INTO sm_requests (song_id, request_time, requestor, twitch_tier, broadcaster, request_type, stepstype, difficulty) VALUES ('{$song_id}', NOW(), '{$requestor}', '{$tier}', '{$broadcaster}', '{$request_type}', '{$stepstype}', '{$difficulty}')";
-    $retval = mysqli_query( $conn, $sql );
+    mysqli_query( $conn, $sql );
 
 }
 
@@ -151,17 +153,17 @@ if(isset($_GET["game"])){
     }
 }
 
-$user = $_GET["user"];
-$tier = $_GET["tier"];
+$user = mysqli_real_escape_string($conn,$_GET["user"]);
+$tier = mysqli_real_escape_string($conn,$_GET["tier"]);
+$twitchid = 0;
 if(isset($_GET["userid"])){
-	$twitchid = $_GET["userid"];
-}else{
-	$twitchid = 0;
+	$twitchid = mysqli_real_escape_string($conn,$_GET["userid"]);
 }
+
 //get broadcaster and adjust query filters
 if(isset($_GET["broadcaster"]) && !empty($_GET["broadcaster"])){
-	$broadcaster = $_GET["broadcaster"];
-	check_request_toggle($broadcaster);
+	$broadcaster = mysqli_real_escape_string($conn,$_GET["broadcaster"]);
+	check_request_toggle($broadcaster, $user);
 	if (array_key_exists($broadcaster,$broadcasters)){
 		$profileName = $broadcasters[$broadcaster];
 	}else{

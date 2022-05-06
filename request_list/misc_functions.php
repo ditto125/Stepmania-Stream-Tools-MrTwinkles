@@ -116,7 +116,7 @@ function check_cooldown($user){
     }
 }
 
-function requested_recently($song_id,$requestor,$whitelisted,$interval){
+function requested_recently($song_id,$requestor,$whitelisted,$interval = 1){
     global $conn;
     
     if(empty($interval) || !is_numeric($interval)){$interval = 1;}
@@ -176,8 +176,14 @@ function get_broadcaster_limits($broadcaster){
     return $broadcaserLimits;
 }
 
-function check_request_toggle($broadcaster){
+function check_request_toggle($broadcaster,$user = NULL){
     global $conn;
+
+    if(strtolower($broadcaster) == strtolower($user)){
+		//requestor is broadcaster: bypass
+        return;
+    }
+
     $sql0 = "SELECT * FROM sm_broadcaster WHERE broadcaster LIKE '$broadcaster'";
     $retval0 = mysqli_query( $conn, $sql0 );
     $numrows = mysqli_num_rows($retval0);
