@@ -147,7 +147,7 @@ $conn->set_charset("utf8mb4");
 
 //check if the active channel category/game is StepMania, etc.
 if(isset($_GET["game"])){
-	$game = $_GET["game"];
+	$game = mysqli_real_escape_string($conn,$_GET["game"]);
     if(in_array(strtolower($game),array_map('strtolower',$categoryGame)) == FALSE){
         die("Hmmm...I don't think it's possible to request songs in ".$game.".");
     }

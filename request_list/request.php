@@ -69,7 +69,7 @@ $conn->set_charset("utf8mb4");
 
 //check if the active channel category/game is StepMania, etc.
 if(isset($_GET["game"]) && !empty($_GET["game"])){
-	$game = $_GET["game"];
+	$game = mysqli_real_escape_string($conn,$_GET["game"]);
     if(in_array(strtolower($game),array_map('strtolower',$categoryGame)) == FALSE){
         die("Hmmm...I don't think it's possible to request songs in ".$game.".");
     }
@@ -218,7 +218,7 @@ if(isset($_GET["songid"]) && !empty($_GET["songid"])){
         		die();
     		}
 	} else {
-        	echo "Didn't find any songs matching the ID: " . $song . "!";
+        	echo "$user => Didn't find any songs matching the ID: " . $song . "!";
         	die();
 }
 
@@ -283,9 +283,9 @@ if(isset($_GET["song"]) && !empty($_GET["song"])){
 			$i++;
     	}
 	} elseif (is_numeric($song)) {
-		echo "Did you mean to use !requestid ".$song."?";
+		echo "$user => Did you mean to use !requestid ".$song."?";
 	}else{
-		echo "Didn't find any songs matching that name! Check the !songlist.";
+		echo "$user => Didn't find any songs matching that name! Check the !songlist.";
 	}
 
 	die();

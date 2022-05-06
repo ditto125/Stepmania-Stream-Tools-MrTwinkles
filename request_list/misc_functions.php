@@ -128,7 +128,7 @@ function requested_recently($song_id,$requestor,$whitelisted,$interval = 1){
 
 	if($row0["total"] > 0){
     //if(($row0["total"] > 0) && ($whitelisted != "true")){
-        die("$requestor That song has already been requested recently!");
+        die("$requestor => This song has already been requested recently!");
     }
 }
 
@@ -417,7 +417,7 @@ function parseCommandArgs($argsStr,$user,$broadcaster){
         if(mysqli_num_rows($retval0) == 1){
             $row0 = mysqli_fetch_assoc($retval0);
             if($row0['stepstype'] != $result['stepstype'] && !empty($row0['stepstype'])){
-                die("$user The broadcaster has limited requests to \"".$row0['stepstype']."\".");
+                die("$user => The broadcaster has limited requests to \"".$row0['stepstype']."\".");
             }
         }
     }
