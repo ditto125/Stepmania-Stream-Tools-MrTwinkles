@@ -149,18 +149,19 @@ function isIgnoredPack($pack){
 function get_banner($img_path){
 	//look for banners, reject known not banners
 	foreach($img_path as $img){
-		if(stripos(pathinfo($img,PATHINFO_FILENAME),'banner') !== FALSE){
+		$filename = pathinfo($img,PATHINFO_FILENAME);
+		if(stripos($filename,'banner') !== FALSE){
 			$return = $img;
 			break;
-		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'ban') !== FALSE){
+		}elseif(stripos($filename,'bn') !== FALSE){
 			$return = $img;
 			break;
-		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'bn') !== FALSE){
+		}elseif(stripos($filename,'ban') !== FALSE){
 			$return = $img;
 			break;
-		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'jacket') !== FALSE){
+		}elseif(stripos($filename,'jacket') !== FALSE){
 			continue;
-		}elseif(stripos(pathinfo($img,PATHINFO_FILENAME),'cdtitle') !== FALSE){
+		}elseif(stripos($filename,'cdtitle') !== FALSE){
 			continue;
 		}else{
 			$return = $img;

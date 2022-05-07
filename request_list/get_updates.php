@@ -65,7 +65,7 @@ function get_requests_since($id,$oldid,$broadcaster){
 		
 		//format pack name and find pack banner
 		$pack_img = strtolower(preg_replace('/\s+/', '_', trim($request["pack"])));
-		$pack_img = glob("images/packs/".$pack_img.".{jpg,jpeg,png,gif,bmp}", GLOB_BRACE);
+		$pack_img = glob("images/packs/".$pack_img.".{jpg,JPG,jpeg,JPEG,png,PNG,gif,GIF,bmp,BMP}", GLOB_BRACE);
 		if (!$pack_img){
 			$request["img"] = "images/packs/unknown.png";
 		}else{
@@ -76,7 +76,7 @@ function get_requests_since($id,$oldid,$broadcaster){
 		//format request type and find image
 		$request["request_type"] = strtolower($request["request_type"]);
 		if($request["request_type"] != "normal"){
-			$request_img = glob("images/".$request["request_type"].".{png,gif}", GLOB_BRACE);
+			$request_img = glob("images/".$request["request_type"].".{png,PNG,gif,GIF}", GLOB_BRACE);
 			if (!$request_img){
 				$request["request_type"] = "images/random.png";
 			}else{

@@ -45,6 +45,7 @@ $maxRequests = 10;
 $scoreType = "itg";
 
 //Limit to how many random songs can be requested at once
+//DEPRECIATED: will remove in a future version
 $max_num = 3;
 
 //Top percent. Percent of total songs played to use as "top" for use in random queries.
