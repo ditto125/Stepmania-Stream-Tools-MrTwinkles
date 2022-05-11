@@ -278,9 +278,12 @@ function scrapeSong(array $songCacheFiles){
 				if( strpos($display_bpm,':') > 0){
 					//bpm is a range
 					$display_bpm = explode(":",$display_bpm);
-					if(min($display_bpm) === 0){
+					if(round(min($display_bpm),0) == 0){
 						//display bpm range has a '0', this is usually ignored by StepMania
 						//treat as if it was not a range
+						$display_bpm = round(max($display_bpm),0);
+					}elseif(round(min($display_bpm),0) == round(max($display_bpm),0)){
+						//the bpm has lied and is not a range
 						$display_bpm = round(max($display_bpm),0);
 					}else{
 						//round and format bpm range
@@ -296,10 +299,16 @@ function scrapeSong(array $songCacheFiles){
 				//#DISPLAYBPM tag is empty or has a weird value, pull from #BPMS tag
 				if( isset($metadata['#BPMS']) && !empty($metadata['#BPMS'])){
 					//split all the bpms, find the min and max
-					$display_bpm = explode(",",$metadata['#BPMS']);
+					$display_bpm = trim($metadata['#BPMS']);
+					$display_bpm = explode(",",$display_bpm);
 					$display_bpm = array_map(function($n){return substr($n,strpos($n,"=")+1);},$display_bpm);
 					if(count($display_bpm) > 1){
-						$display_bpm = round(min($display_bpm),0) . "-" . round(max($display_bpm),0);
+						if(round(min($display_bpm),0) == round(max($display_bpm),0)){
+							//the bpm has lied and is not a range
+							$display_bpm = round(max($display_bpm),0);
+						}else{
+							$display_bpm = round(min($display_bpm),0) . "-" . round(max($display_bpm),0);
+						}
 					}elseif(count($display_bpm) == 1){
 						$display_bpm = round($display_bpm[0],0);
 					}else{
