@@ -14,4 +14,4 @@
     2. URL-encode your names: `Dance+Dance+Revolution`,`Dancing+Stage`.
     3. Add the regex 'OR' character ('|', URL-encoded to '%7C'): `Dance+Dance+Revolution%7CDancing+Stage`
     4. Put this in the URL after `random=`: `random=Dance+Dance+Revolution%7CDancing+Stage`
-    5. Final command (using SE variables): `${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&type=ddr&random=Dance+Dance+Revolution%7CDancing+Stage&num=${queryescape ${1|1}}}`
+    5. Final command (using SE variables): `${urlfetch https://[URL]/rand_request.php?security_key=[KEY]&broadcaster=${channel}&user=${user}&tier=${user.level}&game=${game}&random=Dance+Dance+Revolution%7CDancing+Stage&song=${queryescape ${1:|0}}}`
