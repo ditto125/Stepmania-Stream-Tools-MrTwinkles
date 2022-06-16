@@ -1,4 +1,6 @@
 # Chat Bot Setup
+*Note: This is legacy information visit [the wiki](https://github.com/MrTwinkles47/Stepmania-Stream-Tools-MrTwinkles/wiki/Twitch-Chatbot-Setup) for current bot setup information
+
 ## StreamElements and NightBot
 *StreamElements and NightBot do not support importing of custom bot commands.*
 
